@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+  <html lang="en">
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PawPocket — Dog behaviour clarity, in your pocket.</title>
+<meta name="description" content="PawPocket helps owners read the dog in front of them and choose the next right move.">
+<style>
+  :root {
+    --ink: #16241f;
+    --paper: #faf7f2;
+          --moss: #2f6f4f;
+    --moss-dark: #1f4d36;
+    --amber: #d98e3f;
+          --muted: #5b6b63;
+}
+  * { box-sizing: border-box; }
+  html, body {
+        margin: 0;
+    padding: 0;
+    height: 100%;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+}
+  .wrap {
+        min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 24px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+  .glow {
+        position: absolute;
+    width: 700px;
+    height: 700px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(47,111,79,0.12) 0%, rgba(47,111,79,0) 70%);
+    top: -200px;
+    right: -200px;
+    pointer-events: none;
+}
+  .mark {
+        display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 64px;
+    border-radius: 20px;
+    background: var(--moss);
+    margin-bottom: 28px;
+}
+  .mark svg { width: 32px; height: 32px; }
+  h1 {
+        font-size: clamp(2.2rem, 6vw, 3.4rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin: 0 0 18px;
+    color: var(--moss-dark);
+}
+  .tagline {
+        font-size: clamp(1.1rem, 2.4vw, 1.5rem);
+    font-weight: 500;
+    color: var(--ink);
+    max-width: 560px;
+    margin: 0 0 12px;
+}
+  .ethos {
+        font-size: 0.95rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--amber);
+    font-weight: 600;
+    margin: 0 0 40px;
+}
+  .status {
+        display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 999px;
+    background: rgba(47,111,79,0.08);
+    color: var(--moss-dark);
+    font-size: 0.9rem;
+    font-weight: 600;
+    border: 1px solid rgba(47,111,79,0.2);
+  }
+  .dot {
+        width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--amber);
+  }
+  footer {
+        margin-top: 56px;
+    font-size: 0.85rem;
+    color: var(--muted);
+}
+</style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="glow"></div>
+      <div class="mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 14.5c-2.9 0-6 2.1-6 4.6 0 1.2 1 1.9 2.3 1.9.9 0 1.7-.3 2.5-.6.4-.2.8-.3 1.2-.3s.8.1 1.2.3c.8.3 1.6.6 2.5.6 1.3 0 2.3-.7 2.3-1.9 0-2.5-3.1-4.6-6-4.6z" fill="#faf7f2"/>
+          <ellipse cx="6.2" cy="10.5" rx="1.8" ry="2.3" fill="#faf7f2"/>
+          <ellipse cx="10.2" cy="7.6" rx="1.8" ry="2.3" fill="#faf7f2"/>
+          <ellipse cx="13.8" cy="7.6" rx="1.8" ry="2.3" fill="#faf7f2"/>
+          <ellipse cx="17.8" cy="10.5" rx="1.8" ry="2.3" fill="#faf7f2"/>
+        </svg>
+      </div>
+      <h1>PawPocket</h1>
+      <p class="tagline">Dog behaviour clarity, in your pocket.</p>
+    <p class="ethos">See clearer &middot; Train smarter &middot; Love better</p>
+    <div class="status"><span class="dot"></span>Building — more coming soon</div>
+    <footer>&copy; 2026 PawPocket</footer>
+    </div>
+  </body>
+  </html>
+  
