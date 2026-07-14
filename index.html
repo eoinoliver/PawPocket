@@ -1,125 +1,630 @@
 <!DOCTYPE html>
-  <html lang="en">
-  <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PawPocket — Dog behaviour clarity, in your pocket.</title>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PawPocket — Dog behaviour clarity, in your pocket.</title>
 <meta name="description" content="PawPocket helps owners read the dog in front of them and choose the next right move.">
+<meta name="theme-color" content="#2f6f4f">
 <style>
   :root {
     --ink: #16241f;
     --paper: #faf7f2;
-          --moss: #2f6f4f;
+    --card: #ffffff;
+    --moss: #2f6f4f;
     --moss-dark: #1f4d36;
+    --moss-soft: rgba(47,111,79,0.08);
+    --moss-line: rgba(47,111,79,0.2);
     --amber: #d98e3f;
-          --muted: #5b6b63;
-}
+    --amber-soft: rgba(217,142,63,0.12);
+    --red: #b4513d;
+    --red-soft: rgba(180,81,61,0.09);
+    --muted: #5b6b63;
+  }
   * { box-sizing: border-box; }
   html, body {
-        margin: 0;
-    padding: 0;
-    height: 100%;
-    background: var(--paper);
-    color: var(--ink);
+    margin: 0; padding: 0;
+    background: var(--paper); color: var(--ink);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-}
-  .wrap {
-        min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 40px 24px;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
-}
-  .glow {
-        position: absolute;
-    width: 700px;
-    height: 700px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(47,111,79,0.12) 0%, rgba(47,111,79,0) 70%);
-    top: -200px;
-    right: -200px;
-    pointer-events: none;
-}
+    -webkit-font-smoothing: antialiased;
+  }
+  .shell { max-width: 560px; margin: 0 auto; padding: 20px 20px 60px; min-height: 100vh; }
+  header.top {
+    display: flex; align-items: center; gap: 12px; padding: 8px 0 20px; cursor: pointer;
+  }
   .mark {
-        display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 64px;
-    height: 64px;
-    border-radius: 20px;
-    background: var(--moss);
-    margin-bottom: 28px;
-}
-  .mark svg { width: 32px; height: 32px; }
-  h1 {
-        font-size: clamp(2.2rem, 6vw, 3.4rem);
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    margin: 0 0 18px;
-    color: var(--moss-dark);
-}
-  .tagline {
-        font-size: clamp(1.1rem, 2.4vw, 1.5rem);
-    font-weight: 500;
-    color: var(--ink);
-    max-width: 560px;
-    margin: 0 0 12px;
-}
-  .ethos {
-        font-size: 0.95rem;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--amber);
-    font-weight: 600;
-    margin: 0 0 40px;
-}
-  .status {
-        display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 20px;
-    border-radius: 999px;
-    background: rgba(47,111,79,0.08);
-    color: var(--moss-dark);
-    font-size: 0.9rem;
-    font-weight: 600;
-    border: 1px solid rgba(47,111,79,0.2);
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 40px; height: 40px; border-radius: 13px; background: var(--moss); flex: 0 0 auto;
   }
-  .dot {
-        width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--amber);
+  .mark svg { width: 22px; height: 22px; }
+  .brand h1 { font-size: 1.25rem; margin: 0; letter-spacing: -0.01em; color: var(--moss-dark); }
+  .brand p { margin: 0; font-size: 0.8rem; color: var(--muted); }
+  h2 { font-size: 1.5rem; letter-spacing: -0.02em; color: var(--moss-dark); margin: 6px 0 6px; }
+  .sub { color: var(--muted); font-size: 0.95rem; margin: 0 0 20px; line-height: 1.5; }
+  .card {
+    background: var(--card); border: 1px solid var(--moss-line); border-radius: 18px;
+    padding: 18px 18px; margin-bottom: 14px;
   }
-  footer {
-        margin-top: 56px;
-    font-size: 0.85rem;
-    color: var(--muted);
-}
+  .card.tap { cursor: pointer; transition: transform .08s ease, box-shadow .12s ease; }
+  .card.tap:active { transform: scale(0.985); }
+  .card h3 { margin: 0 0 4px; font-size: 1.05rem; color: var(--moss-dark); }
+  .card p { margin: 0; font-size: 0.88rem; color: var(--muted); line-height: 1.5; }
+  .card.soon { opacity: 0.55; cursor: default; }
+  .pill {
+    display: inline-block; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.05em;
+    text-transform: uppercase; padding: 3px 9px; border-radius: 999px; margin-left: 8px;
+    background: var(--amber-soft); color: var(--amber); vertical-align: 2px;
+  }
+  .pill.green { background: var(--moss-soft); color: var(--moss-dark); }
+  .btn {
+    display: block; width: 100%; padding: 15px 18px; border-radius: 14px; border: none;
+    background: var(--moss); color: #fff; font-size: 1rem; font-weight: 600; cursor: pointer;
+    font-family: inherit; margin-top: 8px;
+  }
+  .btn:active { background: var(--moss-dark); }
+  .btn.ghost { background: transparent; color: var(--moss-dark); border: 1.5px solid var(--moss-line); }
+  .btn.quiet { background: transparent; color: var(--muted); font-weight: 500; font-size: 0.9rem; padding: 10px; }
+  .chips { display: flex; flex-direction: column; gap: 10px; margin: 14px 0 4px; }
+  .chip {
+    text-align: left; padding: 14px 16px; border-radius: 14px; cursor: pointer;
+    border: 1.5px solid var(--moss-line); background: var(--card); color: var(--ink);
+    font-size: 0.95rem; font-family: inherit; line-height: 1.45;
+  }
+  .chip:active, .chip.sel { border-color: var(--moss); background: var(--moss-soft); }
+  .step-dots { display: flex; gap: 6px; margin: 4px 0 16px; }
+  .step-dots span { width: 26px; height: 5px; border-radius: 3px; background: var(--moss-line); }
+  .step-dots span.on { background: var(--moss); }
+  .block { border-radius: 16px; padding: 16px 18px; margin-bottom: 12px; background: var(--card); border: 1px solid var(--moss-line); }
+  .block .tag {
+    font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--amber); display: block; margin-bottom: 7px;
+  }
+  .block.readblk .tag { color: var(--moss); }
+  .block p { margin: 0; font-size: 0.96rem; line-height: 1.62; }
+  .block p + p { margin-top: 9px; }
+  .block.boundary { background: var(--amber-soft); border-color: rgba(217,142,63,0.35); }
+  .block.danger { background: var(--red-soft); border-color: rgba(180,81,61,0.3); }
+  .block.danger .tag { color: var(--red); }
+  .script {
+    background: var(--moss-soft); border-radius: 12px; padding: 13px 15px;
+    font-size: 0.92rem; line-height: 1.6; font-style: italic; margin-top: 10px;
+  }
+  label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--moss-dark); margin: 16px 0 7px; }
+  input[type=text] {
+    width: 100%; padding: 13px 14px; border-radius: 12px; border: 1.5px solid var(--moss-line);
+    background: var(--card); font-size: 1rem; font-family: inherit; color: var(--ink);
+  }
+  input[type=text]:focus { outline: none; border-color: var(--moss); }
+  .opts { display: flex; flex-wrap: wrap; gap: 8px; }
+  .opt {
+    padding: 9px 14px; border-radius: 999px; border: 1.5px solid var(--moss-line);
+    background: var(--card); font-size: 0.88rem; cursor: pointer; font-family: inherit; color: var(--ink);
+  }
+  .opt.sel { background: var(--moss); border-color: var(--moss); color: #fff; }
+  .wo-meta { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 10px; }
+  .wo-meta div { font-size: 0.8rem; color: var(--muted); }
+  .wo-meta b { color: var(--moss-dark); display: block; font-size: 0.92rem; }
+  .planline { display: flex; gap: 10px; margin-bottom: 12px; align-items: flex-start; }
+  .planline .k {
+    flex: 0 0 92px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.05em;
+    text-transform: uppercase; color: var(--amber); padding-top: 2px;
+  }
+  .planline .v { font-size: 0.93rem; line-height: 1.55; }
+  .stepbadge {
+    display: inline-block; background: var(--moss-soft); color: var(--moss-dark);
+    font-size: 0.75rem; font-weight: 700; padding: 4px 11px; border-radius: 999px; margin-bottom: 10px;
+  }
+  .celebrate { text-align: center; padding: 26px 10px 10px; }
+  .celebrate .big { font-size: 2.6rem; }
+  footer.legal {
+    margin-top: 36px; font-size: 0.76rem; color: var(--muted); line-height: 1.55;
+    border-top: 1px solid var(--moss-line); padding-top: 16px;
+  }
+  .back { color: var(--muted); font-size: 0.85rem; cursor: pointer; margin-bottom: 12px; display: inline-block; background:none; border:none; font-family:inherit; padding:0; }
 </style>
-  </head>
-  <body>
-    <div class="wrap">
-      <div class="glow"></div>
-      <div class="mark" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 14.5c-2.9 0-6 2.1-6 4.6 0 1.2 1 1.9 2.3 1.9.9 0 1.7-.3 2.5-.6.4-.2.8-.3 1.2-.3s.8.1 1.2.3c.8.3 1.6.6 2.5.6 1.3 0 2.3-.7 2.3-1.9 0-2.5-3.1-4.6-6-4.6z" fill="#faf7f2"/>
-          <ellipse cx="6.2" cy="10.5" rx="1.8" ry="2.3" fill="#faf7f2"/>
-          <ellipse cx="10.2" cy="7.6" rx="1.8" ry="2.3" fill="#faf7f2"/>
-          <ellipse cx="13.8" cy="7.6" rx="1.8" ry="2.3" fill="#faf7f2"/>
-          <ellipse cx="17.8" cy="10.5" rx="1.8" ry="2.3" fill="#faf7f2"/>
-        </svg>
-      </div>
-      <h1>PawPocket</h1>
-      <p class="tagline">Dog behaviour clarity, in your pocket.</p>
-    <p class="ethos">See clearer &middot; Train smarter &middot; Love better</p>
-    <div class="status"><span class="dot"></span>Building — more coming soon</div>
-    <footer>&copy; 2026 PawPocket</footer>
+</head>
+<body>
+<div class="shell">
+  <header class="top" onclick="go('home')">
+    <div class="mark" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 14.5c-2.9 0-6 2.1-6 4.6 0 1.2 1 1.9 2.3 1.9.9 0 1.7-.3 2.5-.6.4-.2.8-.3 1.2-.3s.8.1 1.2.3c.8.3 1.6.6 2.5.6 1.3 0 2.3-.7 2.3-1.9 0-2.5-3.1-4.6-6-4.6z" fill="#faf7f2"/>
+        <ellipse cx="6.2" cy="10.5" rx="1.8" ry="2.3" fill="#faf7f2"/>
+        <ellipse cx="10.2" cy="7.6" rx="1.8" ry="2.3" fill="#faf7f2"/>
+        <ellipse cx="13.8" cy="7.6" rx="1.8" ry="2.3" fill="#faf7f2"/>
+        <ellipse cx="17.8" cy="10.5" rx="1.8" ry="2.3" fill="#faf7f2"/>
+      </svg>
     </div>
-  </body>
-  </html>
-  
+    <div class="brand">
+      <h1>PawPocket</h1>
+      <p>Know what to do when your dog does that.</p>
+    </div>
+  </header>
+  <main id="app"></main>
+</div>
+
+<script>
+/* ============================================================
+   PawPocket — Jumping Up pilot (Brief v3)
+   Content lives in data objects; rendering is separate.
+   ============================================================ */
+
+// ---------- storage ----------
+const S = {
+  get profile() { try { return JSON.parse(localStorage.getItem('pp_profile')); } catch(e){ return null; } },
+  set profile(v) { localStorage.setItem('pp_profile', JSON.stringify(v)); },
+  get working() { try { return JSON.parse(localStorage.getItem('pp_working')) || []; } catch(e){ return []; } },
+  set working(v) { localStorage.setItem('pp_working', JSON.stringify(v)); }
+};
+
+// ---------- profile schema ----------
+const PROFILE_FIELDS = [
+  { id:'age', label:'How old?', opts:[
+    {id:'puppy', label:'Puppy (under 6 months)'},
+    {id:'adolescent', label:'Adolescent (6–18 months)'},
+    {id:'adult', label:'Adult (1.5–7 years)'},
+    {id:'senior', label:'Senior (7+)'}
+  ]},
+  { id:'size', label:'Size', opts:[
+    {id:'small', label:'Small'}, {id:'medium', label:'Medium'}, {id:'large', label:'Large'}
+  ]},
+  { id:'arrival', label:'How did they join you?', opts:[
+    {id:'pup', label:'From a pup'}, {id:'rescue', label:'Rescue'},
+    {id:'rehomed', label:'Rehomed'}, {id:'longtime', label:'Long-time family dog'}
+  ]},
+  { id:'household', label:'Who’s at home?', multi:true, opts:[
+    {id:'kids', label:'Kids'}, {id:'otherdogs', label:'Other dogs'},
+    {id:'visitors', label:'Regular visitors'}, {id:'adults', label:'Just adults'}
+  ]},
+  { id:'owner', label:'And you?', opts:[
+    {id:'first', label:'First dog'}, {id:'experienced', label:'Had dogs before'}
+  ]}
+];
+
+// ---------- jumping pack (content as data) ----------
+const JUMPING = {
+  id: 'jumping',
+  label: 'Jumping up',
+
+  gate: {
+    q: 'First, one important question. Has the jumping ever involved any of these?',
+    opts: [
+      { id:'no',    label:'No — it’s pure enthusiasm', route:'green' },
+      { id:'knock', label:'Someone’s been accidentally knocked over or scratched', route:'green_knock' },
+      { id:'tense', label:'{name} growls or seems tense (not playful) while doing it', route:'amber' },
+      { id:'bite',  label:'There’s been a snap, nip or bite', route:'red' }
+    ]
+  },
+
+  chips: [
+    { id:'who', q:'Who gets jumped on most?', opts:[
+      { id:'guests', label:'Guests arriving at the door' },
+      { id:'home',   label:'You or family, when you get home' },
+      { id:'walks',  label:'People out on walks' },
+      { id:'kids',   label:'The kids' }
+    ]},
+    { id:'next', q:'What usually happens next?', opts:[
+      { id:'push',   label:'We push {name} off and say “no”' },
+      { id:'shout',  label:'Someone shouts or scolds' },
+      { id:'laugh',  label:'People laugh, pat or make a fuss' },
+      { id:'givein', label:'We try to ignore it, but eventually give in' }
+    ]}
+  ],
+
+  // driver = what keeps it alive (from "what happens next")
+  drivers: {
+    push: {
+      core: 'Every push and every “no” delivers eye contact, touch and voice — the three things {name} is jumping to get. From {name}’s side of the fence, jumping works.',
+      lens: 'Attention is currency. Even “stop it!” can accidentally pay the dog.',
+      trap: 'Pushing {name} off while talking to them feels like a correction to you — and like a game with hands to them.'
+    },
+    shout: {
+      core: 'Shouting adds energy to an already over-excited moment. {name} isn’t hearing “stop” — they’re hearing the room get louder, which winds the game up further. And even cross attention is still attention.',
+      lens: 'Dogs read arousal before they read words. A raised voice raises the temperature.',
+      trap: 'Scolding after the jump pays the behaviour with attention and adds excitement — the opposite of what the moment needs.'
+    },
+    laugh: {
+      core: 'Somebody in {name}’s world is paying the jump — laughter, pats, a fuss. When one person rewards it and another blocks it, {name} doesn’t learn “don’t jump”. They learn “keep trying — it works on some people”.',
+      lens: 'A behaviour rewarded now and then is stronger than one rewarded every time. It’s the slot-machine effect.',
+      trap: '“It’s fine, I love dogs!” is the most common way a visitor quietly trains your dog to jump.'
+    },
+    givein: {
+      core: 'Ignoring works — but only if it holds. When jumping eventually gets the greeting anyway, {name} learns that persistence pays: jump longer, jump harder, and the payoff comes.',
+      lens: 'Giving in on attempt eight doesn’t undo attempts one to seven. It teaches attempt nine.',
+      trap: 'Half-ignoring trains persistence. The moment to pay {name} is the instant those paws hit the floor — not when you run out of patience.'
+    }
+  },
+
+  // target = who it happens to (situational intro + today's action)
+  targets: {
+    guests: {
+      intro: 'Door arrivals are the most exciting thirty seconds of {name}’s day — the knock, the voices, the new person. Arousal spikes before the door even opens.',
+      action: 'Set up one rehearsal today: lead on before the door opens, ask your guest to ignore {name} completely until all four paws are on the floor — then reward within two seconds.'
+    },
+    home: {
+      intro: 'Reunions are huge for dogs. After hours apart, you walking in is the best thing that’s happened all day — and all of that feeling goes straight into {name}’s front paws.',
+      action: 'Tonight when you come home: keep the greeting low-key, remove your attention the second paws come up (turn away, no words), and calmly greet the instant four paws are down.'
+    },
+    walks: {
+      intro: 'On walks {name} meets people at peak stimulation — movement, smells, excitement — and launching has become the greeting habit that came with it.',
+      action: 'On today’s walk: keep the lead short-but-loose near people, step back to make space before {name} can launch, and reward calm looking at people from a distance.'
+    },
+    kids: {
+      intro: 'Kids move fast, make exciting noises, and are right at dog height — to an excited dog they’re the most interesting people in the house, and the hardest to stay calm around.',
+      action: 'Today, manage first: a lead or a gate between {name} and the kids during high-energy moments, and reward {name} for four paws on the floor near them. Don’t ask the kids to do the training yet — that’s your job for now.'
+    }
+  },
+
+  ageLines: {
+    puppy: 'At this age, jumping is completely normal greeting behaviour — puppies greet upward. You’ve caught it at the perfect time to shape it.',
+    adolescent: 'At {name}’s age this isn’t defiance — adolescent dogs feel everything at full volume. The habit is loud right now, but so is their ability to learn.',
+    adult: 'This habit has had time to be rehearsed, so expect steady progress rather than an overnight change. Well-practised habits fade the same way they grew: repetition.',
+    senior: 'A long-rehearsed greeting habit can absolutely still change — older dogs learn well. It just deserves patience and generous rewards.'
+  },
+
+  knockBoundary: 'Because someone’s already been knocked, use a lead or a barrier at greeting times until the new habit sticks. Management isn’t failure — it’s how you stop the rehearsals.',
+  kidsKnockBoundary: 'With kids in the mix, management comes first every time: no unmanaged greetings between {name} and the children until four-paws greetings are reliable with adults.',
+
+  plan: [
+    {
+      n: 1, title: 'Stop the payout',
+      cue: 'Four paws = attention. Paws up = attention vanishes. No words needed yet — just perfect timing.',
+      reward: 'The instant all four paws are on the floor — within two seconds — calm praise, a treat, or the greeting itself.',
+      avoid: 'Eye contact, touch or talking while paws are up. Turn away and be boring. Everyone in the house plays by the same rule.'
+    },
+    {
+      n: 2, title: 'Teach the better greeting',
+      cue: 'A sit earns the hello. Ask for it before any greeting starts, while {name} is still calm enough to think.',
+      reward: 'The sit — paid with the thing {name} actually wants: the greeting, plus a treat for good measure.',
+      avoid: 'Rehearsals you can’t control. If a chaotic arrival is coming, pop the lead on first.'
+    },
+    {
+      n: 3, title: 'Make it stick',
+      cue: 'Real arrivals, real excitement — same rules, no exceptions.',
+      reward: 'Keep paying four paws or the sit — now every so often rather than every time. Surprise rewards keep habits strong.',
+      avoid: 'Letting excited visitors undo the work. One sentence at the door: “Ignore {name} until they sit — then say hi.”'
+    }
+  ],
+
+  checkins: {
+    better: [
+      'That’s the loop working — the payout stopped, so the jumping is loosening. Time for step 2: teach {name} what to do instead.',
+      'The sit is starting to beat the jump — that’s the whole trade. Step 3: take it into real, exciting arrivals.',
+      'GRADUATE'
+    ],
+    graduate: '{name} didn’t just learn to greet politely — you learned to be clear. That’s the whole game. Keep one rule forever: greetings happen at floor level.',
+    same: 'No movement yet is information, not failure. Make it easier: a calmer helper, a quieter arrival, a tastier reward — and catch the four-paws moment faster. The two-second window is where this is won.',
+    worse: 'Worse usually means the situations are harder than {name} is ready for — not that you’re failing. Shrink the moment: more distance, fewer people, lead on. If it’s still going backwards at the next check-in, we’ll point you to proper hands-on help — that’s not defeat, it’s the smart next move.',
+    didnt: 'No guilt — life happens, and one missed day changes nothing. Make today tiny: one rep, one person, one treat. A single clean four-paws greeting is a win.'
+  }
+};
+
+// ---------- safety cards ----------
+const AMBER_CARD = {
+  title: 'Let’s slow this one down',
+  body: [
+    'A growl is information, not defiance — it’s {name} telling you they’re uncomfortable in that moment. Please don’t punish it: a punished growl doesn’t fix the feeling, it just removes the warning.',
+    'For now, manage rather than train: give {name} space at greeting times — a lead, a gate, or another room until the excitement settles. Keep arrivals calm and hands off.',
+    'Tension around greetings deserves a professional’s eyes in person. A qualified reward-based behaviour professional can see what an app can’t — your vet can point you to one.'
+  ]
+};
+const RED_CARD = {
+  title: 'This one needs more than an app',
+  body: [
+    'A snap, nip or bite means {name} needs help that no app should try to give — and reaching for the right help is the best thing you can do for them. This isn’t a bad dog, and it isn’t your failure.',
+    'Right now: keep everyone safe with distance and management — lead on, gates up, separate rooms at greeting times. No punishment, and don’t rehearse the situation to “test” it.',
+    'Who to call: your vet is the best first step — they can rule out pain and refer you to a veterinary behaviourist or a qualified reward-based behaviour professional.'
+  ],
+  script: '“Hi — I’m looking for help with my dog. The behaviour is jumping up that has involved a snap or nip. It happens {when}. I’m looking for reward-based behaviour support — can you help or refer me?”'
+};
+
+// ---------- personalisation ----------
+function fill(text, ctx) {
+  const p = S.profile || {};
+  const name = p.name || 'your dog';
+  let out = text.split('{name}').join(name);
+  const whenMap = { guests:'when guests arrive at the door', home:'when family come home', walks:'when meeting people on walks', kids:'around the kids' };
+  out = out.split('{when}').join((ctx && whenMap[ctx.who]) || 'during greetings');
+  return out;
+}
+function esc(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+
+// ---------- state ----------
+let view = { name: 'home' };
+let decodeCtx = {};   // { gate, who, next }
+let draftProfile = {};
+
+function go(name, data) { view = { name, ...(data||{}) }; render(); window.scrollTo(0,0); }
+
+// ---------- date helpers ----------
+function tomorrow() { const d = new Date(); d.setDate(d.getDate()+1); return d.toISOString().slice(0,10); }
+function fmtDay(iso) {
+  const today = new Date().toISOString().slice(0,10);
+  if (iso <= today) return 'today';
+  if (iso === tomorrow()) return 'tomorrow';
+  return new Date(iso+'T12:00').toLocaleDateString(undefined,{weekday:'long'});
+}
+
+// ---------- views ----------
+function render() {
+  const app = document.getElementById('app');
+  const v = VIEWS[view.name] || VIEWS.home;
+  app.innerHTML = v();
+}
+
+const VIEWS = {
+
+  home() {
+    const p = S.profile;
+    if (!p) return VIEWS.welcome();
+    const wo = S.working;
+    let woHtml = '';
+    if (wo.length) {
+      woHtml = '<h2 style="margin-top:26px">Working on</h2>' + wo.map((c,i)=>{
+        const step = JUMPING.plan[c.step-1];
+        return `<div class="card tap" onclick="go('wocard',{idx:${i}})">
+          <h3>${esc(p.name)} · ${JUMPING.label}${c.done?'<span class="pill green">Graduated</span>':`<span class="pill green">Step ${c.step} of 3</span>`}</h3>
+          <p>${c.done ? 'Polite greetings, locked in.' : esc(step.title) + ' · next check-in ' + fmtDay(c.nextCheckin)}</p>
+        </div>`;
+      }).join('');
+    }
+    return `
+      <h2>What’s ${esc(p.name)} doing?</h2>
+      <p class="sub">Pick a behaviour and get the read — what’s driving it, the common trap, and one thing to try today.</p>
+      <div class="card tap" onclick="startDecode()">
+        <h3>🐾 Jumping up</h3>
+        <p>On guests, on you, on the kids — decode it in under a minute.</p>
+      </div>
+      <div class="card soon"><h3>Lead pulling <span class="pill">Coming soon</span></h3><p>The walk that feels like water-skiing.</p></div>
+      <div class="card soon"><h3>Recall <span class="pill">Coming soon</span></h3><p>When “come” has become optional.</p></div>
+      ${woHtml}
+      <footer class="legal">PawPocket gives reward-based guidance for everyday behaviour. It is not a substitute for a qualified behaviour professional, and it will tell you when a situation needs one.</footer>`;
+  },
+
+  welcome() {
+    return `
+      <h2>First, meet your dog</h2>
+      <p class="sub">Thirty seconds, once. It’s the difference between advice about dogs and advice about <em>your</em> dog.</p>
+      <button class="btn" onclick="go('profile')">Set up ${'🐕'}</button>`;
+  },
+
+  profile() {
+    const fields = PROFILE_FIELDS.map(f => {
+      const cur = draftProfile[f.id];
+      const opts = f.opts.map(o => {
+        const sel = f.multi ? (cur||[]).includes(o.id) : cur === o.id;
+        return `<button class="opt ${sel?'sel':''}" onclick="pickProfile('${f.id}','${o.id}',${!!f.multi})">${o.label}</button>`;
+      }).join('');
+      return `<label>${f.label}</label><div class="opts">${opts}</div>`;
+    }).join('');
+    return `
+      <button class="back" onclick="go('home')">← Back</button>
+      <h2>About your dog</h2>
+      <label>Name</label>
+      <input type="text" id="pname" placeholder="e.g. Max" value="${esc(draftProfile.name||'')}" oninput="draftProfile.name=this.value">
+      ${fields}
+      <div style="height:18px"></div>
+      <button class="btn" onclick="saveProfile()">Done</button>`;
+  },
+
+  // --- decode flow: gate -> who -> next -> result ---
+  gate() {
+    const opts = JUMPING.gate.opts.map(o =>
+      `<button class="chip" onclick="answerGate('${o.id}')">${fill(o.label)}</button>`).join('');
+    return `
+      <button class="back" onclick="go('home')">← Back</button>
+      <div class="step-dots"><span class="on"></span><span></span><span></span></div>
+      <h2>Jumping up</h2>
+      <p class="sub">${JUMPING.gate.q}</p>
+      <div class="chips">${opts}</div>`;
+  },
+
+  chip() {
+    const q = JUMPING.chips[view.qi];
+    const opts = q.opts.map(o =>
+      `<button class="chip" onclick="answerChip(${view.qi},'${o.id}')">${fill(o.label)}</button>`).join('');
+    return `
+      <button class="back" onclick="go('${view.qi===0?'gate':'chip'}',{qi:${view.qi-1}})">← Back</button>
+      <div class="step-dots"><span class="on"></span><span class="on"></span><span class="${view.qi===1?'on':''}"></span></div>
+      <h2>Jumping up</h2>
+      <p class="sub">${q.q}</p>
+      <div class="chips">${opts}</div>`;
+  },
+
+  result() {
+    const p = S.profile, c = decodeCtx;
+    const t = JUMPING.targets[c.who], d = JUMPING.drivers[c.next];
+    const ageLine = JUMPING.ageLines[p.age] || '';
+    let boundaries = '';
+    if (c.gate === 'knock') {
+      boundaries += `<div class="block boundary"><span class="tag">Safety first</span><p>${fill(JUMPING.knockBoundary)}</p>${
+        (p.household||[]).includes('kids') || c.who==='kids'
+          ? '<p>'+fill(JUMPING.kidsKnockBoundary)+'</p>' : ''}</div>`;
+    }
+    const already = S.working.some(w => w.behaviour==='jumping' && !w.done);
+    return `
+      <button class="back" onclick="go('home')">← Start over</button>
+      <h2>The read</h2>
+      <div class="block readblk"><span class="tag">What’s likely happening</span>
+        <p>${fill(t.intro)}</p><p>${fill(d.core)}</p><p>${fill(ageLine)}</p></div>
+      <div class="block"><span class="tag">Behaviour lens</span><p>${fill(d.lens)}</p></div>
+      <div class="block"><span class="tag">The common trap</span><p>${fill(d.trap)}</p></div>
+      <div class="block readblk"><span class="tag">Try this today</span><p>${fill(t.action)}</p></div>
+      ${boundaries}
+      ${already
+        ? `<p class="sub" style="margin-top:14px">You’re already working on this one — today’s tip fits right into your plan.</p>
+           <button class="btn" onclick="go('home')">Back to my plan</button>`
+        : `<button class="btn" onclick="startWorking()">Work on this with me</button>
+           <button class="btn quiet" onclick="go('home')">Maybe later</button>`}`;
+  },
+
+  amber() {
+    return `
+      <h2>${AMBER_CARD.title}</h2>
+      ${AMBER_CARD.body.map(b=>`<div class="block boundary"><p>${fill(b)}</p></div>`).join('')}
+      <button class="btn ghost" onclick="go('home')">Back home</button>`;
+  },
+
+  red() {
+    return `
+      <h2>${RED_CARD.title}</h2>
+      ${RED_CARD.body.map(b=>`<div class="block danger"><p>${fill(b)}</p></div>`).join('')}
+      <div class="block"><span class="tag">Say this when you call</span>
+        <div class="script">${fill(RED_CARD.script, decodeCtx)}</div></div>
+      <button class="btn ghost" onclick="go('home')">Back home</button>`;
+  },
+
+  // --- working on ---
+  wocard() {
+    const c = S.working[view.idx];
+    if (!c) return VIEWS.home();
+    const p = S.profile;
+    if (c.done) {
+      return `
+        <button class="back" onclick="go('home')">← Home</button>
+        <div class="celebrate"><div class="big">🎉</div>
+        <h2>Graduated</h2>
+        <p class="sub">${fill(JUMPING.checkins.graduate)}</p>
+        <button class="btn ghost" onclick="removeCard(${view.idx})">Clear this card</button></div>`;
+    }
+    const step = JUMPING.plan[c.step-1];
+    return `
+      <button class="back" onclick="go('home')">← Home</button>
+      <span class="stepbadge">Step ${c.step} of 3 · ${esc(step.title)}</span>
+      <h2>${esc(p.name)} · Jumping up</h2>
+      <div class="block">
+        <div class="planline"><div class="k">Today’s cue</div><div class="v">${fill(step.cue)}</div></div>
+        <div class="planline"><div class="k">Reward</div><div class="v">${fill(step.reward)}</div></div>
+        <div class="planline" style="margin-bottom:0"><div class="k">Avoid</div><div class="v">${fill(step.avoid)}</div></div>
+      </div>
+      <p class="sub">Next check-in: <b>${fmtDay(c.nextCheckin)}</b>. The streak counts days you applied the plan — ${c.applied||0} so far.</p>
+      <button class="btn" onclick="go('checkin',{idx:${view.idx}})">Check in — how did it go?</button>
+      <button class="btn quiet" onclick="removeCard(${view.idx})">Stop working on this</button>`;
+  },
+
+  checkin() {
+    const p = S.profile;
+    return `
+      <button class="back" onclick="go('wocard',{idx:${view.idx}})">← Back</button>
+      <h2>How did it go with ${esc(p.name)}?</h2>
+      <p class="sub">Honest answers make the plan smarter — there’s no wrong one.</p>
+      <div class="chips">
+        <button class="chip" onclick="checkin(${view.idx},'better')">👍 Better</button>
+        <button class="chip" onclick="checkin(${view.idx},'same')">➡️ About the same</button>
+        <button class="chip" onclick="checkin(${view.idx},'worse')">👎 Worse</button>
+        <button class="chip" onclick="checkin(${view.idx},'didnt')">🙅 Didn’t get to try</button>
+      </div>`;
+  },
+
+  checkinResult() {
+    const c = S.working[view.idx];
+    return `
+      <h2>${view.title}</h2>
+      <div class="block readblk"><p>${view.msg}</p></div>
+      ${view.showPlan && c && !c.done ? `<button class="btn" onclick="go('wocard',{idx:${view.idx}})">See ${view.advanced?'the new step':'today’s plan'}</button>` : ''}
+      ${c && c.done ? `<button class="btn" onclick="go('wocard',{idx:${view.idx}})">🎉 See your result</button>` : ''}
+      <button class="btn quiet" onclick="go('home')">Home</button>`;
+  }
+};
+
+// ---------- actions ----------
+function pickProfile(fid, oid, multi) {
+  if (multi) {
+    const cur = draftProfile[fid] || [];
+    draftProfile[fid] = cur.includes(oid) ? cur.filter(x=>x!==oid) : cur.concat(oid);
+  } else {
+    draftProfile[fid] = oid;
+  }
+  const nameEl = document.getElementById('pname');
+  if (nameEl) draftProfile.name = nameEl.value;
+  render();
+}
+function saveProfile() {
+  const nameEl = document.getElementById('pname');
+  if (nameEl) draftProfile.name = nameEl.value.trim();
+  if (!draftProfile.name) { nameEl.focus(); nameEl.placeholder = 'A name helps me talk about your actual dog'; return; }
+  draftProfile.age = draftProfile.age || 'adult';
+  S.profile = draftProfile;
+  go('home');
+}
+function startDecode() {
+  if (!S.profile) { go('profile'); return; }
+  decodeCtx = {};
+  go('gate');
+}
+function answerGate(id) {
+  const opt = JUMPING.gate.opts.find(o=>o.id===id);
+  decodeCtx.gate = id;
+  if (opt.route === 'amber') { go('amber'); return; }
+  if (opt.route === 'red')   { go('red'); return; }
+  go('chip', { qi: 0 });
+}
+function answerChip(qi, id) {
+  decodeCtx[JUMPING.chips[qi].id] = id;
+  if (qi + 1 < JUMPING.chips.length) go('chip', { qi: qi+1 });
+  else go('result');
+}
+function startWorking() {
+  const wo = S.working;
+  wo.push({
+    behaviour:'jumping', step:1, worseStreak:0, applied:0, done:false,
+    ctx: {...decodeCtx}, createdAt: new Date().toISOString().slice(0,10),
+    nextCheckin: tomorrow()
+  });
+  S.working = wo;
+  go('wocard', { idx: wo.length-1 });
+}
+function removeCard(idx) {
+  const wo = S.working; wo.splice(idx,1); S.working = wo;
+  go('home');
+}
+function checkin(idx, answer) {
+  const wo = S.working, c = wo[idx], ck = JUMPING.checkins;
+  let title='', msg='', advanced=false;
+  if (answer === 'better') {
+    c.applied = (c.applied||0)+1; c.worseStreak = 0;
+    const m = ck.better[c.step-1];
+    if (m === 'GRADUATE' || c.step >= 3) {
+      // step 3 better = graduate
+      if (c.step >= 3) { c.done = true; title='That’s it.'; msg=fill(ck.graduate); }
+    }
+    if (!c.done) { c.step += 1; advanced = true; title='Progress 🐾'; msg = fill(ck.better[c.step-2]); }
+  } else if (answer === 'same') {
+    c.applied = (c.applied||0)+1; c.worseStreak = 0;
+    title='Hold steady'; msg = fill(ck.same);
+  } else if (answer === 'worse') {
+    c.applied = (c.applied||0)+1;
+    c.worseStreak = (c.worseStreak||0)+1;
+    if (c.worseStreak >= 2) {
+      S.working = wo.map((x,i)=> i===idx ? c : x);
+      c.nextCheckin = tomorrow();
+      saveAndTriage(wo);
+      return;
+    }
+    title='Shrink the moment'; msg = fill(ck.worse);
+  } else {
+    title='All good'; msg = fill(ck.didnt);
+  }
+  c.nextCheckin = tomorrow();
+  S.working = wo;
+  go('checkinResult', { idx, title, msg, showPlan:true, advanced });
+}
+function saveAndTriage(wo) {
+  S.working = wo;
+  decodeCtx = (wo && wo.length && wo[0].ctx) || decodeCtx || {};
+  go('amberEscalate');
+}
+VIEWS.amberEscalate = function() {
+  return `
+    <h2>Time for hands-on help</h2>
+    <div class="block boundary"><p>${fill('Two check-ins going backwards means this pattern needs eyes on {name} in person — an app has reached its honest limit, and saying so is part of the job.')}</p></div>
+    <div class="block"><p>${fill('This is common, fixable, and not your failure. A qualified reward-based behaviour professional can watch a real greeting and see what a screen can’t. Your vet is a great first call — they can also rule out anything physical.')}</p></div>
+    <div class="block"><span class="tag">Say this when you call</span>
+      <div class="script">${fill('“Hi — I’m looking for help with my dog. We’ve been working on jumping up with a reward-based plan, but it’s getting worse rather than better. I’m looking for reward-based behaviour support — can you help or refer me?”')}</div></div>
+    <button class="btn ghost" onclick="go('home')">Back home</button>`;
+};
+
+render();
+</script>
+</body>
+</html>
