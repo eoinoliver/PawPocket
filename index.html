@@ -2,10 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>PawPocket — Dog behaviour clarity, in your pocket.</title>
 <meta name="description" content="PawPocket helps owners read the dog in front of them and choose the next right move.">
-<meta name="theme-color" content="#2f6f4f">
+<meta name="theme-color" content="#2f6f4f" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#141e18" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-title" content="PawPocket">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%232f6f4f'/%3E%3Cpath d='M12 14.5c-2.9 0-6 2.1-6 4.6 0 1.2 1 1.9 2.3 1.9.9 0 1.7-.3 2.5-.6.4-.2.8-.3 1.2-.3s.8.1 1.2.3c.8.3 1.6.6 2.5.6 1.3 0 2.3-.7 2.3-1.9 0-2.5-3.1-4.6-6-4.6z' fill='%23faf7f2'/%3E%3Cellipse cx='6.2' cy='10.5' rx='1.8' ry='2.3' fill='%23faf7f2'/%3E%3Cellipse cx='10.2' cy='7.6' rx='1.8' ry='2.3' fill='%23faf7f2'/%3E%3Cellipse cx='13.8' cy='7.6' rx='1.8' ry='2.3' fill='%23faf7f2'/%3E%3Cellipse cx='17.8' cy='10.5' rx='1.8' ry='2.3' fill='%23faf7f2'/%3E%3C/svg%3E">
 <style>
   :root {
     --ink: #16241f;
@@ -16,19 +19,45 @@
     --moss-soft: rgba(47,111,79,0.08);
     --moss-line: rgba(47,111,79,0.2);
     --amber: #d98e3f;
+    --amber-ink: #a5661f;
     --amber-soft: rgba(217,142,63,0.12);
     --red: #b4513d;
     --red-soft: rgba(180,81,61,0.09);
     --muted: #5b6b63;
   }
-  * { box-sizing: border-box; }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ink: #e8efe9;
+      --paper: #141e18;
+      --card: #1c2822;
+      --moss: #35815c;
+      --moss-dark: #9ecfb4;
+      --moss-soft: rgba(158,207,180,0.1);
+      --moss-line: rgba(158,207,180,0.24);
+      --amber: #e0a25e;
+      --amber-ink: #e2aa6c;
+      --amber-soft: rgba(224,162,94,0.14);
+      --red: #e08a75;
+      --red-soft: rgba(224,138,117,0.12);
+      --muted: #9cb2a6;
+    }
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  button { touch-action: manipulation; }
   html, body {
     margin: 0; padding: 0;
     background: var(--paper); color: var(--ink);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
   }
-  .shell { max-width: 560px; margin: 0 auto; padding: 20px 20px 60px; min-height: 100vh; }
+  .shell {
+    max-width: 560px; margin: 0 auto; min-height: 100vh;
+    padding: 20px 20px calc(60px + env(safe-area-inset-bottom));
+  }
+  .btn:focus-visible, .chip:focus-visible, .opt:focus-visible, .back:focus-visible, .card.tap:focus-visible {
+    outline: 3px solid var(--moss); outline-offset: 2px;
+  }
+  .err { color: var(--red); font-size: 0.88rem; font-weight: 600; margin: 8px 0 0; }
   header.top {
     display: flex; align-items: center; gap: 12px; padding: 8px 0 20px; cursor: pointer;
   }
@@ -53,7 +82,7 @@
   .pill {
     display: inline-block; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.05em;
     text-transform: uppercase; padding: 3px 9px; border-radius: 999px; margin-left: 8px;
-    background: var(--amber-soft); color: var(--amber); vertical-align: 2px;
+    background: var(--amber-soft); color: var(--amber-ink); vertical-align: 2px;
   }
   .pill.green { background: var(--moss-soft); color: var(--moss-dark); }
   .btn {
@@ -68,7 +97,7 @@
   .chip {
     text-align: left; padding: 14px 16px; border-radius: 14px; cursor: pointer;
     border: 1.5px solid var(--moss-line); background: var(--card); color: var(--ink);
-    font-size: 0.95rem; font-family: inherit; line-height: 1.45;
+    font-size: 0.95rem; font-family: inherit; line-height: 1.45; min-height: 48px;
   }
   .chip:active, .chip.sel { border-color: var(--moss); background: var(--moss-soft); }
   .step-dots { display: flex; gap: 6px; margin: 4px 0 16px; }
@@ -77,7 +106,7 @@
   .block { border-radius: 16px; padding: 16px 18px; margin-bottom: 12px; background: var(--card); border: 1px solid var(--moss-line); }
   .block .tag {
     font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
-    color: var(--amber); display: block; margin-bottom: 7px;
+    color: var(--amber-ink); display: block; margin-bottom: 7px;
   }
   .block.readblk .tag { color: var(--moss); }
   .block p { margin: 0; font-size: 0.96rem; line-height: 1.62; }
@@ -97,8 +126,9 @@
   input[type=text]:focus { outline: none; border-color: var(--moss); }
   .opts { display: flex; flex-wrap: wrap; gap: 8px; }
   .opt {
-    padding: 9px 14px; border-radius: 999px; border: 1.5px solid var(--moss-line);
-    background: var(--card); font-size: 0.88rem; cursor: pointer; font-family: inherit; color: var(--ink);
+    padding: 11px 16px; border-radius: 999px; border: 1.5px solid var(--moss-line);
+    background: var(--card); font-size: 0.9rem; cursor: pointer; font-family: inherit; color: var(--ink);
+    min-height: 44px;
   }
   .opt.sel { background: var(--moss); border-color: var(--moss); color: #fff; }
   .wo-meta { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 10px; }
@@ -107,7 +137,7 @@
   .planline { display: flex; gap: 10px; margin-bottom: 12px; align-items: flex-start; }
   .planline .k {
     flex: 0 0 92px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.05em;
-    text-transform: uppercase; color: var(--amber); padding-top: 2px;
+    text-transform: uppercase; color: var(--amber-ink); padding-top: 2px;
   }
   .planline .v { font-size: 0.93rem; line-height: 1.55; }
   .stepbadge {
@@ -149,13 +179,25 @@
    Content lives in data objects; rendering is separate.
    ============================================================ */
 
-// ---------- storage ----------
-const S = {
-  get profile() { try { return JSON.parse(localStorage.getItem('pp_profile')); } catch(e){ return null; } },
-  set profile(v) { localStorage.setItem('pp_profile', JSON.stringify(v)); },
-  get working() { try { return JSON.parse(localStorage.getItem('pp_working')) || []; } catch(e){ return []; } },
-  set working(v) { localStorage.setItem('pp_working', JSON.stringify(v)); }
-};
+// ---------- storage (localStorage with in-memory fallback for private browsing) ----------
+const S = (() => {
+  const mem = {};
+  function read(k) {
+    let v = null;
+    try { v = JSON.parse(localStorage.getItem(k)); } catch(e) {}
+    return (v !== null && v !== undefined) ? v : (k in mem ? mem[k] : null);
+  }
+  function write(k, v) {
+    mem[k] = v;
+    try { localStorage.setItem(k, JSON.stringify(v)); } catch(e) {}
+  }
+  return {
+    get profile()  { return read('pp_profile'); },
+    set profile(v) { write('pp_profile', v); },
+    get working()  { return read('pp_working') || []; },
+    set working(v) { write('pp_working', v); }
+  };
+})();
 
 // ---------- profile schema ----------
 const PROFILE_FIELDS = [
@@ -321,7 +363,7 @@ const RED_CARD = {
 // ---------- personalisation ----------
 function fill(text, ctx) {
   const p = S.profile || {};
-  const name = p.name || 'your dog';
+  const name = esc(p.name || 'your dog');
   let out = text.split('{name}').join(name);
   const whenMap = { guests:'when guests arrive at the door', home:'when family come home', walks:'when meeting people on walks', kids:'around the kids' };
   out = out.split('{when}').join((ctx && whenMap[ctx.who]) || 'during greetings');
@@ -541,8 +583,18 @@ function pickProfile(fid, oid, multi) {
 }
 function saveProfile() {
   const nameEl = document.getElementById('pname');
-  if (nameEl) draftProfile.name = nameEl.value.trim();
-  if (!draftProfile.name) { nameEl.focus(); nameEl.placeholder = 'A name helps me talk about your actual dog'; return; }
+  if (nameEl) draftProfile.name = nameEl.value.trim().slice(0, 24);
+  if (!draftProfile.name) {
+    nameEl.style.borderColor = 'var(--red)';
+    if (!document.getElementById('nameErr')) {
+      const e = document.createElement('p');
+      e.id = 'nameErr'; e.className = 'err';
+      e.textContent = 'One thing first — what’s your dog’s name? Everything here is written to them.';
+      nameEl.insertAdjacentElement('afterend', e);
+    }
+    nameEl.focus();
+    return;
+  }
   draftProfile.age = draftProfile.age || 'adult';
   S.profile = draftProfile;
   go('home');
@@ -553,6 +605,7 @@ function startDecode() {
   go('gate');
 }
 function answerGate(id) {
+  if (view.name !== 'gate') return; // guard: double-tap fires twice before rerender
   const opt = JUMPING.gate.opts.find(o=>o.id===id);
   decodeCtx.gate = id;
   if (opt.route === 'amber') { go('amber'); return; }
@@ -560,12 +613,15 @@ function answerGate(id) {
   go('chip', { qi: 0 });
 }
 function answerChip(qi, id) {
+  if (view.name !== 'chip' || view.qi !== qi) return; // guard: double-tap would skip a question
   decodeCtx[JUMPING.chips[qi].id] = id;
   if (qi + 1 < JUMPING.chips.length) go('chip', { qi: qi+1 });
   else go('result');
 }
 function startWorking() {
   const wo = S.working;
+  const existing = wo.findIndex(w => w.behaviour === 'jumping' && !w.done);
+  if (existing >= 0) { go('wocard', { idx: existing }); return; } // guard: double-tap duplicate cards
   wo.push({
     behaviour:'jumping', step:1, worseStreak:0, applied:0, done:false,
     ctx: {...decodeCtx}, createdAt: new Date().toISOString().slice(0,10),
@@ -579,7 +635,9 @@ function removeCard(idx) {
   go('home');
 }
 function checkin(idx, answer) {
+  if (view.name !== 'checkin') return; // guard: double-tap would advance two steps
   const wo = S.working, c = wo[idx], ck = JUMPING.checkins;
+  if (!c || c.done) { go('home'); return; }
   let title='', msg='', advanced=false;
   if (answer === 'better') {
     c.applied = (c.applied||0)+1; c.worseStreak = 0;
@@ -596,9 +654,10 @@ function checkin(idx, answer) {
     c.applied = (c.applied||0)+1;
     c.worseStreak = (c.worseStreak||0)+1;
     if (c.worseStreak >= 2) {
-      S.working = wo.map((x,i)=> i===idx ? c : x);
       c.nextCheckin = tomorrow();
-      saveAndTriage(wo);
+      S.working = wo;
+      decodeCtx = c.ctx || decodeCtx || {};
+      go('amberEscalate');
       return;
     }
     title='Shrink the moment'; msg = fill(ck.worse);
@@ -608,11 +667,6 @@ function checkin(idx, answer) {
   c.nextCheckin = tomorrow();
   S.working = wo;
   go('checkinResult', { idx, title, msg, showPlan:true, advanced });
-}
-function saveAndTriage(wo) {
-  S.working = wo;
-  decodeCtx = (wo && wo.length && wo[0].ctx) || decodeCtx || {};
-  go('amberEscalate');
 }
 VIEWS.amberEscalate = function() {
   return `
