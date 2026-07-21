@@ -716,15 +716,22 @@ const VIEWS = {
 
   home() {
     const p = S.profile;
-    if (!p) return VIEWS.welcome();
-    const name = esc(p.name);
+    const name = esc((p && p.name) || 'your dog');
     const wo = S.working;
     const active = wo.filter(c=>!c.done);
     const done = wo.filter(c=>c.done);
 
+    // Meet-your-dog invitation (never a gate — decoding works without it)
+    const meetCard = p ? '' : `
+      <button class="card tap" onclick="editProfile()">
+        <span class="btile">🐕</span>
+        <span><h3>Meet your dog</h3>
+        <p>Thirty seconds, once — and every read below gets written to them, by name. Or decode first and see if we’ve earned it.</p></span>
+      </button>`;
+
     // Today surface
     let todayHtml = '';
-    if (active.length) {
+    if (p && active.length) {
       const next = active.slice().sort((a,b)=>(a.nextCheckin||'').localeCompare(b.nextCheckin||''))[0];
       const idx = wo.indexOf(next);
       const pack = PACKS[next.behaviour];
@@ -766,19 +773,31 @@ const VIEWS = {
 
     return `
       <h2>${greeting()}.</h2>
+      ${meetCard}
       ${todayHtml}
       <div class="whisper"><span class="w-ico">🦴</span><p><span class="w-tag">Today’s trainer’s whisper</span>${fill(dailyWhisper())}</p></div>
       <div class="kicker">What’s ${name} doing?</div>
       ${packCards}
+      <button class="card tap" onclick="go('other')">
+        <span class="btile">💬</span>
+        <span><h3>Something else?</h3><p>Barking, digging, bigger worries — here’s the honest picture.</p></span>
+      </button>
       ${doneHtml}
-      <footer class="legal">PawPocket gives reward-based guidance for everyday behaviour. It is not a substitute for a qualified behaviour professional, and it will tell you when a situation needs one.</footer>`;
+      <footer class="legal">PawPocket gives reward-based guidance for everyday behaviour, aligned with LIMA principles. It is not a substitute for a qualified behaviour professional — and it will tell you when a situation needs one.<br><br>Private by design: everything you tell PawPocket stays on this device. No account, no cloud, no tracking.</footer>`;
   },
 
-  welcome() {
+  other() {
     return `
-      <h2>First, meet your dog</h2>
-      <p class="sub">Thirty seconds, once. It’s the difference between advice about dogs and advice about <em>your</em> dog.</p>
-      <button class="btn" onclick="go('profile')">Set up 🐕</button>`;
+      <button class="back" onclick="go('home')">← Back</button>
+      <h2>What about everything else?</h2>
+      <div class="block readblk"><span class="tag">Why only three behaviours</span>
+        <p>${fill('Most apps cover twenty behaviours an inch deep. PawPocket covers three a mile deep — real context, real follow-up, real plans. Barking is next (it’s secretly five different behaviours, and {name} deserves the right one).')}</p></div>
+      <div class="block boundary"><span class="tag">If you’re dealing with something bigger</span>
+        <p>Growling or snapping, guarding food or toys, panic when left alone, fear of people, or anything involving a bite — that isn’t app territory, and pretending otherwise would be selling you short. Those patterns are common, very workable, and fastest with in-person help.</p>
+        <p>Your vet is the best first call: they can rule out pain and refer you to a veterinary behaviourist or a qualified reward-based trainer.</p></div>
+      <div class="block"><span class="tag">Say this when you call</span>
+        <div class="script">“Hi — I’m looking for help with my dog. The behaviour is [what you’re seeing], it happens [when], and I’m concerned because [what worries you]. I’m looking for reward-based behaviour support — can you help or refer me?”</div></div>
+      <button class="btn ghost" onclick="go('home')">Back home</button>`;
   },
 
   profile() {
@@ -795,6 +814,7 @@ const VIEWS = {
     return `
       <button class="back" onclick="go('home')">← Back</button>
       <h2>About your dog</h2>
+      <p class="sub">Stays on this device — no account, nothing uploaded, ever.</p>
       <label>Name</label>
       <input type="text" id="pname" placeholder="e.g. Max" value="${esc(draftProfile.name||'')}" oninput="draftProfile.name=this.value">
       <label>Pick their portrait</label>
@@ -830,10 +850,10 @@ const VIEWS = {
   },
 
   result() {
-    const p = S.profile, c = decodeCtx;
+    const p = S.profile || {}, c = decodeCtx;
     const pack = PACKS[c.pack];
     const t = pack.targets[c.who], d = pack.drivers[c.next];
-    const ageLine = pack.ageLines[p.age] || '';
+    const ageLine = p.age ? (pack.ageLines[p.age] || '') : '';
     let boundaries = '';
     if (c.gate === 'knock') {
       const kids = (p.household||[]).includes('kids') || c.who==='kids';
@@ -845,16 +865,21 @@ const VIEWS = {
       <button class="back" onclick="go('home')">← Start over</button>
       <h2>The read</h2>
       <div class="block readblk"><span class="tag">What’s likely happening</span>
-        <p>${fill(t.intro, c)}</p><p>${fill(d.core, c)}</p><p>${fill(ageLine, c)}</p></div>
+        <p>${fill(t.intro, c)}</p><p>${fill(d.core, c)}</p>${ageLine?`<p>${fill(ageLine, c)}</p>`:''}</div>
       <div class="block"><span class="tag">Behaviour lens</span><p>${fill(d.lens, c)}</p></div>
       <div class="block"><span class="tag">The common trap</span><p>${fill(d.trap, c)}</p></div>
       <div class="block readblk"><span class="tag">Try this today</span><p>${fill(t.action, c)}</p></div>
       ${boundaries}
+      ${!S.profile ? `<div class="block boundary"><span class="tag">Make it personal</span>
+        <p>This read was written for “a dog”. Thirty seconds about yours — name, age, home — and I’ll rewrite it for them, and remember for next time.</p></div>` : ''}
       ${already
         ? `<p class="sub" style="margin-top:14px">You’re already working on this one — today’s tip folds right into your plan.</p>
            <button class="btn" onclick="go('home')">Back to my plan</button>`
-        : `<button class="btn" onclick="startWorking()">Work on this with me</button>
-           <button class="btn quiet" onclick="go('home')">Maybe later</button>`}`;
+        : (!S.profile
+          ? `<button class="btn" onclick="editProfile('result')">Rewrite it for my dog</button>
+             <button class="btn quiet" onclick="go('home')">Maybe later</button>`
+          : `<button class="btn" onclick="startWorking()">Work on this with me</button>
+             <button class="btn quiet" onclick="go('home')">Maybe later</button>`)}`;
   },
 
   amber() {
@@ -878,14 +903,14 @@ const VIEWS = {
   wocard() {
     const c = S.working[view.idx];
     if (!c) return VIEWS.home();
-    const p = S.profile, pack = PACKS[c.behaviour];
+    const p = S.profile || {}, pack = PACKS[c.behaviour];
     if (c.done) return VIEWS.keepsake();
     const step = pack.plan[c.step-1];
     const due = !c.nextCheckin || c.nextCheckin <= today0();
     return `
       <button class="back" onclick="go('home')">← Home</button>
       <span class="stepbadge">Step ${c.step} of 3 · ${esc(step.title)}</span>
-      <h2>${esc(p.name)} · ${pack.label}</h2>
+      <h2>${esc(p.name||'Your dog')} · ${pack.label}</h2>
       <div class="block">
         <div class="planline"><div class="k">Today’s cue</div><div class="v">${fill(step.cue, c.ctx)}</div></div>
         <div class="planline"><div class="k">Reward</div><div class="v">${fill(step.reward, c.ctx)}</div></div>
@@ -899,7 +924,7 @@ const VIEWS = {
   keepsake() {
     const c = S.working[view.idx];
     if (!c) return VIEWS.home();
-    const p = S.profile, pack = PACKS[c.behaviour];
+    const p = S.profile || {name:'Your dog', avatar:'🐕'}, pack = PACKS[c.behaviour];
     const dateStr = new Date().toLocaleDateString(undefined,{day:'numeric',month:'long',year:'numeric'});
     return `
       <button class="back" onclick="go('home')">← Home</button>
@@ -911,16 +936,16 @@ const VIEWS = {
         <div class="k-date">${(c.applied||0)} days applied · ${dateStr}</div>
       </div>
       <button class="btn" onclick="shareKeepsake(${view.idx})">Share the win</button>
-      <button class="btn quiet" onclick="removeCard(${view.idx})">Clear this card</button>`;
+      <button class="btn quiet" onclick="confirmClear(this, ${view.idx})">Clear this card</button>`;
   },
 
   checkin() {
     const c = S.working[view.idx];
-    const p = S.profile;
+    const p = S.profile || {};
     if (!c) return VIEWS.home();
     return `
       <button class="back" onclick="go('wocard',{idx:${view.idx}})">← Back</button>
-      <h2>How did it go with ${esc(p.name)}?</h2>
+      <h2>How did it go with ${esc(p.name||'your dog')}?</h2>
       <p class="sub">Honest answers make the plan smarter — there’s no wrong one.</p>
       <div class="chips">
         <button class="chip" onclick="checkin(${view.idx},'better')">👍 Better</button>
@@ -949,12 +974,17 @@ const VIEWS = {
       <div class="block"><p>${fill('This is common, fixable, and not your failure. A qualified reward-based behaviour professional can watch the real thing and see what a screen can’t. Your vet is a great first call — they can also rule out anything physical.')}</p></div>
       <div class="block"><span class="tag">Say this when you call</span>
         <div class="script">${fill('“Hi — I’m looking for help with my dog. We’ve been working on '+pack.label.toLowerCase()+' with a reward-based plan, but it’s getting worse rather than better. I’m looking for reward-based behaviour support — can you help or refer me?”')}</div></div>
+      <div class="block readblk"><span class="tag">And while you look</span>
+        <p>${fill('You don’t have to stop. These aren’t either/or — here’s the smallest, gentlest version of the plan to keep a little momentum going, no pressure attached.')}</p></div>
+      ${typeof view.idx === 'number' ? `<button class="btn" onclick="restartSmall(${view.idx})">Restart with the smallest version</button>` : ''}
       <button class="btn ghost" onclick="go('home')">Back home</button>`;
   }
 };
 
 // ---------- actions ----------
-function editProfile() {
+let profileReturn = 'home';
+function editProfile(returnTo) {
+  profileReturn = (typeof returnTo === 'string') ? returnTo : 'home';
   draftProfile = Object.assign({}, S.profile || {});
   go('profile');
 }
@@ -986,10 +1016,11 @@ function saveProfile() {
   draftProfile.age = draftProfile.age || 'adult';
   draftProfile.avatar = draftProfile.avatar || '🐕';
   S.profile = draftProfile;
+  const dest = profileReturn; profileReturn = 'home';
+  if (dest === 'result' && decodeCtx.pack) { go('result'); return; }
   go('home');
 }
 function startDecode(packId) {
-  if (!S.profile) { draftProfile = {}; go('profile'); return; }
   decodeCtx = { pack: packId };
   go('gate', { pack: packId });
 }
@@ -1013,6 +1044,7 @@ function answerChip(qi, id) {
   }
 }
 function startWorking() {
+  if (!S.profile) { editProfile('result'); return; }
   const wo = S.working;
   const existing = wo.findIndex(w => w.behaviour === decodeCtx.pack && !w.done);
   if (existing >= 0) { go('wocard', { idx: existing }); return; }
@@ -1026,6 +1058,18 @@ function startWorking() {
 function removeCard(idx) {
   const wo = S.working; wo.splice(idx,1); S.working = wo;
   go('home');
+}
+function confirmClear(btn, idx) {
+  if (btn.dataset.armed) { removeCard(idx); return; }
+  btn.dataset.armed = '1';
+  btn.textContent = 'Sure? This clears the keepsake for good';
+}
+function restartSmall(idx) {
+  const wo = S.working, c = wo[idx];
+  if (!c) { go('home'); return; }
+  c.step = 1; c.worseStreak = 0; c.nextCheckin = tomorrow();
+  S.working = wo;
+  go('wocard', { idx });
 }
 function bumpApplied(c) {
   c.applied = (c.applied||0)+1;
