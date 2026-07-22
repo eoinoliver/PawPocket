@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="robots" content="noindex, nofollow">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>LittleLens — Know what to do when your little one does that.</title>
+<meta name="description" content="LittleLens helps parents read the child in front of them and choose the next kind, effective move.">
+<meta name="theme-color" content="#3f63a6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#151821" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-title" content="LittleLens">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%233f63a6'/%3E%3Cpath d='M12 5c.5 3.2 1.8 4.5 5 5-3.2.5-4.5 1.8-5 5-.5-3.2-1.8-4.5-5-5 3.2-.5 4.5-1.8 5-5z' fill='%23fbf9f4'/%3E%3Ccircle cx='17.6' cy='16.6' r='1.5' fill='%23fbf9f4'/%3E%3C/svg%3E">
+<style>
+  :root {
+    --ink: #242a33;
+    --paper: #f7f5f0;
+    --card: #fffdfa;
+    --brand: #3f63a6;
+    --brand-dark: #2c477d;
+    --brand-soft: rgba(63,99,166,0.07);
+    --brand-line: rgba(63,99,166,0.16);
+    --amber: #d98e3f;
+    --amber-ink: #a5661f;
+    --amber-soft: rgba(217,142,63,0.1);
+    --red: #b4513d;
+    --red-soft: rgba(180,81,61,0.08);
+    --muted: #5f6773;
+    --shadow: 0 1px 2px rgba(44,71,125,0.05), 0 6px 24px -8px rgba(44,71,125,0.1);
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ink: #e9ecf2;
+      --paper: #151821;
+      --card: #1d212c;
+      --brand: #6f8fd4;
+      --brand-dark: #b9c6ec;
+      --brand-soft: rgba(150,175,230,0.09);
+      --brand-line: rgba(150,175,230,0.2);
+      --amber: #e0a25e;
+      --amber-ink: #e2aa6c;
+      --amber-soft: rgba(224,162,94,0.12);
+      --red: #e08a75;
+      --red-soft: rgba(224,138,117,0.1);
+      --muted: #9aa4b8;
+      --shadow: 0 1px 2px rgba(0,0,0,0.2), 0 6px 24px -8px rgba(0,0,0,0.35);
+    }
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  button { touch-action: manipulation; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--paper); color: var(--ink);
+    font-family: var(--sans);
+    -webkit-font-smoothing: antialiased;
+    font-size: 16px;
+  }
+  body::before {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+  }
+  .shell {
+    position: relative; z-index: 1;
+    max-width: 560px; margin: 0 auto; min-height: 100vh;
+    padding: 18px 20px calc(64px + env(safe-area-inset-bottom));
+  }
+  header.top { display: flex; align-items: center; gap: 12px; padding: 6px 0 22px; }
+  .mark {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 42px; height: 42px; border-radius: 14px; background: var(--brand);
+    flex: 0 0 auto; cursor: pointer; border: none; padding: 0;
+    box-shadow: var(--shadow);
+  }
+  .mark svg { width: 24px; height: 24px; }
+  .brand { cursor: pointer; }
+  .brand h1 { font-family: var(--serif); font-size: 1.35rem; margin: 0; letter-spacing: 0; color: var(--brand-dark); font-weight: 700; }
+  .brand p { margin: 1px 0 0; font-size: 0.78rem; color: var(--muted); letter-spacing: 0.01em; }
+  .avatarbtn {
+    margin-left: auto; width: 44px; height: 44px; border-radius: 50%;
+    background: var(--brand-soft); border: 1.5px solid var(--brand-line);
+    font-size: 1.35rem; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+  }
+  h2 { font-family: var(--serif); font-size: 1.7rem; letter-spacing: -0.01em; color: var(--brand-dark); margin: 4px 0 8px; line-height: 1.2; font-weight: 700; }
+  .sub { color: var(--muted); font-size: 0.95rem; margin: 0 0 18px; line-height: 1.55; }
+  .kicker {
+    font-size: 0.7rem; font-weight: 700; letter-spacing: 0.11em; text-transform: uppercase;
+    color: var(--amber-ink); margin: 26px 0 10px;
+  }
+  .card {
+    background: var(--card); border: 1px solid var(--brand-line); border-radius: 20px;
+    padding: 18px; margin-bottom: 12px; box-shadow: var(--shadow);
+  }
+  .card.tap { cursor: pointer; transition: transform .1s ease; border: none; width: 100%; text-align: left; font-family: inherit; color: inherit; display: flex; gap: 14px; align-items: center; }
+  .card.tap:active { transform: scale(0.98); }
+  .card h3 { margin: 0 0 3px; font-size: 1.02rem; color: var(--brand-dark); font-weight: 700; }
+  .card p { margin: 0; font-size: 0.86rem; color: var(--muted); line-height: 1.5; }
+  .btile {
+    flex: 0 0 46px; height: 46px; border-radius: 15px; background: var(--brand-soft);
+    display: inline-flex; align-items: center; justify-content: center; font-size: 1.35rem;
+  }
+  .today {
+    background: linear-gradient(140deg, #3f63a6 0%, #2c477d 100%);
+    border: none; border-radius: 22px; padding: 20px; margin-bottom: 12px;
+    color: #eef2fa; box-shadow: 0 10px 30px -10px rgba(44,71,125,0.45);
+    cursor: pointer; width: 100%; text-align: left; font-family: inherit;
+  }
+  .today .t-kick { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(238,242,250,0.75); margin-bottom: 8px; display:flex; justify-content:space-between; align-items:center; }
+  .today .t-cue { font-family: var(--serif); font-size: 1.16rem; line-height: 1.45; margin: 0 0 14px; }
+  .today .t-foot { display: flex; align-items: center; justify-content: space-between; font-size: 0.82rem; color: rgba(238,242,250,0.85); }
+  .duepill { background: rgba(247,245,240,0.18); border-radius: 999px; padding: 4px 11px; font-weight: 600; font-size: 0.72rem; letter-spacing: 0.02em; }
+  .duepill.hot { background: var(--amber); color: #2b1a06; }
+  .streakline { display: flex; align-items: center; gap: 8px; margin: 2px 0 0; font-size: 0.86rem; color: var(--muted); }
+  .streakline b { color: var(--brand-dark); }
+  .whisper {
+    display: flex; gap: 11px; align-items: flex-start;
+    background: var(--amber-soft); border: 1px solid rgba(217,142,63,0.22);
+    border-radius: 16px; padding: 14px 16px; margin: 14px 0 4px;
+  }
+  .whisper .w-ico { font-size: 1rem; padding-top: 1px; }
+  .whisper p { margin: 0; font-size: 0.9rem; line-height: 1.55; font-style: italic; color: var(--ink); }
+  .whisper .w-tag { display: block; font-style: normal; font-size: 0.66rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--amber-ink); margin-bottom: 4px; }
+  .btn {
+    display: block; width: 100%; padding: 15px 18px; border-radius: 15px; border: none;
+    background: var(--brand); color: #fff; font-size: 1rem; font-weight: 700; cursor: pointer;
+    font-family: inherit; margin-top: 10px; box-shadow: var(--shadow);
+    transition: transform .1s ease;
+  }
+  .btn:active { transform: scale(0.985); background: var(--brand-dark); }
+  .btn.ghost { background: transparent; color: var(--brand-dark); border: 1.5px solid var(--brand-line); box-shadow: none; }
+  .btn.quiet { background: transparent; color: var(--muted); font-weight: 500; font-size: 0.9rem; padding: 10px; box-shadow: none; }
+  .btn:focus-visible, .chip:focus-visible, .opt:focus-visible, .back:focus-visible, .card.tap:focus-visible, .today:focus-visible, .avatarbtn:focus-visible, .mark:focus-visible {
+    outline: 3px solid var(--brand); outline-offset: 2px;
+  }
+  .err { color: var(--red); font-size: 0.88rem; font-weight: 600; margin: 8px 0 0; }
+  .chips { display: flex; flex-direction: column; gap: 10px; margin: 14px 0 4px; }
+  .chip {
+    text-align: left; padding: 14px 16px; border-radius: 15px; cursor: pointer;
+    border: 1.5px solid var(--brand-line); background: var(--card); color: var(--ink);
+    font-size: 0.95rem; font-family: inherit; line-height: 1.45; min-height: 48px;
+    box-shadow: var(--shadow); transition: transform .1s ease;
+  }
+  .chip:active { transform: scale(0.985); border-color: var(--brand); background: var(--brand-soft); }
+  .step-dots { display: flex; gap: 6px; margin: 4px 0 16px; }
+  .step-dots span { width: 26px; height: 5px; border-radius: 3px; background: var(--brand-line); transition: background .3s ease; }
+  .step-dots span.on { background: var(--brand); }
+  label { display: block; font-size: 0.85rem; font-weight: 700; color: var(--brand-dark); margin: 18px 0 8px; }
+  input[type=text] {
+    width: 100%; padding: 13px 14px; border-radius: 13px; border: 1.5px solid var(--brand-line);
+    background: var(--card); font-size: 1rem; font-family: inherit; color: var(--ink);
+  }
+  input[type=text]:focus { outline: none; border-color: var(--brand); }
+  .opts { display: flex; flex-wrap: wrap; gap: 8px; }
+  .opt {
+    padding: 11px 16px; border-radius: 999px; border: 1.5px solid var(--brand-line);
+    background: var(--card); font-size: 0.9rem; cursor: pointer; font-family: inherit; color: var(--ink);
+    min-height: 44px;
+  }
+  .opt.sel { background: var(--brand); border-color: var(--brand); color: #fff; }
+  .opt.avatar { font-size: 1.4rem; padding: 8px 13px; }
+  .block { border-radius: 18px; padding: 17px 18px; margin-bottom: 12px; background: var(--card); border: 1px solid var(--brand-line); box-shadow: var(--shadow); }
+  .block .tag {
+    font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--amber-ink); display: block; margin-bottom: 8px;
+  }
+  .block.readblk .tag { color: var(--brand); }
+  .block p { margin: 0; font-size: 0.97rem; line-height: 1.65; }
+  .block p + p { margin-top: 10px; }
+  .block.boundary { background: var(--amber-soft); border-color: rgba(217,142,63,0.3); }
+  .block.danger { background: var(--red-soft); border-color: rgba(180,81,61,0.25); }
+  .block.danger .tag { color: var(--red); }
+  .script {
+    background: var(--brand-soft); border-radius: 13px; padding: 13px 15px;
+    font-size: 0.92rem; line-height: 1.6; font-style: italic; margin-top: 10px;
+  }
+  .planline { display: flex; gap: 10px; margin-bottom: 13px; align-items: flex-start; }
+  .planline:last-child { margin-bottom: 0; }
+  .planline .k {
+    flex: 0 0 88px; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.07em;
+    text-transform: uppercase; color: var(--amber-ink); padding-top: 3px;
+  }
+  .planline .v { font-size: 0.94rem; line-height: 1.6; }
+  .stepbadge {
+    display: inline-block; background: var(--brand-soft); color: var(--brand-dark);
+    font-size: 0.74rem; font-weight: 700; padding: 5px 12px; border-radius: 999px; margin-bottom: 10px;
+  }
+  .pill {
+    display: inline-block; font-size: 0.66rem; font-weight: 700; letter-spacing: 0.05em;
+    text-transform: uppercase; padding: 3px 9px; border-radius: 999px; margin-left: 8px;
+    background: var(--brand-soft); color: var(--brand-dark); vertical-align: 2px;
+  }
+  .keepsake {
+    background: linear-gradient(150deg, #3f63a6 0%, #2c477d 100%);
+    border-radius: 24px; padding: 30px 24px; text-align: center; color: #eef2fa;
+    box-shadow: 0 14px 40px -12px rgba(44,71,125,0.5); margin-bottom: 14px;
+  }
+  .keepsake .k-avatar { font-size: 3rem; display: block; margin-bottom: 8px; }
+  .keepsake h2 { color: #fff; margin: 0 0 4px; font-size: 1.6rem; }
+  .keepsake .k-sub { color: rgba(238,242,250,0.85); font-size: 0.92rem; margin: 0 0 16px; }
+  .keepsake .k-stat { font-family: var(--serif); font-size: 1.05rem; line-height: 1.6; font-style: italic; color: #fff; }
+  .keepsake .k-date { margin-top: 14px; font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(238,242,250,0.6); }
+  #app > * { animation: rise .35s ease both; }
+  #app > *:nth-child(2) { animation-delay: .04s; }
+  #app > *:nth-child(3) { animation-delay: .08s; }
+  #app > *:nth-child(4) { animation-delay: .12s; }
+  #app > *:nth-child(5) { animation-delay: .16s; }
+  #app > *:nth-child(6) { animation-delay: .2s; }
+  @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  .starfall { position: fixed; inset: 0; pointer-events: none; z-index: 50; overflow: hidden; }
+  .starfall span { position: absolute; top: -6vh; font-size: 1.3rem; animation: fall 2.6s ease-in forwards; opacity: 0.9; }
+  @keyframes fall { to { transform: translateY(110vh) rotate(40deg); opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) {
+    #app > * { animation: none; }
+    .starfall { display: none; }
+    .btn, .chip, .card.tap { transition: none; }
+  }
+  footer.legal {
+    margin-top: 40px; font-size: 0.75rem; color: var(--muted); line-height: 1.6;
+    border-top: 1px solid var(--brand-line); padding-top: 16px;
+  }
+  .back { color: var(--muted); font-size: 0.85rem; cursor: pointer; margin-bottom: 12px; display: inline-block; background: none; border: none; font-family: inherit; padding: 4px 0; }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="top">
+    <button class="mark" aria-label="LittleLens home" onclick="go('home')">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M12 5c.5 3.2 1.8 4.5 5 5-3.2.5-4.5 1.8-5 5-.5-3.2-1.8-4.5-5-5 3.2-.5 4.5-1.8 5-5z" fill="#fbf9f4"/>
+        <circle cx="17.6" cy="16.6" r="1.5" fill="#fbf9f4"/>
+      </svg>
+    </button>
+    <div class="brand" onclick="go('home')">
+      <h1>LittleLens</h1>
+      <p>Know what to do when your little one does that.</p>
+    </div>
+    <button class="avatarbtn" id="avatarbtn" aria-label="Your child's profile" onclick="editProfile()">🧒</button>
+  </header>
+  <main id="app"></main>
+</div>
+
+<script>
+/* ============================================================
+   LittleLens — Brief v1. Toddler & preschool (1–5). Connection-
+   first, evidence-based. Three behaviour packs, Today surface,
+   identity arc. Content lives in data; rendering is separate.
+   Safety triage is conservative and non-diagnostic by design.
+   ============================================================ */
+
+// ---------- storage (localStorage with in-memory fallback) ----------
+const S = (() => {
+  const mem = {};
+  function read(k) {
+    let v = null;
+    try { v = JSON.parse(localStorage.getItem(k)); } catch(e) {}
+    return (v !== null && v !== undefined) ? v : (k in mem ? mem[k] : null);
+  }
+  function write(k, v) {
+    mem[k] = v;
+    try { localStorage.setItem(k, JSON.stringify(v)); } catch(e) {}
+  }
+  return {
+    get profile()  { return read('ll_profile'); },
+    set profile(v) { write('ll_profile', v); },
+    get working()  { return read('ll_working') || []; },
+    set working(v) { write('ll_working', v); },
+    get stats()    { return read('ll_stats') || { applied: 0, decodes: 0, graduated: 0 }; },
+    set stats(v)   { write('ll_stats', v); }
+  };
+})();
+
+// migrate: lifetime stats from any pre-existing cards
+(function migrate(){
+  const st = S.stats;
+  if (!st._init) {
+    const wo = S.working;
+    st.applied = Math.max(st.applied, wo.reduce((a,c)=>a+(c.applied||0),0));
+    st.graduated = Math.max(st.graduated, wo.filter(c=>c.done).length);
+    st._init = 1;
+    S.stats = st;
+  }
+})();
+
+// ---------- helpers ----------
+function esc(s){ const d=document.createElement('div'); d.textContent=s==null?'':String(s); return d.innerHTML; }
+function fill(text, ctx) {
+  const p = S.profile || {};
+  const name = esc(p.name || 'your little one');
+  let out = String(text).split('{name}').join(name);
+  const pack = ctx && ctx.pack && PACKS[ctx.pack];
+  const when = (pack && pack.whenMap && pack.whenMap[ctx.who]) || 'in everyday moments';
+  return out.split('{when}').join(when);
+}
+function today0() { return new Date().toISOString().slice(0,10); }
+function tomorrow() { const d = new Date(); d.setDate(d.getDate()+1); return d.toISOString().slice(0,10); }
+function fmtDay(iso) {
+  if (!iso || iso <= today0()) return 'today';
+  if (iso === tomorrow()) return 'tomorrow';
+  return new Date(iso+'T12:00').toLocaleDateString(undefined,{weekday:'long'});
+}
+function greeting() {
+  const h = new Date().getHours();
+  return h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
+}
+
+// ---------- profile schema ----------
+const AVATARS = ['🧒','👦','👧','👶','🌟','🧸'];
+const PROFILE_FIELDS = [
+  { id:'age', label:'How old?', opts:[
+    {id:'one', label:'Around 1 (12–23 months)'},
+    {id:'two', label:'2 years'},
+    {id:'three', label:'3 years'},
+    {id:'fourfive', label:'4–5 years'}
+  ]},
+  { id:'temperament', label:'Which sounds most like them lately?', opts:[
+    {id:'easy', label:'Easy-going'},
+    {id:'spirited', label:'Spirited — big feelings, full volume'},
+    {id:'sensitive', label:'Sensitive — feels things deeply'},
+    {id:'determined', label:'Determined — strong-willed'}
+  ]},
+  { id:'household', label:'Who’s at home?', multi:true, opts:[
+    {id:'siblings', label:'Older sibling(s)'},
+    {id:'baby', label:'A baby / younger one'},
+    {id:'onlychild', label:'Just them'},
+    {id:'solo', label:'Often just me'}
+  ]},
+  { id:'parent', label:'And you?', opts:[
+    {id:'first', label:'First child'},
+    {id:'experienced', label:'Been here before'}
+  ]}
+];
+
+// ============================================================
+// BEHAVIOUR PACKS
+// ============================================================
+
+const PACKS = {
+
+/* ---------------- MELTDOWNS ---------------- */
+meltdowns: {
+  id:'meltdowns', label:'Meltdowns', emoji:'🌩️',
+  tagline:'The supermarket, the car seat, the bedtime “no” — decode what’s really happening.',
+  doneLine:'Storms you can weather together now.',
+  gate: {
+    q:'First, one important question. When the big feelings hit, is it ever any of these?',
+    opts:[
+      { id:'no',     label:'Loud and upsetting, but {name} settles with time and comfort', route:'green' },
+      { id:'hurt',   label:'{name} hurts themselves or others, or it happens somewhere unsafe', route:'boundary' },
+      { id:'often',  label:'Many times a day, most days — and nothing seems to reach them', route:'amber' },
+      { id:'scared', label:'Something about it frightens me — or I worry how I might react', route:'red' }
+    ]
+  },
+  boundary:'Because someone can get hurt, safety comes before teaching every time: move {name} somewhere safe, clear hard objects, and stay close. Keeping everyone safe isn’t “rewarding” the meltdown — it’s making the room where teaching can happen once the storm passes.',
+  kidsBoundary:'With other children nearby, keep them out of range of flailing arms during a storm — protect first, coach later. Nobody learns anything mid-meltdown.',
+  chips:[
+    { id:'who', q:'When do the big ones usually hit?', opts:[
+      { id:'out',        label:'Out in public — shops, car parks, playdates' },
+      { id:'transition', label:'At a transition — leaving somewhere, screen off, bedtime' },
+      { id:'no',         label:'When the answer is “no”, or they don’t get their way' },
+      { id:'tired',      label:'End of the day — tired, hungry, overloaded' }
+    ]},
+    { id:'next', q:'In the thick of it, what do you usually do?', opts:[
+      { id:'reason', label:'Try to explain or reason with them' },
+      { id:'fix',    label:'Give in or fix it, just to make it stop' },
+      { id:'firm',   label:'Get firm — raise my voice, threaten a consequence' },
+      { id:'flee',   label:'Feel my own stress spike and try to survive it' }
+    ]}
+  ],
+  drivers:{
+    reason:{ core:'A child mid-meltdown has flipped into the feeling part of the brain — the thinking part is offline. Words, logic and explanations can’t get in yet, so reasoning lands like talking to someone underwater. It isn’t that {name} won’t listen; right now they physically can’t.',
+      lens:'You can’t teach a flooded brain. Connect first, teach second — the lesson lands after the calm, not during the storm.',
+      trap:'Explaining at the peak feels like good parenting, but it asks a flooded brain to do the one thing it can’t — which often stretches the meltdown longer.' },
+    fix:{ core:'Giving in to end a meltdown works — instantly, which is exactly the problem. {name}’s brain files it: the storm is what got the biscuit, the screen, the yes. Next time the feeling is big, the same tool comes out, a little louder.',
+      lens:'Whatever ends the meltdown is what the meltdown is for. Relief now teaches “this works” for later.',
+      trap:'Caving at the peak trains the peak. The kindest move is to hold the limit warmly — “I know, it’s so hard” — without changing the answer.' },
+    firm:{ core:'A raised voice adds fuel to a fire that’s already burning. {name}’s stress system is lit up, and a bigger, louder adult reads as more threat, not more control. Even cross attention is intense connection — and a young nervous system escalates to match.',
+      lens:'Children co-regulate — they borrow your calm to find their own. Match their storm and there’s no calm left to borrow.',
+      trap:'Getting bigger than the meltdown can end this one through fear, but it teaches {name} that big feelings are met with bigger ones — modelling the very thing you want them to grow out of.' },
+    flee:{ core:'Feeling your own stress spike isn’t a failure — it’s your nervous system catching {name}’s, which is wired to happen. But if the meltdown mostly leaves you flustered and inconsistent, {name} learns the storm is powerful without learning what to do with the feeling underneath it.',
+      lens:'Your calm is the intervention. A regulated adult is exactly what a dysregulated child is reaching for, even while pushing you away.',
+      trap:'Riding it out in pure survival mode gets you through today, but skips the part where {name} learns the feeling has a name and a way through.' }
+  },
+  targets:{
+    out:{ intro:'Public meltdowns carry a double load — {name}’s big feeling, plus every imagined eye on you. That audience is real, and it makes staying calm hardest for the person who most needs to: you.',
+      action:'Next outing, plan the exit before you need it: name the feeling out loud (“you really wanted that — it’s so hard”), get down to their level, and if you can, move somewhere quieter to ride it out. You’re not performing for onlookers; you’re being the calm {name} can’t find yet.' },
+    transition:{ intro:'Transitions are tiny griefs for a young child — the good thing is ending, and their brain hasn’t built the “there’ll be more later” muscle yet. The meltdown is the size of the loss, not the size of the offence.',
+      action:'Today, warn the transition before it lands: “two more goes, then we tidy up.” Then connect as you cross it — “you were having such a good time, it’s hard to stop.” Expect the feeling; you’re softening it, not preventing it.' },
+    no:{ intro:'When “no” triggers the storm, {name} isn’t being defiant — a young child feels a blocked want as a genuine emergency. The size of the reaction measures how real the want felt, not how spoiled they are.',
+      action:'Today, hold the limit and the feeling at once: keep the “no” steady, but meet the upset with warmth — “you really, really wanted it. I get it. The answer’s still no, and I’m right here.” Empathy isn’t caving.' },
+    tired:{ intro:'By the end of the day {name}’s tank is empty — low blood sugar, tiredness, and a whole day of holding it together. The last-straw meltdown is usually about the twelve things before it, not the small thing that tipped it.',
+      action:'Today, get ahead of the tank: an earlier snack, a wind-down before the witching hour, fewer demands late in the day. You can’t reason a tired brain full — but you can protect it from empty.' }
+  },
+  ageLines:{
+    one:'At this age {name} has enormous feelings and almost no words for them yet — meltdowns are how a one-year-old says “this is too much.” Comfort is the whole curriculum right now.',
+    two:'At two, {name}’s wants have raced ahead of their words and their self-control. This is the “terrible twos” — really just a small person with big feelings and no brakes yet. Completely on schedule.',
+    three:'At three, {name} understands far more than they can manage — they know what they want and can’t always cope when it’s blocked. More language now, but the brakes are still being built.',
+    fourfive:'At four and five, {name} is starting to name feelings and wait a little — but under tiredness or stress the young brain still floods. A big one doesn’t erase the progress; the skill is just still cooking.'
+  },
+  plan:[
+    { n:1, title:'Be the calm',
+      cue:'When the storm hits, your only job is to stay regulated — lower your voice, soften your body, get to their level. Don’t teach yet.',
+      reward:'Your steady presence. Name the feeling once (“you’re so upset”) and let it move through.',
+      avoid:'Reasoning, lectures, threats or bribes mid-meltdown. A flooded brain can’t use any of them.' },
+    { n:2, title:'Connect, then redirect',
+      cue:'As the peak passes, connect before you correct — a hand, a cuddle if it’s wanted, “that was a big one.” Then gently name what’s next.',
+      reward:'Warmth on the way down, and calm company back to steady.',
+      avoid:'Rushing to the lesson or the apology the second they breathe. Let the calm land first.' },
+    { n:3, title:'Teach in the calm',
+      cue:'Later, in a good moment, name the feeling and a tool: “when you’re that cross, you can stamp, squeeze, or come to me.” Small, specific, playful.',
+      reward:'Praise the tool whenever you catch a flicker of it — “you took a big breath, that’s it.”',
+      avoid:'Bringing it up as a telling-off. Skill-building happens in connection, not in shame.' }
+  ],
+  checkins:{
+    better:[
+      'That’s co-regulation working — your calm gave {name}’s storm somewhere to land. Step 2: connect on the way down before you redirect.',
+      'The recoveries are getting shorter, aren’t they? That’s the repair muscle growing. Step 3: teach the feeling-tool in the calm moments.',
+      'GRADUATE'
+    ],
+    graduate:'{name} didn’t just have fewer meltdowns — they borrowed your calm until they began building their own. That’s the whole thing. Keep one rule forever: connect before you correct.',
+    same:'No change yet is information, not failure. Make it easier on the front end: more warning before transitions, an earlier snack, and your calm arriving sooner. Storms shrink from the edges first.',
+    worse:'Worse usually means the day is asking more of {name} than their tank can give — more tiredness, change or overload — not that you’re doing it wrong. Shrink the demands, protect sleep and food, and keep your calm the anchor. If it’s still building at the next check-in, a chat with your GP or health visitor is a smart next step.',
+    didnt:'No guilt — some days survival is the win, and one hard day changes nothing. Today’s version is tiny: next storm, just one slow breath before you respond. That alone counts.'
+  },
+  whenMap:{ out:'out in public', transition:'at transitions', no:'when they hear “no”', tired:'at the end of the day' },
+  amber:{
+    title:'Let’s take the pressure off',
+    body:[
+      'Many big feelings a day, most days, with little that reaches them — that’s exhausting, and it deserves more than an app can give. This isn’t a naughty child, and it isn’t bad parenting.',
+      'For now, aim lower: protect sleep, food and downtime, cut the day’s demands where you can, and keep one calm adult as the anchor. You’re managing the load, not fixing it all today.',
+      'Frequent, intense, hard-to-settle meltdowns deserve a real person’s eyes. Your GP or health visitor is a good first call — they can check what’s going on and point you to the right support. Asking isn’t an overreaction; it’s good parenting.'
+    ]
+  },
+  red:{
+    title:'This needs more than an app',
+    body:[
+      'If something about {name}’s distress frightens you — or you ever worry about how you might react at the worst moment — please reach for real support now. That fear is important information, and acting on it is the most protective thing you can do for both of you.',
+      'Right now: keep everyone physically safe. If you feel at the edge, put {name} somewhere safe (a cot or a clear room) and step back to breathe for a moment. A briefly-alone, safe child is okay; a parent at breaking point needs a beat.',
+      'Who to reach: your GP or health visitor for the ongoing picture, and in a crisis your local urgent help line or emergency services. You are not the first parent to need this — reaching out is strength, not failure.'
+    ],
+    script:'“Hi — I’m looking for some support. My young child has very intense meltdowns and I’m finding it really hard to cope in the moment. I’d like some help — can you point me in the right direction?”'
+  },
+  whispers:[
+    'Connect before you correct — the lesson lands after the calm, not during the storm.',
+    'You can’t teach a flooded brain. Be the calm first.',
+    'A meltdown is a feeling too big for the body having it — not a plan to annoy you.',
+    'Your calm is contagious. So is your stress. Choose which one you lend.',
+    'Name it to tame it: “you’re so cross” does more than “stop crying.”',
+    'Empathy isn’t caving. You can hold the limit and the feeling in the same hand.'
+  ]
+},
+
+/* ---------------- NOT LISTENING ---------------- */
+listening: {
+  id:'listening', label:'Not listening', emoji:'🙉',
+  tagline:'“I’ve asked five times” — decode why the words aren’t landing.',
+  doneLine:'Asks that actually land now.',
+  gate: {
+    q:'Quick check first — which is closest to what’s going on?',
+    opts:[
+      { id:'no',      label:'They hear me — they just ignore, delay or say “no”', route:'green' },
+      { id:'hurt',    label:'The not-listening puts them in danger — roads, hobs, stairs', route:'boundary' },
+      { id:'worried', label:'I’m unsure they hear me, or something feels different about their attention or speech', route:'amber' }
+    ]
+  },
+  boundary:'Where safety’s involved — roads, hot stoves, stairs — you can’t rely on words yet, so stay within arm’s reach and use your body, not just your voice: gates, hand-holding, moving {name} yourself. That isn’t giving up on listening; it’s insurance while the listening is still being built.',
+  kidsBoundary:'',
+  chips:[
+    { id:'who', q:'When is not-listening worst?', opts:[
+      { id:'absorbed', label:'When they’re deep in play or a screen' },
+      { id:'commands', label:'Everyday instructions — shoes on, come here, tidy up' },
+      { id:'no',       label:'Whenever the answer is one they don’t like' },
+      { id:'rushing',  label:'When we’re rushing — out the door, running late' }
+    ]},
+    { id:'next', q:'When they don’t respond, what do you usually do?', opts:[
+      { id:'repeat', label:'Repeat myself — more times, a bit louder each time' },
+      { id:'shout',  label:'End up shouting, or counting “1… 2…”' },
+      { id:'do',     label:'Give up and just do it myself' },
+      { id:'threat', label:'Warn of a consequence to get action' }
+    ]}
+  ],
+  drivers:{
+    repeat:{ core:'Every unheeded “put your shoes on” quietly teaches that the first ask is optional — the real deadline is somewhere around the fifth. {name} isn’t being sneaky; they’ve simply learned the true rule from how it plays out: nothing happens until the voice changes.',
+      lens:'A repeated instruction trains the child to wait for the repeat. The number you stop at is the number they learn they can ignore up to.',
+      trap:'Asking again (and again) feels like patience, but it teaches {name} that early asks don’t count — so why stop the fun for one?' },
+    shout:{ core:'When action only comes after the shout or the “1… 2…”, the shout becomes the actual instruction. {name} learns to run the clock until your voice tips over — not out of defiance, but because that’s the pattern that’s been rehearsed.',
+      lens:'If calm asks don’t work but loud ones do, you’ve accidentally taught that only loud counts. The aim is to make the quiet ask the one that means it.',
+      trap:'Counting to three can work through mild threat, but it trains {name} to move on “three” — quietly teaching that one and two are ignorable.' },
+    do:{ core:'Doing it yourself ends the standoff and gets everyone out the door — but it also tells {name} that not-responding makes the job disappear. The instruction evaporates, and so does the reason to act on the next one.',
+      lens:'Whatever makes the demand vanish is what the not-listening is for. Rescue now removes the reason to respond later.',
+      trap:'Taking over feels efficient, but it hands {name} the lesson that ignoring is a valid exit — the opposite of the one you want.' },
+    threat:{ core:'Threats can produce action through worry, but they lean on fear rather than cooperation, and they wear out fast — the threat has to keep growing to keep working. {name} starts weighing “is she serious this time?” instead of simply doing the thing.',
+      lens:'Cooperation built on connection lasts; cooperation built on threat needs a bigger threat next time.',
+      trap:'Warning of a consequence you won’t follow through on teaches {name} that your words are bluffs — spend a threat you can’t keep, and the next one’s worth less.' }
+  },
+  targets:{
+    absorbed:{ intro:'When {name} is deep in play, their attention runs on a narrow beam — an instruction called from across the room genuinely may not land. A child in flow isn’t ignoring you so much as not receiving you.',
+      action:'Today, close the gap before you ask: go to them, get down to their level, a hand on the shoulder and eye contact first — then one short instruction. Attention before instruction, every time.' },
+    commands:{ intro:'Everyday instructions pile up fast — a young child can only hold one or two steps at once. “Get your shoes, coat and bag and wait by the door” usually loses everything after “shoes.”',
+      action:'Today, ask for one thing at a time, and make it doable: “shoes on” — wait — then the next. Where you can, offer a little control: “red coat or blue?” Cooperation grows when there’s a scrap of choice inside the ask.' },
+    no:{ intro:'When the not-listening only shows up for instructions {name} dislikes, that isn’t a hearing problem — it’s an early, healthy push for autonomy wearing the disguise of deafness. They heard; they just don’t want to.',
+      action:'Today, acknowledge the want, then hold the ask: “you wish you could keep playing — and it’s time to wash hands. Shall we hop there like frogs or run like cheetahs?” Name the feeling, keep the limit, add a little play.' },
+    rushing:{ intro:'When you’re rushing, your stress rises and your asks come fast and stacked — and {name}’s brain, which needs a beat to switch tasks, jams under the pressure. The rush meant to speed things up often slows them down.',
+      action:'Today, build in a two-minute head start and slow your own pace at the door: one clear instruction, a breath, then help them begin. Counter-intuitively, calmer and slightly earlier gets you out faster than loud and late.' }
+  },
+  ageLines:{
+    one:'At this age {name} is only just learning that words map to actions — “listening” as you mean it is barely online yet. Show and help far more than you tell.',
+    two:'At two, {name} can follow one small instruction at a time on a good day — and “no” is a thrilling new power to test. Expect to guide with your hands as much as your words.',
+    three:'At three, {name} can do more of what’s asked but tests the edges to learn where they are. Pushing back isn’t rudeness; it’s how a three-year-old maps the rules.',
+    fourfive:'At four and five, {name} can follow a couple of steps and knows the routines — so not-listening here is usually about autonomy or attention, not ability. A little choice goes a long way.'
+  },
+  plan:[
+    { n:1, title:'Land the ask',
+      cue:'Attention before instruction: go to them, get low, eye contact, a gentle touch — then ask once, for one thing, in a calm voice.',
+      reward:'The moment they start — warm, specific praise: “you came the first time, thank you.”',
+      avoid:'Calling instructions across the room, stacking three at once, or repeating before you’ve actually connected.' },
+    { n:2, title:'Make the first ask count',
+      cue:'Ask once. Then, instead of repeating, help them begin — a hand on the task, a playful start. The first ask always means something.',
+      reward:'Cooperation paid in connection: praise, a smile, the next fun thing.',
+      avoid:'Repeating, counting, or rescuing. If nothing happens, move toward helping — not toward louder.' },
+    { n:3, title:'Build the habit',
+      cue:'Real life, calm expectation: one clear ask, a beat to respond, help if needed. Offer small choices inside instructions.',
+      reward:'Notice and name cooperation often — catch them getting it right more than getting it wrong.',
+      avoid:'Sliding back into the repeat-repeat-shout cycle when you’re tired. One ask, then help.' }
+  ],
+  checkins:{
+    better:[
+      'That’s it — when the first ask means something, {name} starts meeting it. Step 2: help them begin instead of repeating.',
+      'Fewer repeats, faster starts — the calm ask is gaining currency. Step 3: fold in small choices and keep catching the cooperation.',
+      'GRADUATE'
+    ],
+    graduate:'{name} didn’t just start listening — you stopped teaching them to wait for the shout. Keep one rule forever: connect first, ask once, then help. Loud is a tool you’ll rarely need.',
+    same:'No shift yet usually means the ask isn’t landing before it’s given. Get closer, quieter and more single-step — attention first, one thing, then help them start.',
+    worse:'Going backwards often means everyone’s more rushed or tired than usual — the cooperation muscle tires too. Simplify the asks, slow the pace, protect sleep. And if you’re ever genuinely unsure {name} is hearing you, a quick word with your GP or health visitor is worth it.',
+    didnt:'No guilt — the repeat-shout cycle is the most human thing there is. Today’s tiny version: one instruction, given up close and calm, once. Just one.'
+  },
+  whenMap:{ absorbed:'during play', commands:'with everyday instructions', no:'with instructions they dislike', rushing:'when you’re rushing' },
+  amber:{
+    title:'Worth a proper listen',
+    body:[
+      'If you’re genuinely unsure {name} hears you, or something about their attention, focus or speech feels different to you — trust that instinct. You know your child better than anyone, and checking is never an overreaction.',
+      'For now, keep communication easy and kind: get close, use short clear phrases, add gestures and eye contact, and cut background noise when you need them to tune in.',
+      'The right next step is a professional who can actually assess it — start with your GP or health visitor, who can check hearing and development and refer on if useful. This isn’t about labels; it’s about making sure {name} gets whatever helps them thrive.'
+    ]
+  },
+  whispers:[
+    'Attention before instruction. You can’t land an ask that never arrived.',
+    'The number of times you repeat is the number they learn to ignore.',
+    'One instruction, one step, one calm ask — then help them start.',
+    'Catch cooperation more often than you catch defiance.',
+    'A little choice inside an instruction turns a battle into a decision.',
+    'Save your loud voice for danger, and it’ll still mean something when you need it.'
+  ]
+},
+
+/* ---------------- HITTING & HURTING ---------------- */
+hitting: {
+  id:'hitting', label:'Hitting & hurting', emoji:'✋',
+  tagline:'Hitting, biting, pushing, throwing — decode the feeling underneath.',
+  doneLine:'Big feelings with safer hands.',
+  gate: {
+    q:'First, an important check. What best describes the hitting or hurting?',
+    opts:[
+      { id:'no',     label:'Everyday toddler stuff — frustration, over-excitement, testing', route:'green' },
+      { id:'hurt',   label:'Someone’s getting really hurt, or a baby / smaller sibling is at risk', route:'boundary' },
+      { id:'often',  label:'It’s frequent and intense, or seems to come from real distress or fear', route:'amber' },
+      { id:'scared', label:'It frightens me, involves an adult hurting the child, or a child in danger', route:'red' }
+    ]
+  },
+  boundary:'Because someone’s getting hurt, protection comes first, every time: calmly block the hit or move {name} away, and keep a younger child physically out of range — never rely on a toddler’s self-control to protect a baby. Supervise closely and stay between them. Managing the situation isn’t rewarding the hitting; it’s what makes teaching possible.',
+  kidsBoundary:'With a baby or smaller sibling in the mix, this is a supervision job, not a trust one: {name} and the little one aren’t left within reach unsupervised until the hands are reliably gentle. That protects both of them — and your bond with each.',
+  chips:[
+    { id:'who', q:'When does the hurting usually happen?', opts:[
+      { id:'frustrated',  label:'When frustrated — a toy taken, a “no”, a plan blocked' },
+      { id:'sibling',     label:'With a sibling — sharing, space, jealousy' },
+      { id:'excited',     label:'When over-excited — play tips over the edge' },
+      { id:'overwhelmed', label:'When overwhelmed — tired, too much going on' }
+    ]},
+    { id:'next', q:'In the moment, what do you usually do?', opts:[
+      { id:'punish',  label:'A firm consequence — time-out, removing a toy' },
+      { id:'reason',  label:'Explain why hitting is wrong' },
+      { id:'big',     label:'React big — a sharp “no!”, sometimes I lose my cool' },
+      { id:'comfort', label:'Comfort whoever got hurt, unsure what to do with {name}' }
+    ]}
+  ],
+  drivers:{
+    punish:{ core:'Consequences can stop this hit, but hitting at this age is usually a skills gap, not a character flaw — {name} has a feeling too big for the tools they’ve got. A punishment addresses the behaviour without teaching the missing skill, so the feeling comes back looking for the same exit.',
+      lens:'Young children hit because they can’t yet do the thing that would work instead. Punishing the gap doesn’t fill it.',
+      trap:'Time-outs and removals can suppress the hit in the moment, but on their own they skip the lesson — what to do with the fury instead — so the hitting tends to return.' },
+    reason:{ core:'Explaining “we don’t hit, it hurts Freya” is worth doing — but not mid-surge, when {name}’s thinking brain is offline. In the heat the words wash past; the feeling is driving. The teaching works, just later, once the storm clears.',
+      lens:'You can’t install impulse control during the impulse. Stop the hit with your body, teach the lesson in the calm.',
+      trap:'Reasoning at the peak asks a flooded toddler brain to do the one thing it can’t yet — so the same explanation gets repeated for weeks with little to show.' },
+    big:{ core:'A big reaction — a shout, a sharp grab — can end this hit through alarm, but it pours more arousal into an already-overwhelmed child, and it models using size and force when you’re angry. {name} learns that big feelings get big reactions, the very pattern you’re trying to grow them out of.',
+      lens:'Children learn what to do with anger by watching what you do with yours. Your response is the demonstration.',
+      trap:'Meeting a hit with a frightening reaction can work short-term, but it teaches force as the answer to frustration — and can make {name} hide the behaviour rather than outgrow it.' },
+    comfort:{ core:'Comforting the hurt child is right and important — and if that’s the whole response, {name} is left alone with the exact feeling that caused the hit, and no idea what to do with it. The one who hurt someone often needs coaching too, not just the one who got hurt.',
+      lens:'Tend the hurt child first for safety — then come back and coach the one who hit. Both children have something to learn from the moment.',
+      trap:'Focusing only on the child who was hurt can accidentally teach {name} that hurting someone gets them ignored — attention they may then chase in louder ways.' }
+  },
+  targets:{
+    frustrated:{ intro:'Frustration-hitting is the most common kind at this age: {name} hits the wall of a blocked want with the only tool a young nervous system reaches for — the body. It’s a feeling with no words yet, coming out through the hands.',
+      action:'Today, give the feeling a different exit: block the hit gently (“I won’t let you hit”), name it (“you’re SO cross the tower fell”), and offer a hands-safe alternative — “you can stamp, squeeze this cushion, or come to me.” Same feeling, safer outlet.' },
+    sibling:{ intro:'Sibling hitting is loaded — rivalry, territory, and big love-and-resentment all at once. {name} isn’t a bad sibling; they’re a young child sharing their people and their space before they’ve got the skills to do it smoothly.',
+      action:'Today, protect first (stay in range, block contact), then coach both sides: “you wanted the space — and hands are for gentle. Tell her, or come get me.” Catch and praise every gentle moment between them — the good ones need noticing more than the bad ones need punishing.' },
+    excited:{ intro:'Sometimes the hurt comes from joy, not anger — play ramps up, the body outruns the brakes, and an excited whack or bite lands. {name} isn’t being aggressive; they’re over the top of their own arousal.',
+      action:'Today, catch the ramp before it tips: notice the giddy edge and step in early — slow the game, swap in something calmer, name it (“that got really wild — let’s bring it down a notch”). You’re teaching the brakes before the crash.' },
+    overwhelmed:{ intro:'When hitting comes with tiredness or overload, it’s the nervous system spilling over — too much input, not enough reserve. The hit is a distress signal, not a decision.',
+      action:'Today, read the overwhelm as the real problem: lower the volume, dim the demands, offer a quiet corner or a cuddle before the tank hits empty. Prevent the spill and there’s far less to correct.' }
+  },
+  ageLines:{
+    one:'At this age {name} explores with hands and mouth — a hit or a bite is closer to experiment than aggression. Gently stop it, stay calm, and redirect; there’s no bad intent to punish.',
+    two:'At two, {name} has fierce feelings and no words to vent them, so they come out through the body. Hitting now is developmentally normal — a vocabulary problem as much as a behaviour one.',
+    three:'At three, {name} is learning that hands can hurt and that feelings have names — but under pressure the impulse still beats the brake. You’re coaching a skill that’s genuinely still forming.',
+    fourfive:'At four and five, {name} knows hitting isn’t okay — so when it happens it’s usually a feeling that overwhelmed the knowing. Firm, kind, and focused on the missing skill, not the missing morals.'
+  },
+  plan:[
+    { n:1, title:'Stop it safely, stay calm',
+      cue:'The instant a hit is coming, block it with your body and a calm, clear line: “I won’t let you hit.” Protect whoever’s at risk. Keep your own voice low.',
+      reward:'Not a reward for stopping — just calm, steady presence. Safety and regulation first.',
+      avoid:'A big, frightened or furious reaction — and any hitting-back “so they know how it feels.” Force teaches force.' },
+    { n:2, title:'Name it, give a better exit',
+      cue:'Once it’s safe, name the feeling and offer a hands-safe outlet: “you’re furious — you can stamp, squeeze, or come to me.” Same feeling, new tool.',
+      reward:'Praise the alternative the moment they reach for it, even clumsily — “you stamped instead, that’s it.”',
+      avoid:'A lecture at the peak. Keep it short; the feeling needs a route out before the words can go in.' },
+    { n:3, title:'Teach and repair in the calm',
+      cue:'Later, revisit gently: “hands are for gentle. When you’re cross, what can you do?” Practise it as a game. Help them repair — a kind act, not a forced “sorry.”',
+      reward:'Notice gentle hands all day and name them. Catch the good far more than the bad.',
+      avoid:'Shaming, or demanding a hollow “sorry.” Real repair is an action, and it grows from connection.' }
+  ],
+  checkins:{
+    better:[
+      'That’s the feeling finding a safer exit — blocking calmly and naming it is doing the work. Step 2: keep offering the hands-safe alternative in the moment.',
+      'The hits are giving way to other outlets — that’s a skill forming, not just a behaviour stopping. Step 3: teach and practise gentle hands in the calm.',
+      'GRADUATE'
+    ],
+    graduate:'{name} didn’t just stop hitting — they’re building a new way to carry a big feeling. That’s a skill for life. Keep one rule forever: stop it safely, name the feeling, coach the tool — every time.',
+    same:'No change yet usually means the moment’s moving faster than the coaching can. Get in earlier — catch the ramp before the hit — and keep the alternative simple and physical. Prevention does more than correction here.',
+    worse:'More hitting can mean more stress, tiredness or change in {name}’s world — the behaviour is often the messenger. Protect sleep, lower the load, and stay close to intercept. If it keeps climbing, or it’s coming from real distress, a chat with your GP or health visitor is a wise next step.',
+    didnt:'No guilt — these moments are fast and hard to catch. Today’s tiny version: next time, just the first line — calm voice, “I won’t let you hit,” and your body between them. That alone is the foundation.'
+  },
+  whenMap:{ frustrated:'when frustrated', sibling:'with a sibling', excited:'when over-excited', overwhelmed:'when overwhelmed' },
+  amber:{
+    title:'Let’s get the right eyes on this',
+    body:[
+      'Frequent, intense hurting — especially when it seems to come from real fear or distress rather than everyday frustration — is worth more support than an app can offer. This doesn’t mean something is wrong with {name}; it means the feeling underneath deserves a proper look.',
+      'For now: protect everyone with close supervision, keep your own responses calm and consistent, and reduce the stress and stimulation around {name} where you can. You’re managing safely while you get help, not failing to fix it.',
+      'Your GP or health visitor is the right first call — they can look at the whole picture and connect you with support such as a health visitor team or an early-years or behavioural service. Reaching out early makes everything easier.'
+    ]
+  },
+  red:{
+    title:'This needs real help now',
+    body:[
+      'If the hurting frightens you, if an adult is hurting {name}, or if a child is in danger, please reach for real help straight away — this is exactly the situation where stepping outside an app is the right and protective thing to do.',
+      'Right now, the only priority is safety: separate the children if needed, keep the smallest ones out of reach, and if you feel close to losing control yourself, put {name} somewhere safe and take a moment to breathe before you respond.',
+      'Who to reach: your GP or health visitor for ongoing help, and in an emergency your local urgent services. If a child is being harmed, contact your local child-protection helpline or emergency services. Asking for help is the strongest, most loving move there is.'
+    ],
+    script:'“Hi — I’m looking for some help. My young child is hitting and hurting others and I’m finding it hard to manage safely. I’d like some support — can you point me in the right direction?”'
+  },
+  whispers:[
+    'Hitting is a skills gap, not a character flaw. Teach the missing tool.',
+    'Stop it with your body, teach it with your words — and never at the same time.',
+    'Children learn what to do with anger by watching what you do with yours.',
+    'Name the feeling, offer a safer exit: “you can stamp, squeeze, or come to me.”',
+    'Catch gentle hands more often than you catch the hits.',
+    'A blocked hit and a named feeling teach more than any time-out.'
+  ]
+}
+};
+
+const GENERAL_WHISPERS = [
+  'Connection before correction — always, at every age.',
+  'Behaviour is communication. The question is always “what’s this feeling telling me?”',
+  'You’re not raising a good day — you’re raising a person. The long game wins.',
+  'Regulate yourself first. You can’t pour calm from an empty cup.',
+  'Catch them being good. What you notice grows.',
+  'The goal isn’t a child who obeys — it’s a child who trusts you enough to learn.'
+];
+
+// ---------- identity arc ----------
+function tierLine() {
+  const p = S.profile || {}, n = esc(p.name || 'your little one');
+  const a = S.stats.applied;
+  if (a <= 0)  return 'Day one of learning to read ' + n + '.';
+  if (a < 3)   return 'You’re starting to catch the moments that matter.';
+  if (a < 7)   return a + ' days applied — the patterns are showing themselves.';
+  if (a < 14)  return 'A week of showing up. You’re reading ' + n + ', not guessing.';
+  return 'This is what attuned looks like — and ' + n + ' can feel the difference.';
+}
+
+// ---------- daily reminder ----------
+function dailyWhisper() {
+  const active = S.working.filter(c=>!c.done).map(c=>c.behaviour);
+  let pool = GENERAL_WHISPERS.slice();
+  active.forEach(b => { if (PACKS[b]) pool = pool.concat(PACKS[b].whispers); });
+  const d = new Date();
+  const seed = d.getFullYear()*366 + (d.getMonth()+1)*31 + d.getDate();
+  return pool[seed % pool.length];
+}
+
+// ---------- state ----------
+let view = { name:'home' };
+let decodeCtx = {};
+let draftProfile = {};
+
+function go(name, data) { view = { name, ...(data||{}) }; render(); window.scrollTo(0,0); }
+
+function render() {
+  const app = document.getElementById('app');
+  const v = VIEWS[view.name] || VIEWS.home;
+  app.innerHTML = v();
+  const p = S.profile;
+  const ab = document.getElementById('avatarbtn');
+  if (ab) ab.textContent = (p && p.avatar) || '🧒';
+}
+
+// ---------- views ----------
+const VIEWS = {
+
+  home() {
+    const p = S.profile;
+    const name = esc((p && p.name) || 'your little one');
+    const wo = S.working;
+    const active = wo.filter(c=>!c.done);
+    const done = wo.filter(c=>c.done);
+
+    const meetCard = p ? '' : `
+      <button class="card tap" onclick="editProfile()">
+        <span class="btile">🧒</span>
+        <span><h3>Meet your little one</h3>
+        <p>Thirty seconds, once — and every read below gets written to them, by name. Or decode first and see if we’ve earned it.</p></span>
+      </button>`;
+
+    let todayHtml = '';
+    if (p && active.length) {
+      const next = active.slice().sort((a,b)=>(a.nextCheckin||'').localeCompare(b.nextCheckin||''))[0];
+      const idx = wo.indexOf(next);
+      const pack = PACKS[next.behaviour];
+      const step = pack.plan[next.step-1];
+      const due = !next.nextCheckin || next.nextCheckin <= today0();
+      todayHtml = `
+        <button class="today" onclick="go('wocard',{idx:${idx}})">
+          <div class="t-kick"><span>Today with ${name}</span>
+            <span class="duepill ${due?'hot':''}">${due?'Check-in due':'Check-in '+fmtDay(next.nextCheckin)}</span></div>
+          <p class="t-cue">${fill(step.cue, next.ctx)}</p>
+          <div class="t-foot"><span>${pack.emoji} ${pack.label} · step ${next.step} of 3</span><span>Open →</span></div>
+        </button>
+        <div class="streakline"><span>🌱</span><span><b>${S.stats.applied} ${S.stats.applied===1?'day':'days'} applied.</b> ${tierLine()}</span></div>`;
+    } else {
+      todayHtml = `<div class="streakline" style="margin-bottom:6px"><span>🌱</span><span>${tierLine()}</span></div>`;
+    }
+
+    const packCards = Object.values(PACKS).map(pk => {
+      const activeCard = active.find(c=>c.behaviour===pk.id);
+      return `<button class="card tap" onclick="startDecode('${pk.id}')">
+        <span class="btile">${pk.emoji}</span>
+        <span><h3>${pk.label}${activeCard?'<span class="pill">In progress</span>':''}</h3>
+        <p>${fill(pk.tagline)}</p></span>
+      </button>`;
+    }).join('');
+
+    let doneHtml = '';
+    if (done.length) {
+      doneHtml = `<div class="kicker">Grown together</div>` + done.map(c=>{
+        const idx = wo.indexOf(c), pk = PACKS[c.behaviour];
+        return `<button class="card tap" onclick="go('wocard',{idx:${idx}})">
+          <span class="btile">🎉</span>
+          <span><h3>${pk.label}</h3><p>${pk.doneLine}</p></span>
+        </button>`;
+      }).join('');
+    }
+
+    return `
+      <h2>${greeting()}.</h2>
+      ${meetCard}
+      ${todayHtml}
+      <div class="whisper"><span class="w-ico">💛</span><p><span class="w-tag">Today’s gentle reminder</span>${fill(dailyWhisper())}</p></div>
+      <div class="kicker">What’s ${name} doing?</div>
+      ${packCards}
+      <button class="card tap" onclick="go('other')">
+        <span class="btile">💬</span>
+        <span><h3>Something else?</h3><p>Whining, sleep, potty, siblings, screens — and the bigger worries. Here’s the honest picture.</p></span>
+      </button>
+      ${doneHtml}
+      <footer class="legal">LittleLens gives warm, evidence-based guidance for everyday toddler and preschool behaviour, grounded in connection-first parenting. It is not a substitute for a doctor, health visitor or child psychologist — and it will tell you when something needs one.<br><br>Private by design: everything you tell LittleLens stays on this device. No account, no cloud, no tracking.</footer>`;
+  },
+
+  other() {
+    return `
+      <button class="back" onclick="go('home')">← Back</button>
+      <h2>What about everything else?</h2>
+      <div class="block readblk"><span class="tag">Why only three behaviours</span>
+        <p>${fill('Most apps skim twenty behaviours an inch deep. LittleLens goes a mile deep on three — real context, a real plan, real follow-up. Sleep and sharing are next (each is really several behaviours in a trench coat, and {name} deserves the right read).')}</p></div>
+      <div class="block boundary"><span class="tag">If it’s something bigger</span>
+        <p>Aggression that frightens you, a child who seems constantly distressed or fearful, worries about development, speech or hearing, or anything where a child’s safety is at stake — that isn’t app territory, and pretending otherwise would let you down. These are common, workable, and best met with real support.</p>
+        <p>Your GP or health visitor is the best first call: they can look at the whole picture and connect you with the right help.</p></div>
+      <div class="block"><span class="tag">Say this when you reach out</span>
+        <div class="script">“Hi — I’m looking for some support with my young child. What I’m seeing is [what’s happening], it happens [when], and I’m concerned because [what worries you]. Can you help or point me in the right direction?”</div></div>
+      <button class="btn ghost" onclick="go('home')">Back home</button>`;
+  },
+
+  profile() {
+    const avatarOpts = AVATARS.map(a =>
+      `<button class="opt avatar ${draftProfile.avatar===a?'sel':''}" onclick="pickProfile('avatar','${a}',false)" aria-label="avatar ${a}">${a}</button>`).join('');
+    const fields = PROFILE_FIELDS.map(f => {
+      const cur = draftProfile[f.id];
+      const opts = f.opts.map(o => {
+        const sel = f.multi ? (cur||[]).includes(o.id) : cur === o.id;
+        return `<button class="opt ${sel?'sel':''}" onclick="pickProfile('${f.id}','${o.id}',${!!f.multi})">${o.label}</button>`;
+      }).join('');
+      return `<label>${f.label}</label><div class="opts">${opts}</div>`;
+    }).join('');
+    return `
+      <button class="back" onclick="go('home')">← Back</button>
+      <h2>About your little one</h2>
+      <p class="sub">Stays on this device — no account, nothing uploaded, ever.</p>
+      <label>Name</label>
+      <input type="text" id="pname" placeholder="e.g. Ava" value="${esc(draftProfile.name||'')}" oninput="draftProfile.name=this.value">
+      <label>Pick their portrait</label>
+      <div class="opts">${avatarOpts}</div>
+      ${fields}
+      <div style="height:18px"></div>
+      <button class="btn" onclick="saveProfile()">Done</button>`;
+  },
+
+  gate() {
+    const pack = PACKS[view.pack];
+    const opts = pack.gate.opts.map(o =>
+      `<button class="chip" onclick="answerGate('${o.id}')">${fill(o.label)}</button>`).join('');
+    return `
+      <button class="back" onclick="go('home')">← Back</button>
+      <div class="step-dots"><span class="on"></span><span></span><span></span></div>
+      <h2>${pack.label}</h2>
+      <p class="sub">${fill(pack.gate.q)}</p>
+      <div class="chips">${opts}</div>`;
+  },
+
+  chip() {
+    const pack = PACKS[view.pack];
+    const q = pack.chips[view.qi];
+    const opts = q.opts.map(o =>
+      `<button class="chip" onclick="answerChip(${view.qi},'${o.id}')">${fill(o.label)}</button>`).join('');
+    return `
+      <button class="back" onclick="go('${view.qi===0?'gate':'chip'}',{pack:'${view.pack}',qi:${view.qi-1}})">← Back</button>
+      <div class="step-dots"><span class="on"></span><span class="on"></span><span class="${view.qi===1?'on':''}"></span></div>
+      <h2>${pack.label}</h2>
+      <p class="sub">${fill(q.q)}</p>
+      <div class="chips">${opts}</div>`;
+  },
+
+  result() {
+    const p = S.profile || {}, c = decodeCtx;
+    const pack = PACKS[c.pack];
+    const t = pack.targets[c.who], d = pack.drivers[c.next];
+    const ageLine = p.age ? (pack.ageLines[p.age] || '') : '';
+    let boundaries = '';
+    if (c.route === 'boundary') {
+      const kids = (p.household||[]).some(h=>h==='siblings'||h==='baby') || c.who==='sibling';
+      boundaries = `<div class="block boundary"><span class="tag">Safety first</span><p>${fill(pack.boundary, c)}</p>${
+        kids && pack.kidsBoundary ? '<p>'+fill(pack.kidsBoundary, c)+'</p>' : ''}</div>`;
+    }
+    const already = S.working.some(w => w.behaviour===c.pack && !w.done);
+    return `
+      <button class="back" onclick="go('home')">← Start over</button>
+      <h2>The read</h2>
+      <div class="block readblk"><span class="tag">What’s likely happening</span>
+        <p>${fill(t.intro, c)}</p><p>${fill(d.core, c)}</p>${ageLine?`<p>${fill(ageLine, c)}</p>`:''}</div>
+      <div class="block"><span class="tag">Developmental lens</span><p>${fill(d.lens, c)}</p></div>
+      <div class="block"><span class="tag">The common trap</span><p>${fill(d.trap, c)}</p></div>
+      <div class="block readblk"><span class="tag">Try this today</span><p>${fill(t.action, c)}</p></div>
+      ${boundaries}
+      ${!S.profile ? `<div class="block boundary"><span class="tag">Make it personal</span>
+        <p>This read was written for “a child”. Thirty seconds about yours — name, age, home — and I’ll rewrite it for them, and remember for next time.</p></div>` : ''}
+      ${already
+        ? `<p class="sub" style="margin-top:14px">You’re already working on this one — today’s tip folds right into your plan.</p>
+           <button class="btn" onclick="go('home')">Back to my plan</button>`
+        : (!S.profile
+          ? `<button class="btn" onclick="editProfile('result')">Rewrite it for my child</button>
+             <button class="btn quiet" onclick="go('home')">Maybe later</button>`
+          : `<button class="btn" onclick="startWorking()">Work on this with me</button>
+             <button class="btn quiet" onclick="go('home')">Maybe later</button>`)}`;
+  },
+
+  amber() {
+    const pack = PACKS[decodeCtx.pack];
+    return `
+      <h2>${pack.amber.title}</h2>
+      ${pack.amber.body.map(b=>`<div class="block boundary"><p>${fill(b, decodeCtx)}</p></div>`).join('')}
+      <button class="btn ghost" onclick="go('home')">Back home</button>`;
+  },
+
+  red() {
+    const pack = PACKS[decodeCtx.pack];
+    return `
+      <h2>${pack.red.title}</h2>
+      ${pack.red.body.map(b=>`<div class="block danger"><p>${fill(b, decodeCtx)}</p></div>`).join('')}
+      <div class="block"><span class="tag">Say this when you reach out</span>
+        <div class="script">${fill(pack.red.script, decodeCtx)}</div></div>
+      <button class="btn ghost" onclick="go('home')">Back home</button>`;
+  },
+
+  wocard() {
+    const c = S.working[view.idx];
+    if (!c) return VIEWS.home();
+    const p = S.profile || {}, pack = PACKS[c.behaviour];
+    if (c.done) return VIEWS.keepsake();
+    const step = pack.plan[c.step-1];
+    const due = !c.nextCheckin || c.nextCheckin <= today0();
+    return `
+      <button class="back" onclick="go('home')">← Home</button>
+      <span class="stepbadge">Step ${c.step} of 3 · ${esc(step.title)}</span>
+      <h2>${esc(p.name||'Your child')} · ${pack.label}</h2>
+      <div class="block">
+        <div class="planline"><div class="k">Today’s cue</div><div class="v">${fill(step.cue, c.ctx)}</div></div>
+        <div class="planline"><div class="k">Reward</div><div class="v">${fill(step.reward, c.ctx)}</div></div>
+        <div class="planline"><div class="k">Avoid</div><div class="v">${fill(step.avoid, c.ctx)}</div></div>
+      </div>
+      <p class="sub">Next check-in: <b>${fmtDay(c.nextCheckin)}</b>. Streak: <b>${c.applied||0}</b> ${ (c.applied||0)===1?'day':'days'} applied.</p>
+      <button class="btn" onclick="go('checkin',{idx:${view.idx}})">${due?'Check in — how did it go?':'Check in early'}</button>
+      <button class="btn quiet" onclick="removeCard(${view.idx})">Stop working on this</button>`;
+  },
+
+  keepsake() {
+    const c = S.working[view.idx];
+    if (!c) return VIEWS.home();
+    const p = S.profile || {name:'Your child', avatar:'🧒'}, pack = PACKS[c.behaviour];
+    const dateStr = new Date().toLocaleDateString(undefined,{day:'numeric',month:'long',year:'numeric'});
+    return `
+      <button class="back" onclick="go('home')">← Home</button>
+      <div class="keepsake">
+        <span class="k-avatar">${(p&&p.avatar)||'🧒'}</span>
+        <h2>${esc(p.name)} &amp; you</h2>
+        <p class="k-sub">${pack.label} — ${pack.doneLine}</p>
+        <p class="k-stat">${fill(pack.checkins.graduate, c.ctx)}</p>
+        <div class="k-date">${(c.applied||0)} days applied · ${dateStr}</div>
+      </div>
+      <button class="btn" onclick="shareKeepsake(${view.idx})">Share the win</button>
+      <button class="btn quiet" onclick="confirmClear(this, ${view.idx})">Clear this card</button>`;
+  },
+
+  checkin() {
+    const c = S.working[view.idx];
+    const p = S.profile || {};
+    if (!c) return VIEWS.home();
+    return `
+      <button class="back" onclick="go('wocard',{idx:${view.idx}})">← Back</button>
+      <h2>How did it go with ${esc(p.name||'your little one')}?</h2>
+      <p class="sub">Honest answers make the plan smarter — there’s no wrong one.</p>
+      <div class="chips">
+        <button class="chip" onclick="checkin(${view.idx},'better')">👍 Better</button>
+        <button class="chip" onclick="checkin(${view.idx},'same')">➡️ About the same</button>
+        <button class="chip" onclick="checkin(${view.idx},'worse')">👎 Worse</button>
+        <button class="chip" onclick="checkin(${view.idx},'didnt')">🙅 Didn’t get to try</button>
+      </div>`;
+  },
+
+  checkinResult() {
+    const c = S.working[view.idx];
+    return `
+      <h2>${view.title}</h2>
+      <div class="block readblk"><p>${view.msg}</p></div>
+      ${c && c.done ? `<button class="btn" onclick="go('wocard',{idx:${view.idx}})">🎉 See what you made</button>` : ''}
+      ${view.showPlan && c && !c.done ? `<button class="btn" onclick="go('wocard',{idx:${view.idx}})">See ${view.advanced?'the new step':'today’s plan'}</button>` : ''}
+      <button class="btn quiet" onclick="go('home')">Home</button>`;
+  },
+
+  amberEscalate() {
+    const c = S.working[view.idx];
+    const pack = c ? PACKS[c.behaviour] : PACKS.meltdowns;
+    return `
+      <h2>Time for a real person</h2>
+      <div class="block boundary"><p>${fill('Two check-ins going backwards means this pattern deserves eyes on {name} in person — an app has reached its honest limit, and saying so is part of the job.')}</p></div>
+      <div class="block"><p>${fill('This is common, workable, and not your failure. Your GP or health visitor is a great first call — they can look at the whole picture and connect you with the right support.')}</p></div>
+      <div class="block"><span class="tag">Say this when you reach out</span>
+        <div class="script">${fill('“Hi — I’m looking for some support. We’ve been working on '+pack.label.toLowerCase()+' with a gentle, connection-first plan, but it’s getting harder rather than easier. Can you help or point me in the right direction?”')}</div></div>
+      <div class="block readblk"><span class="tag">And while you look</span>
+        <p>${fill('You don’t have to stop. These aren’t either/or — here’s the smallest, gentlest version of the plan to keep a little momentum going, no pressure attached.')}</p></div>
+      ${typeof view.idx === 'number' ? `<button class="btn" onclick="restartSmall(${view.idx})">Restart with the smallest version</button>` : ''}
+      <button class="btn ghost" onclick="go('home')">Back home</button>`;
+  }
+};
+
+// ---------- actions ----------
+let profileReturn = 'home';
+function editProfile(returnTo) {
+  profileReturn = (typeof returnTo === 'string') ? returnTo : 'home';
+  draftProfile = Object.assign({}, S.profile || {});
+  go('profile');
+}
+function pickProfile(fid, oid, multi) {
+  if (multi) {
+    const cur = draftProfile[fid] || [];
+    draftProfile[fid] = cur.includes(oid) ? cur.filter(x=>x!==oid) : cur.concat(oid);
+  } else {
+    draftProfile[fid] = oid;
+  }
+  const nameEl = document.getElementById('pname');
+  if (nameEl) draftProfile.name = nameEl.value;
+  render();
+}
+function saveProfile() {
+  const nameEl = document.getElementById('pname');
+  if (nameEl) draftProfile.name = nameEl.value.trim().slice(0, 24);
+  if (!draftProfile.name) {
+    nameEl.style.borderColor = 'var(--red)';
+    if (!document.getElementById('nameErr')) {
+      const e = document.createElement('p');
+      e.id = 'nameErr'; e.className = 'err';
+      e.textContent = 'One thing first — what’s your little one’s name? Everything here is written to them.';
+      nameEl.insertAdjacentElement('afterend', e);
+    }
+    nameEl.focus();
+    return;
+  }
+  draftProfile.age = draftProfile.age || 'two';
+  draftProfile.avatar = draftProfile.avatar || '🧒';
+  S.profile = draftProfile;
+  const dest = profileReturn; profileReturn = 'home';
+  if (dest === 'result' && decodeCtx.pack) { go('result'); return; }
+  go('home');
+}
+function startDecode(packId) {
+  decodeCtx = { pack: packId };
+  go('gate', { pack: packId });
+}
+function answerGate(id) {
+  if (view.name !== 'gate') return; // double-tap guard
+  const pack = PACKS[view.pack];
+  const opt = pack.gate.opts.find(o=>o.id===id);
+  decodeCtx.gate = id;
+  decodeCtx.route = opt.route;
+  if (opt.route === 'amber') { go('amber'); return; }
+  if (opt.route === 'red')   { go('red'); return; }
+  go('chip', { pack: view.pack, qi: 0 });
+}
+function answerChip(qi, id) {
+  if (view.name !== 'chip' || view.qi !== qi) return; // double-tap guard
+  const pack = PACKS[view.pack];
+  decodeCtx[pack.chips[qi].id] = id;
+  if (qi + 1 < pack.chips.length) go('chip', { pack: view.pack, qi: qi+1 });
+  else {
+    const st = S.stats; st.decodes += 1; S.stats = st;
+    go('result');
+  }
+}
+function startWorking() {
+  if (!S.profile) { editProfile('result'); return; }
+  const wo = S.working;
+  const existing = wo.findIndex(w => w.behaviour === decodeCtx.pack && !w.done);
+  if (existing >= 0) { go('wocard', { idx: existing }); return; }
+  wo.push({
+    behaviour: decodeCtx.pack, step:1, worseStreak:0, applied:0, done:false,
+    ctx: {...decodeCtx}, createdAt: today0(), nextCheckin: tomorrow()
+  });
+  S.working = wo;
+  go('wocard', { idx: wo.length-1 });
+}
+function removeCard(idx) {
+  const wo = S.working; wo.splice(idx,1); S.working = wo;
+  go('home');
+}
+function confirmClear(btn, idx) {
+  if (btn.dataset.armed) { removeCard(idx); return; }
+  btn.dataset.armed = '1';
+  btn.textContent = 'Sure? This clears the keepsake for good';
+}
+function restartSmall(idx) {
+  const wo = S.working, c = wo[idx];
+  if (!c) { go('home'); return; }
+  c.step = 1; c.worseStreak = 0; c.nextCheckin = tomorrow();
+  S.working = wo;
+  go('wocard', { idx });
+}
+function bumpApplied(c) {
+  c.applied = (c.applied||0)+1;
+  const st = S.stats; st.applied += 1; S.stats = st;
+}
+function checkin(idx, answer) {
+  if (view.name !== 'checkin') return; // double-tap guard
+  const wo = S.working, c = wo[idx];
+  if (!c || c.done) { go('home'); return; }
+  const ck = PACKS[c.behaviour].checkins;
+  let title='', msg='', advanced=false;
+  if (answer === 'better') {
+    bumpApplied(c); c.worseStreak = 0;
+    if (c.step >= 3) {
+      c.done = true;
+      const st = S.stats; st.graduated += 1; S.stats = st;
+      title = 'That’s it. 🎉'; msg = fill(ck.graduate, c.ctx);
+      celebrate();
+    } else {
+      c.step += 1; advanced = true;
+      title = 'Progress 🌱'; msg = fill(ck.better[c.step-2], c.ctx);
+    }
+  } else if (answer === 'same') {
+    bumpApplied(c); c.worseStreak = 0;
+    title = 'Hold steady'; msg = fill(ck.same, c.ctx);
+  } else if (answer === 'worse') {
+    bumpApplied(c);
+    c.worseStreak = (c.worseStreak||0)+1;
+    if (c.worseStreak >= 2) {
+      c.nextCheckin = tomorrow();
+      S.working = wo;
+      go('amberEscalate', { idx });
+      return;
+    }
+    title = 'Shrink the moment'; msg = fill(ck.worse, c.ctx);
+  } else {
+    title = 'All good'; msg = fill(ck.didnt, c.ctx);
+  }
+  c.nextCheckin = tomorrow();
+  S.working = wo;
+  go('checkinResult', { idx, title, msg, showPlan:true, advanced });
+}
+function celebrate() {
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const holder = document.createElement('div');
+  holder.className = 'starfall';
+  const bits = ['✨','🌟','💛'];
+  for (let i=0;i<14;i++) {
+    const s = document.createElement('span');
+    s.textContent = bits[i % bits.length];
+    s.style.left = (4 + Math.random()*92) + 'vw';
+    s.style.animationDelay = (Math.random()*0.9) + 's';
+    s.style.fontSize = (0.9 + Math.random()*0.9) + 'rem';
+    holder.appendChild(s);
+  }
+  document.body.appendChild(holder);
+  setTimeout(()=>holder.remove(), 4000);
+}
+function shareKeepsake(idx) {
+  const c = S.working[idx];
+  if (!c) return;
+  const p = S.profile, pack = PACKS[c.behaviour];
+  const text = `${p.name} and I just worked through ${pack.label.toLowerCase()} together 🌱 ${ (c.applied||0)} days of small, calm steps. (Built with LittleLens.)`;
+  if (navigator.share) {
+    navigator.share({ text }).catch(()=>{});
+  } else if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(()=>{
+      const b = document.querySelector('.btn');
+      if (b) b.textContent = 'Copied — paste it anywhere';
+    }).catch(()=>{});
+  }
+}
+
+render();
+</script>
+</body>
+</html>
