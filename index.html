@@ -78,7 +78,24 @@
   .mark svg { width: 23px; height: 23px; }
   .brand { cursor: pointer; }
   .brand h1 { font-family: var(--serif); font-size: 1.35rem; margin: 0; letter-spacing: 0; color: var(--moss-dark); font-weight: 700; }
-  .brand p { margin: 1px 0 0; font-size: 0.78rem; color: var(--muted); letter-spacing: 0.01em; }
+  .brand p {
+    margin: 1px 0 0; font-size: 0.78rem; color: var(--muted);
+    letter-spacing: 0.01em; line-height: 1.25;
+  }
+  .brand-letter {
+    display: inline-block; opacity: 0;
+    transform: translateY(0.35em) rotateX(-80deg) scaleY(0.35);
+    transform-origin: center bottom;
+    animation: brand-letter-unfold 460ms cubic-bezier(.2,.75,.25,1) forwards;
+    animation-delay: var(--letter-delay);
+  }
+  @keyframes brand-letter-unfold {
+    60% { opacity: 1; transform: translateY(-0.05em) rotateX(8deg) scaleY(1.04); }
+    100% { opacity: 1; transform: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .brand-letter { opacity: 1; transform: none; animation: none; }
+  }
   .avatarbtn {
     margin-left: auto; width: 44px; height: 44px; border-radius: 50%;
     background: #e8e8dc; border: 1.5px solid var(--moss-line); padding: 0;
@@ -298,7 +315,7 @@
     </button>
     <div class="brand" onclick="go('home')">
       <h1>PawPocket</h1>
-      <p>Understand your dog. Grow closer.</p>
+      <p class="brand-promise" aria-label="Understand your dog more. Grow closer.">Understand your dog more. Grow closer.</p>
     </div>
     <button class="avatarbtn" id="avatarbtn" aria-label="Your dog's profile" onclick="editProfile()">
       <img src="pawpocket-pounddawg.png" alt="" width="44" height="44">
@@ -1926,6 +1943,25 @@ function removeMoment(idx) {
   const moments=S.moments; moments.splice(idx,1); S.moments=moments; render();
 }
 
+function unfoldBrandPromise() {
+  const promise = document.querySelector('.brand-promise');
+  if (!promise) return;
+  const message = promise.textContent;
+  const secondThought = message.indexOf('Grow closer.');
+  promise.setAttribute('aria-label', message);
+  promise.textContent = '';
+  [...message].forEach((character, index) => {
+    const letter = document.createElement('span');
+    letter.className = 'brand-letter';
+    letter.setAttribute('aria-hidden', 'true');
+    letter.textContent = character === ' ' ? '\u00a0' : character;
+    const thoughtPause = index >= secondThought ? 220 : 0;
+    letter.style.setProperty('--letter-delay', `${80 + index * 28 + thoughtPause}ms`);
+    promise.appendChild(letter);
+  });
+}
+
+unfoldBrandPromise();
 render();
 </script>
 </body>
