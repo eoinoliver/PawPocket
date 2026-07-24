@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>PawPocket — Dog behaviour clarity, in your pocket.</title>
-<meta name="description" content="PawPocket helps owners read the dog in front of them and choose the next right move.">
+<title>PawPocket — Understand your dog. Grow closer.</title>
+<meta name="description" content="PawPocket helps you understand one real dog moment, choose one humane next move, and grow closer through what happens next.">
 <meta name="theme-color" content="#2f6f4f" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#141e18" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-title" content="PawPocket">
@@ -157,6 +157,12 @@
     background: var(--card); font-size: 1rem; font-family: inherit; color: var(--ink);
   }
   input[type=text]:focus { outline: none; border-color: var(--moss); }
+  textarea {
+    width:100%; min-height:120px; resize:vertical; box-sizing:border-box; padding:14px 16px;
+    border-radius:13px; border:1.5px solid var(--moss-line); background:var(--card);
+    font:inherit; color:var(--ink); line-height:1.5;
+  }
+  textarea:focus { outline:none; border-color:var(--moss); }
   .opts { display: flex; flex-wrap: wrap; gap: 8px; }
   .opt {
     padding: 11px 16px; border-radius: 999px; border: 1.5px solid var(--moss-line);
@@ -246,7 +252,7 @@
     </button>
     <div class="brand" onclick="go('home')">
       <h1>PawPocket</h1>
-      <p>Know what to do when your dog does that.</p>
+      <p>Understand your dog. Grow closer.</p>
     </div>
     <button class="avatarbtn" id="avatarbtn" aria-label="Your dog's profile" onclick="editProfile()">🐕</button>
   </header>
@@ -255,8 +261,8 @@
 
 <script>
 /* ============================================================
-   PawPocket — Brief v3. Three behaviour packs, Today surface,
-   identity arc. Content lives in data; rendering is separate.
+   PawPocket — twelve-territory dog behaviour companion.
+   One observable moment, one humane next move, one learning loop.
    ============================================================ */
 
 // ---------- storage (localStorage with in-memory fallback) ----------
@@ -276,6 +282,8 @@ const S = (() => {
     set profile(v) { write('pp_profile', v); },
     get working()  { return read('pp_working') || []; },
     set working(v) { write('pp_working', v); },
+    get moments()   { return read('pp_moments') || []; },
+    set moments(v)  { write('pp_moments', v); },
     get stats()    { return read('pp_stats') || { applied: 0, decodes: 0, graduated: 0 }; },
     set stats(v)   { write('pp_stats', v); }
   };
@@ -296,13 +304,25 @@ const EVIDENCE_LEDGER = [
   {level:'Foundation', title:'AVSAB humane dog training', body:'The American Veterinary Society of Animal Behavior recommends reward-based methods for all dog training and behaviour modification.', url:'https://avsab.org/resources/position-statements/'},
   {level:'Professional standard', title:'IAABC Standards of Practice', body:'Assessment should consider function, environment, safety, health, learning history, choice and control, with positive reinforcement as the primary strategy.', url:'https://iaabc.org/standards-of-practice'},
   {level:'Australia', title:'RSPCA Australia', body:'Practical Australian guidance supporting reward-based training and the human–dog relationship.', url:'https://kb.rspca.org.au/categories/companion-animals/dogs/training/what-is-reward-based-dog-training-and-why-does-the-rspca-support-it'},
-  {level:'Referral standard', title:'IAABC credentials', body:'A route to qualified behaviour consultants for complex fear, anxiety, aggression and safety cases.', url:'https://iaabc.org/en/credentials'}
+  {level:'Referral standard', title:'IAABC credentials', body:'A route to qualified behaviour consultants for complex fear, anxiety, aggression and safety cases.', url:'https://iaabc.org/en/credentials'},
+  {level:'Clinical triage', title:'VCA: trainer or behaviourist?', body:'Sudden change, physical discomfort, high intensity or any safety concern warrants veterinary or clinical behaviour support.', url:'https://vcahospitals.com/know-your-pet/do-i-need-a-trainer-or-a-behaviorist'},
+  {level:'Separation distress', title:'RSPCA Australia: anxiety when alone', body:'Distress can look like barking, toileting, destruction, pacing or escape attempts and deserves veterinary advice, not punishment.', url:'https://kb.rspca.org.au/categories/companion-animals/dogs/behaviour/what-can-i-do-if-my-dog-is-anxious-when-im-not-at-home'},
+  {level:'Assessment', title:'IAABC core competencies', body:'Good behaviour work assesses function, biology, environment, learning history and the needs of the whole family.', url:'https://iaabc.org/core-competencies'}
 ];
 
 const CHECKIN_LANGUAGE = {
   jumping:{prompt:'Thinking about one similar greeting, what changed?',better:'More four-paws moments or a calmer recovery',same:'About the same jumping and recovery',worse:'More force, more stress, or less safety'},
   pulling:{prompt:'Thinking about one comparable stretch of the walk, what changed?',better:'More slack lead or voluntary check-ins',same:'About the same amount of tension',worse:'More pulling, distress, pain, or loss of control'},
-  recall:{prompt:'Thinking about one safe practice setup, what changed?',better:'A faster response or easier return',same:'About the same response in that setup',worse:'Less response, more avoidance, or a safety concern'}
+  recall:{prompt:'Thinking about one safe practice setup, what changed?',better:'A faster response or easier return',same:'About the same response in that setup',worse:'Less response, more avoidance, or a safety concern'},
+  barking:{prompt:'In one comparable trigger moment, what changed?',better:'Fewer barks or a quicker recovery',same:'About the same intensity and recovery',worse:'More distress, intensity, or spread to new triggers'},
+  settling:{prompt:'In one comparable wind-down, what changed?',better:'Settled sooner or stayed settled longer',same:'About the same time and support',worse:'More pacing, agitation, or inability to rest'},
+  destructive:{prompt:'In one comparable period, what changed?',better:'More choosing the legal outlet',same:'About the same chewing or digging',worse:'More damage, ingestion, panic, or injury risk'},
+  toileting:{prompt:'Across one comparable day, what changed?',better:'More toileting in the right place',same:'About the same accidents or marking',worse:'More frequent, strained, painful, or sudden accidents'},
+  visitors:{prompt:'In one comparable arrival, what changed?',better:'More distance, calm, or voluntary recovery',same:'About the same arousal at the door',worse:'More fear, lunging, snapping, or loss of control'},
+  handling:{prompt:'In one very small handling rep, what changed?',better:'Softer body or more willing participation',same:'About the same comfort and duration',worse:'More avoidance, pain signs, growling, or snapping'},
+  separation:{prompt:'On video during one safe absence, what changed?',better:'More calm time or faster settling',same:'About the same distress signs',worse:'Earlier panic, escape attempts, injury, or no recovery'},
+  reactivity:{prompt:'At a safe distance from one trigger, what changed?',better:'Softer body or quicker recovery',same:'About the same threshold and recovery',worse:'More intensity, less distance needed, or a safety concern'},
+  guarding:{prompt:'With management in place, what changed?',better:'More relaxed around the safe setup',same:'About the same tension or avoidance',worse:'More freezing, growling, lunging, snapping, or bite risk'}
 };
 
 // migrate: lifetime stats from any pre-existing cards
@@ -684,6 +704,309 @@ recall: {
 }
 };
 
+function buildCompanionPack(spec) {
+  const targets = {}, drivers = {};
+  spec.contexts.forEach(x => targets[x.id] = {
+    intro:x.read,
+    action:x.action
+  });
+  spec.patterns.forEach(x => drivers[x.id] = {
+    core:x.read,
+    lens:x.lens,
+    trap:x.trap
+  });
+  return {
+    id:spec.id, label:spec.label, emoji:spec.emoji, tagline:spec.tagline,
+    doneLine:spec.doneLine,
+    gate:{
+      q:spec.gateQuestion || 'Before we read the moment: is any of this happening?',
+      opts:spec.gate
+    },
+    boundary:spec.boundary || 'Make this setup easier and safer while the new response grows. Management prevents rehearsal; it is part of training.',
+    kidsBoundary:'With children involved, use an adult-managed barrier or lead. A child should never be responsible for changing the dog’s behaviour.',
+    chips:[
+      {id:'who', q:spec.contextQuestion || 'Where does it happen most?', opts:spec.contexts.map(x=>({id:x.id,label:x.label}))},
+      {id:'next', q:spec.patternQuestion || 'What best describes the pattern?', opts:spec.patterns.map(x=>({id:x.id,label:x.label}))}
+    ],
+    targets, drivers,
+    ageLines:{
+      puppy:'Puppies are still building regulation, body confidence and a map of the human world. Keep the setup easy and the learning generous.',
+      adolescent:'Adolescent brains run hot and impulse control is still under construction. This is a stage to coach, not a character flaw.',
+      adult:'An adult pattern may be well rehearsed, but rehearsal can work in your favour once the safer choice becomes easier and more rewarding.',
+      senior:'For a senior dog, new or stronger behaviour deserves a health check. Pain, sensory change and cognitive change can alter what they can manage.'
+    },
+    plan:[
+      {n:1,title:'Make it observable',cue:spec.plan[0],reward:'Mark and reward the first small sign of the response you want — before the moment gets hard.',avoid:'Testing, flooding, scolding or waiting for failure. Arrange one easy win.'},
+      {n:2,title:'Repeat below threshold',cue:spec.plan[1],reward:'Use something {name} genuinely values, then give decompression and choice.',avoid:'Increasing duration, distance and distraction together. Change one dial at a time.'},
+      {n:3,title:'Take it into life',cue:spec.plan[2],reward:'Keep real-life rewards in the picture: access, distance, sniffing, rest, play or food.',avoid:'Dropping management because one repetition went well. Reliability grows gradually.'}
+    ],
+    checkins:{
+      better:['You found an easier version of the moment. Keep the success and add only one small challenge.','{name} is building a new prediction. Bring it gently into real life without rushing.','GRADUATE'],
+      graduate:'You learned to see the moment sooner, make it safer and help {name} choose differently. That shared language is the real win.',
+      same:'Same is information. Make the trigger smaller, the reward clearer, or the session shorter — then watch one observable detail.',
+      worse:'Shrink the setup now. If there is pain, distress, fear or a safety concern, pause training and speak with your vet or a qualified reward-based professional.',
+      didnt:'No guilt. Set up one thirty-second version that feels almost too easy. A small clean rep counts.'
+    },
+    whenMap:Object.fromEntries(spec.contexts.map(x=>[x.id,x.when || 'in that situation'])),
+    amber:{
+      title:spec.amberTitle || 'This deserves closer support',
+      body:spec.amber || [
+        'What you selected can involve fear, pain or distress. Don’t push through it or try to prove {name} can cope.',
+        'Reduce exposure, prevent rehearsal and contact your vet. Ask for a referral to a qualified reward-based behaviour professional if needed.'
+      ]
+    },
+    red:{
+      title:'Safety first — this is not a screen diagnosis',
+      body:spec.red || [
+        'Create distance and use doors, gates or a lead so nobody has to take a risk. Do not punish a warning, corner {name}, or attempt the setup again.',
+        'Contact your vet promptly and describe exactly what happened. If a person or animal is injured, seek appropriate medical or veterinary care now.'
+      ],
+      script:'“Hi — I need behaviour and safety help for my dog. I saw [exactly what happened], around [the trigger], and there has been [contact/injury/risk]. We are preventing another setup. Can you assess {name} and refer us to a qualified reward-based behaviour professional?”'
+    },
+    whispers:spec.whispers
+  };
+}
+
+const EXPANSION_PACKS = {
+  barking:buildCompanionPack({
+    id:'barking',label:'Barking',emoji:'🔔',tagline:'At the window, door, on walks or alone — first find the function.',doneLine:'Quieter recoveries, understood together.',
+    gate:[
+      {id:'no',label:'No bite risk, panic or sudden health change',route:'green'},
+      {id:'sudden',label:'It started suddenly, changed voice, or comes with confusion or pain',route:'amber'},
+      {id:'distress',label:'It happens with panic when alone or frantic escape attempts',route:'amber'},
+      {id:'bite',label:'There is lunging, snapping, biting or immediate risk',route:'red'}
+    ],
+    contexts:[
+      {id:'window',label:'At people or dogs through a window/fence',when:'at the window or fence',read:'The barrier makes the trigger vivid and prevents normal investigation. Repetition can turn an alert into a highly practised routine.',action:'Block the view before the busy period, then reward {name} for noticing a distant trigger and turning back to you.'},
+      {id:'door',label:'At the doorbell or visitors',when:'at the door',read:'The sound predicts a rush of movement and people. The barking may be alarm, excitement, or both.',action:'Practise the door sound quietly without a visitor, scatter food away from the door, and reward moving to a mat.'},
+      {id:'walk',label:'At dogs, people or movement on walks',when:'on walks',read:'Outside barking often asks for distance, access, or release from frustration. Body softness and recovery tell you more than volume.',action:'Cross the road or arc away before barking begins, then reward a calm look and voluntary check-in.'},
+      {id:'attention',label:'At you for food, play or attention',when:'around everyday requests',read:'If barking reliably starts play, food or conversation, it has become a successful request.',action:'Meet needs proactively, then reward one second of quiet or an alternative such as a chin rest before giving access.'}
+    ],
+    patterns:[
+      {id:'alarm',label:'Stiff body, scanning, hard to disengage',read:'This looks like alarm or uncertainty. {name} needs distance and a safer prediction, not a louder correction.',lens:'Barking changes distance. Ask what the bark makes happen.',trap:'Yelling can sound like joining the alarm and add threat to the trigger.'},
+      {id:'excited',label:'Loose, bouncy and wants to get closer',read:'This looks like high social excitement or frustrated access.',lens:'Arousal can be joyful and still overwhelm the thinking brain.',trap:'Letting access happen after a long barking bout teaches persistence.'},
+      {id:'learned',label:'Barks, then looks at us for the payoff',read:'{name} has noticed the reliable sequence: bark, human responds, something happens.',lens:'A request becomes a habit when it works often enough.',trap:'Ignoring without offering a clear, easier request leaves a vacuum.'},
+      {id:'unsure',label:'Low, repetitive, pacing or slow recovery',read:'The pattern may involve anxiety or unmet needs. Track time, trigger and recovery rather than assuming attention-seeking.',lens:'Recovery time is often more useful than bark count.',trap:'Anti-bark tools can suppress information without resolving fear or distress.'}
+    ],
+    plan:['For one predictable trigger, add distance or block the view and note how long recovery takes.','Pair noticing the trigger with turning away, a food scatter, mat, or safe distance.','Use the same response in one real-life version and keep a management backup.'],
+    whispers:['A bark is a verb, not a diagnosis.','Count recovery, not just noise.','Quiet is easiest to teach before the alarm takes over.']
+  }),
+  settling:buildCompanionPack({
+    id:'settling',label:'Settling & over-arousal',emoji:'🌙',tagline:'The zoomies, pacing and “can’t switch off” moments — build an off-switch.',doneLine:'Calm became something you could practise together.',
+    gate:[
+      {id:'no',label:'No pain, breathing trouble, panic or sudden change',route:'green'},
+      {id:'sudden',label:'This is new, much worse, or comes with pain, confusion or night waking',route:'amber'},
+      {id:'distress',label:'There is prolonged pacing, trembling, panting or inability to rest',route:'amber'},
+      {id:'bite',label:'Handling or interruption risks a snap or bite',route:'red'}
+    ],
+    contexts:[
+      {id:'evening',label:'The evening “witching hour”',read:'Accumulated stimulation and fatigue can look like a need for more exercise when the nervous system may need help coming down.',action:'Before the usual spike, offer a sniff, toilet break, chew and a dim, low-traffic rest space.'},
+      {id:'afterwalk',label:'After walks, play or daycare',read:'High-intensity activity can leave arousal elevated after the fun stops.',action:'End the activity with five slow minutes of sniffing, water and a predictable settle routine.'},
+      {id:'family',label:'While the family is busy',read:'Movement, noise and intermittent attention can keep {name} monitoring for the next event.',action:'Set up a mat at comfortable distance and quietly deliver rewards for head-down, hip-shift or sighing.'},
+      {id:'night',label:'At bedtime or overnight',read:'Rest disruption can be environmental, learned, emotional or medical—especially when it is new.',action:'Keep a two-night log of sleep, toileting, temperature and discomfort; ask your vet about any sudden or senior change.'}
+    ],
+    patterns:[
+      {id:'overtired',label:'Wild after a long or busy day',read:'Overtired dogs can become more active, mouthy and impulsive rather than visibly sleepy.',lens:'More activity is not always the answer to high activity.',trap:'Adding another intense game can extend the arousal loop.'},
+      {id:'monitoring',label:'Follows every movement and pops up repeatedly',read:'{name} may not yet trust that nothing needs attending to.',lens:'Settling grows from safety and predictability, not command pressure.',trap:'Repeatedly cueing “bed” can keep attention on the very activity you want to fade.'},
+      {id:'needs',label:'Seems restless until a need is met',read:'Toileting, thirst, temperature, discomfort, hunger or insufficient enrichment should be checked before training.',lens:'Behaviour plans start with needs and health.',trap:'Labelling every unmet need as demand behaviour.'},
+      {id:'habit',label:'Can relax, but waits for constant entertainment',read:'A rich stream of interaction may have made human activity the cue to stay switched on.',lens:'Calm can be captured and reinforced like any other behaviour.',trap:'Only noticing {name} when they get up and become busy.'}
+    ],
+    plan:['Choose one daily wind-down and meet likely needs before asking for calm.','Capture three naturally calm body changes without repeatedly cueing them.','Carry the routine into one busier family moment, with an easy exit.'],
+    whispers:['Rest is a need, not an obedience exercise.','A sigh can be progress.','Teach the landing, not only the take-off.']
+  }),
+  destructive:buildCompanionPack({
+    id:'destructive',label:'Chewing, digging & destruction',emoji:'🧸',tagline:'Save the shoes by understanding the need, access and timing.',doneLine:'Better outlets replaced household damage.',
+    gate:[
+      {id:'no',label:'No swallowing, injury, panic or sudden change',route:'green'},
+      {id:'sudden',label:'It is sudden, compulsive, or may involve pain or illness',route:'amber'},
+      {id:'distress',label:'It happens mainly when alone with pacing, barking or escape attempts',route:'amber'},
+      {id:'bite',label:'Something dangerous was swallowed or {name} is injured',route:'red'}
+    ],
+    contexts:[
+      {id:'alone',label:'When nobody is watching',read:'Access, boredom and the sensory payoff can make destruction self-rewarding; alone-only patterns can also signal distress.',action:'Use a camera for a short safe period, remove hazards, and provide a tested safe chew before the usual time.'},
+      {id:'items',label:'Shoes, laundry or family objects',read:'Human-scented, soft objects are unusually interesting and often easy to reach.',action:'Store the favourites away and trade a found item for a high-value legal chew—never chase.'},
+      {id:'garden',label:'Garden, lawn or plants',read:'Digging can meet needs for scent, cooling, hunting, caching or sheer motor pleasure.',action:'Create one legal dig zone with buried treats and block the repeatedly damaged area while the new location pays.'},
+      {id:'furniture',label:'Furniture, walls or fixed surfaces',read:'Texture, teething, arousal or under-met chewing needs can maintain the pattern.',action:'Match the texture with a safe alternative, supervise the room, and reward choosing it before damage begins.'}
+    ],
+    patterns:[
+      {id:'young',label:'Young dog, teething or explores with mouth',read:'Mouthing is developmentally normal; the environment decides what gets rehearsed.',lens:'Prevention is teaching when the learner is not yet ready.',trap:'Offering toys only after the forbidden object has become exciting.'},
+      {id:'bored',label:'Happens after long quiet periods',read:'The behaviour may supply activity, scent and problem-solving that the day is missing.',lens:'Enrichment should match the dog, not just fill time.',trap:'Trying to exhaust a dog physically while leaving the seeking brain hungry.'},
+      {id:'aroused',label:'Happens after excitement or frustration',read:'Chewing or digging may help discharge arousal.',lens:'The same behaviour can regulate as well as entertain.',trap:'Interrupting physically when {name} is already over threshold.'},
+      {id:'payoff',label:'We chase, grab or make a big fuss',read:'The object may now start a predictable social game.',lens:'Possession plus pursuit can be more rewarding than the item.',trap:'Chasing teaches speed and can create conflict around giving things up.'}
+    ],
+    plan:['Remove one high-probability target and place a matched legal outlet before the usual moment.','Reward choosing the outlet and rotate safe textures without creating competition.','Test one slightly less-managed period while supervision and a trade remain available.'],
+    whispers:['A legal yes works better beside every no.','Match the texture, timing and need.','Don’t chase the lesson you want returned.']
+  }),
+  toileting:buildCompanionPack({
+    id:'toileting',label:'Toileting & marking',emoji:'🌿',tagline:'Accidents, marking and regressions — separate learning from health.',doneLine:'A predictable toilet rhythm returned.',
+    gate:[
+      {id:'no',label:'No straining, blood, pain, excessive thirst or sudden change',route:'green'},
+      {id:'sudden',label:'It began suddenly or frequency, thirst or volume changed',route:'amber'},
+      {id:'distress',label:'There is straining, pain, blood, weakness or inability to pass urine',route:'red'},
+      {id:'bite',label:'The dog is distressed and cannot be safely handled',route:'red'}
+    ],
+    contexts:[
+      {id:'puppy',label:'A puppy still learning',read:'Bladder capacity, surface preference and the household schedule are still developing.',action:'Take {name} out after waking, eating, play and excitement; reward immediately at the correct spot.'},
+      {id:'regression',label:'A previously house-trained dog',read:'Regression deserves a health and environment check before a training label.',action:'Book a vet check if sudden, and log time, location, volume, drinking and what happened just before.'},
+      {id:'marking',label:'Small amounts on vertical or new objects',read:'Marking can relate to scent, novelty, social change or arousal and is not spite.',action:'Clean enzymatically, restrict access to repeat sites, and take a calm toilet trip before high-risk transitions.'},
+      {id:'overnight',label:'Overnight or when left alone',read:'Timing can reflect schedule, capacity, distress, medical factors or confinement difficulty.',action:'Use a simple sleep/absence log and camera; adjust opportunity without punishing the evidence.'}
+    ],
+    patterns:[
+      {id:'timing',label:'We notice after it has happened',read:'Delayed feedback cannot teach the location; it only changes how safe the human feels near evidence.',lens:'Reinforcement must meet the correct behaviour at the correct place.',trap:'Scolding after the fact can create hiding, not understanding.'},
+      {id:'missed',label:'Signals are subtle or opportunities are irregular',read:'The schedule may be asking {name} to hold past current capacity.',lens:'Predictability makes the right answer available.',trap:'Waiting for a clear signal before the dog has learned one.'},
+      {id:'surface',label:'Prefers rugs, beds, soil or one surface',read:'Dogs learn surface and location together; the current preference may be very specific.',lens:'Substrate is part of the cue.',trap:'Assuming outside is one obvious category to the dog.'},
+      {id:'change',label:'Follows visitors, moves, new pets or routine change',read:'Novel scent and arousal can alter marking and opportunity patterns.',lens:'Context changes can temporarily change learned behaviour.',trap:'Calling it revenge adds blame and hides useful variables.'}
+    ],
+    plan:['Create a two-day time/location log and add one proactive toilet opportunity.','Reward at the correct place within two seconds and clean old sites enzymatically.','Stretch only one interval slightly while keeping the successful rhythm.'],
+    whispers:['An accident is data, never revenge.','Reward outdoors—not once you are back inside.','Sudden regression starts with health.']
+  }),
+  visitors:buildCompanionPack({
+    id:'visitors',label:'Visitors & the front door',emoji:'🚪',tagline:'Build safer arrivals without forcing greetings.',doneLine:'Arrivals became calmer and more choice-led.',
+    gate:[
+      {id:'no',label:'Excited or wary, but no snap, bite or loss of control',route:'green'},
+      {id:'sudden',label:'This is new or much stronger than before',route:'amber'},
+      {id:'distress',label:'There is freezing, growling, lunging or prolonged fear',route:'amber'},
+      {id:'bite',label:'There has been a snap, bite, contact or immediate risk',route:'red'}
+    ],
+    contexts:[
+      {id:'doorbell',label:'At the knock or bell',read:'The sound predicts a compressed burst of movement, voices and access.',action:'Practise a very quiet recording, scatter food away from the door, and stop before arousal climbs.'},
+      {id:'entry',label:'As people enter',read:'Narrow doorways remove distance and choice while excitement peaks.',action:'Have {name} behind a gate with a chew before opening; greeting is optional and later.'},
+      {id:'inside',label:'Once visitors sit or move around',read:'A still guest and a moving guest can feel like different events.',action:'Ask visitors to ignore {name}; reward calm observation from a chosen station at distance.'},
+      {id:'workers',label:'Tradespeople, deliveries or unfamiliar uniforms',read:'Unusual movement, tools and direct approaches can intensify alarm.',action:'Use a closed room or secure barrier for the whole visit. Management is the successful plan here.'}
+    ],
+    patterns:[
+      {id:'social',label:'Loose and desperate to greet',read:'Social access is likely the major payoff.',lens:'The greeting itself can reward calm feet and body.',trap:'Opening the gate during peak arousal pays the peak.'},
+      {id:'alarm',label:'Barks and scans but can take food',read:'{name} may be concerned but still able to learn at this distance.',lens:'Choice and distance reduce social pressure.',trap:'Having the visitor offer food from a hand can lure the dog too close.'},
+      {id:'fear',label:'Retreats, hides or will not take food',read:'This is fear information. The goal is safety, not a greeting.',lens:'No greeting is a perfectly good outcome.',trap:'Coaxing a frightened dog out removes the refuge they chose.'},
+      {id:'mixed',label:'Approaches, then barks or retreats',read:'Wanting information and wanting distance can coexist.',lens:'Approach does not equal consent to touch.',trap:'Letting a visitor reach because the dog came closer.'}
+    ],
+    plan:['Choose a barrier and station before one planned low-key arrival.','Pair the arrival sequence with distance, food and no social pressure.','Let {name} opt into a brief greeting only if the whole body stays soft.'],
+    whispers:['A safe non-greeting is still a successful visit.','Approach is curiosity, not consent.','Plan the doorway before it rings.']
+  }),
+  handling:buildCompanionPack({
+    id:'handling',label:'Handling, grooming & vet care',emoji:'🩺',tagline:'Turn touch into a conversation, not something done to them.',doneLine:'Care became more cooperative and predictable.',
+    gate:[
+      {id:'no',label:'Mild avoidance only; no pain, growl, snap or bite',route:'green'},
+      {id:'sudden',label:'Touch sensitivity is new or may be painful',route:'amber'},
+      {id:'distress',label:'There is freezing, growling, severe fear or restraint is required',route:'amber'},
+      {id:'bite',label:'There has been a snap, bite or unsafe handling moment',route:'red'}
+    ],
+    contexts:[
+      {id:'paws',label:'Paws, nails or wiping feet',read:'Paws are sensitive and restraint can predict discomfort or loss of control.',action:'Touch above the paw for one second, feed, and stop; do not attempt the nail today.'},
+      {id:'coat',label:'Brushing, bathing or coat care',read:'Tangles, skin discomfort, tool sensation and duration all affect tolerance.',action:'Show the tool, reward; make one gentle stroke on an easy area, reward, and finish.'},
+      {id:'ears',label:'Ears, eyes, mouth or medication',read:'These areas are vulnerable and discomfort can make avoidance entirely rational.',action:'Ask your vet about pain first; practise only a nearby, non-invasive touch paired with food.'},
+      {id:'vet',label:'Clinic visits, examination or restraint',read:'Travel, smells, surfaces, strangers and past procedures stack together.',action:'Arrange a “happy visit” if the clinic offers one: arrive, eat treats, leave—no examination.'}
+    ],
+    patterns:[
+      {id:'pullaway',label:'Pulls away but returns willingly',read:'{name} is giving clear feedback about duration or location.',lens:'A pause can function as consent to continue—or not.',trap:'Holding tighter teaches that early signals do not work.'},
+      {id:'freeze',label:'Goes still, turns head or stops taking food',read:'Stillness may be a stop signal, not cooperation.',lens:'Consent is visible in voluntary re-engagement.',trap:'Mistaking shutdown for calm compliance.'},
+      {id:'tool',label:'Fine with touch, worried by the tool',read:'The tool predicts sensation before it arrives.',lens:'Break the care chain into separate, tiny predictions.',trap:'Luring with food while the procedure continues can create conflict.'},
+      {id:'duration',label:'Comfortable briefly, then struggles',read:'The current duration exceeds {name}’s tolerance even if the first seconds are easy.',lens:'Stop while success is still present.',trap:'Finishing the whole job today at the cost of the next ten sessions.'}
+    ],
+    plan:['Find one body area and one-second touch {name} can freely leave.','Use a clear start signal, touch briefly, reward, then pause for voluntary return.','Add either one second or one tool movement—not both.'],
+    whispers:['Stillness is not always consent.','Stop while tomorrow is still protected.','Care works better as a conversation.']
+  }),
+  separation:buildCompanionPack({
+    id:'separation',label:'Being alone',emoji:'🏠',tagline:'Use video and tiny absences to separate boredom from distress.',doneLine:'Alone time became safer and more predictable.',
+    gate:[
+      {id:'no',label:'Mild following or brief protest, then settles on video',route:'green'},
+      {id:'sudden',label:'This began suddenly or {name} is older or unwell',route:'amber'},
+      {id:'distress',label:'Sustained panting, pacing, barking, toileting or no settling',route:'amber'},
+      {id:'bite',label:'Escape attempts, self-injury, collapse or immediate welfare risk',route:'red'}
+    ],
+    contexts:[
+      {id:'departure',label:'Keys, shoes or pre-departure cues',read:'The anxiety sequence can begin well before the door closes.',action:'Pick up keys, put them down, and stay home; repeat only while {name} remains relaxed.'},
+      {id:'minutes',label:'In the first few minutes alone',read:'Early video gives the clearest view of whether {name} settles, monitors or escalates.',action:'Record one absence shorter than the usual problem and return before any escalation.'},
+      {id:'barrier',label:'Behind a gate, door or crate while you are home',read:'Barrier distress and separation from a person can overlap but are not identical.',action:'Start with a barrier open, reward resting nearby, and close it for one second only if the body stays soft.'},
+      {id:'variable',label:'Some absences are fine, others are not',read:'Duration, time of day, noise, exercise, confinement and departure person may be changing the picture.',action:'Log five absences with video: duration, location, first distress sign and recovery.'}
+    ],
+    patterns:[
+      {id:'settles',label:'Briefly checks the door, then rests',read:'This may be ordinary monitoring with a workable settling skill.',lens:'Video replaces guesses with a timeline.',trap:'Jumping from easy minutes to a long absence after one success.'},
+      {id:'follows',label:'Follows constantly but can relax nearby',read:'Closeness is preferred, but calm independence may be teachable in tiny increments.',lens:'Independence grows while the dog still feels safe.',trap:'“Cry it out” risks rehearsing distress rather than building capacity.'},
+      {id:'vocal',label:'Barks or whines, then pauses and settles',read:'The duration and recovery curve matter more than the presence of one vocalisation.',lens:'Look for escalation versus recovery.',trap:'Using a bark deterrent hides the signal without changing the emotion.'},
+      {id:'unclear',label:'We do not know what happens after leaving',read:'Without video, destruction or toileting cannot reliably be attributed to anxiety, boredom or another trigger.',lens:'Observe before interpreting.',trap:'Treating the evidence after returning as proof of spite.'}
+    ],
+    plan:['Use video to find one absence duration with no escalation.','Repeat below that duration and mix in easier repetitions; return while calm.','Increase by seconds, not bravery, and keep necessary absences below current capacity.'],
+    amberTitle:'This may be separation-related distress',
+    amber:['Sustained distress when alone is a welfare and health issue, not disobedience. Avoid “cry it out”, punishment and absences that trigger panic where possible.','Contact your vet. Share a short video and timeline; treatment may combine management, gradual behaviour work and, when clinically appropriate, medication.'],
+    whispers:['Video turns guilt and guesswork into a timeline.','Build seconds beneath panic, not minutes through it.','Distress is not disobedience.']
+  }),
+  reactivity:buildCompanionPack({
+    id:'reactivity',label:'Fear & reactivity',emoji:'🫧',tagline:'Create distance, read recovery and protect both ends of the lead.',doneLine:'Safer distance created room for new choices.',
+    gate:[
+      {id:'no',label:'Mild worry; {name} can disengage and there is no contact history',route:'green'},
+      {id:'sudden',label:'This is new, worsening, or may involve pain or sensory change',route:'amber'},
+      {id:'distress',label:'Freezing, lunging or repeated reactions are affecting daily life',route:'amber'},
+      {id:'bite',label:'There has been a snap, bite, contact or immediate risk',route:'red'}
+    ],
+    contexts:[
+      {id:'dogs',label:'Other dogs',read:'Distance, movement, restraint and past learning can all shape dog-directed reactions.',action:'Choose a quiet route, arc away at first notice, and reward turning with you.'},
+      {id:'people',label:'People, children or particular appearances',read:'Direct approach, eye contact, movement and novelty can feel socially pressuring.',action:'Prevent approaches and let {name} observe from a distance where food and disengagement remain possible.'},
+      {id:'sounds',label:'Sounds, storms or household objects',read:'Sound sensitivity can generalise and may have a medical component when new.',action:'Create a quiet refuge and play the sound at barely audible level only if {name} remains relaxed.'},
+      {id:'places',label:'Cars, clinics, streets or unfamiliar places',read:'Multiple small stressors can stack until the last one gets blamed.',action:'Visit at a quiet time for one minute, pair the environment with good things, and leave early.'}
+    ],
+    patterns:[
+      {id:'distance',label:'Calmer when given more distance',read:'The behaviour is successfully asking the trigger to stay away.',lens:'Distance is a functional reward, not avoidance failure.',trap:'Holding position to make {name} “get used to it” can sensitise rather than teach.'},
+      {id:'stare',label:'Stares, stiffens, then erupts',read:'The earliest usable moment is before the visible explosion.',lens:'Threshold is a range; intervene at orientation, not eruption.',trap:'Waiting for barking before responding makes every rep harder.'},
+      {id:'recover',label:'Reacts, then recovers reasonably quickly',read:'Recovery is a strength to protect while widening safe distance.',lens:'Track how fast the nervous system comes back.',trap:'Immediately approaching again because the barking stopped.'},
+      {id:'stacked',label:'Much worse after a busy or stressful day',read:'Trigger stacking can lower the threshold even when the final event is unchanged.',lens:'Capacity changes across the day.',trap:'Judging a variable nervous system as inconsistent obedience.'}
+    ],
+    plan:['Map the distance where {name} notices but can still turn away and eat.','At that distance, reward noticing and choose distance before staring builds.','Practise one predictable real-world pass with an exit route already chosen.'],
+    amberTitle:'This needs a supported behaviour plan',
+    amber:['Repeated fear or reactivity can affect welfare and safety. Stop close exposures, protect distance and rule out pain with your vet.','Ask for a qualified reward-based behaviour professional. Do not use flooding, leash corrections, intimidation or tools designed to cause pain.'],
+    whispers:['Distance can be the reward.','Recovery is a skill worth measuring.','Protect both ends of the lead.']
+  }),
+  guarding:buildCompanionPack({
+    id:'guarding',label:'Resources & guarding',emoji:'🦴',tagline:'Prevent conflict around food, objects and space; never punish the warning.',doneLine:'Safer exchanges replaced confrontation.',
+    gateQuestion:'Resource safety first. Which is true?',
+    gate:[
+      {id:'no',label:'Prevention only — no stiffening, growl, snap or bite history',route:'green'},
+      {id:'sudden',label:'New reluctance to be approached or possible pain',route:'amber'},
+      {id:'distress',label:'Freezing, hard stare, hovering, growling or lunging',route:'amber'},
+      {id:'bite',label:'There has been a snap, bite, contact or immediate risk',route:'red'}
+    ],
+    contexts:[
+      {id:'food',label:'Food, bowl or chews',read:'Approach may predict loss. Prevention builds the opposite prediction before concern exists.',action:'Give {name} undisturbed eating space; from well outside that space, occasionally toss an extra treat and walk away.'},
+      {id:'found',label:'Found or stolen objects',read:'Chasing and forced removal can make possession urgent and human approach risky.',action:'Prevent access, then practise trades with a boring safe object: toss better food away and collect only after {name} leaves.'},
+      {id:'space',label:'Bed, sofa, doorway or resting place',read:'Rest, pain, confinement or blocked movement can make approach difficult.',action:'Call {name} away with a reward rather than reaching, pushing or cornering; provide an undisturbed rest zone.'},
+      {id:'social',label:'A person, another pet or attention',read:'Crowding and competition can create conflict even when the “resource” is social access.',action:'Separate high-value moments and give each animal predictable, individual access without competition.'}
+    ],
+    patterns:[
+      {id:'prevent',label:'No concern yet; we want to prevent one',read:'Excellent. Predictable space, fair trades and human approach that adds value are powerful prevention.',lens:'Trust is built before it is tested.',trap:'Repeatedly taking the bowl or prized items to prove ownership can create the problem.'},
+      {id:'grab',label:'We sometimes grab or take items',read:'Forced loss teaches {name} to swallow faster, flee or defend access.',lens:'A trade changes what human approach predicts.',trap:'“Winning” the object can lose safety and trust.'},
+      {id:'chase',label:'It turns into chase or keep-away',read:'Pursuit makes possession more exciting and returning less safe.',lens:'Movement can become half the reward.',trap:'Cornering removes choice and raises conflict.'},
+      {id:'multi',label:'Competition with another pet or child',read:'Proximity and unpredictability can turn ordinary value into conflict.',lens:'Management is the primary intervention when resources and vulnerable family members mix.',trap:'Expecting dogs or children to negotiate high-value space safely.'}
+    ],
+    plan:['Protect undisturbed resource space and remove all deliberate taking or testing.','Practise approach-adds-value and one easy voluntary trade with a low-value object.','Generalise only to another low-value setup; real guarding signs require professional help.'],
+    amberTitle:'Do not train through a guarding warning',
+    amber:['Freezing, hard staring, hovering or growling is safety information. Do not punish it, reach in, test the bowl, force a trade or ask a child to approach.','Use barriers and separation around valued items. Contact your vet to rule out pain and ask for a qualified reward-based behaviour professional.'],
+    whispers:['Never punish the warning that keeps you informed.','Approach should add, not take.','Management is care, not surrender.']
+  })
+};
+Object.assign(PACKS, EXPANSION_PACKS);
+
+const TERRITORY_GROUPS = [
+  {label:'Everyday skills', ids:['jumping','pulling','recall']},
+  {label:'Home & routines', ids:['barking','settling','destructive','toileting']},
+  {label:'People & care', ids:['visitors','handling']},
+  {label:'Bigger feelings', ids:['separation','reactivity','guarding']}
+];
+
+const ROUTER_KEYWORDS = {
+  guarding:['guard','growl','food','bowl','bone','toy','steal','snarl','resource'],
+  separation:['alone','leave','leaving','separation','panic','door closes','when i go'],
+  reactivity:['react','lunge','scared','fear','afraid','dog on walk','stranger','firework','thunder'],
+  handling:['nail','groom','brush','bath','vet','touch','paw','ear','medicine'],
+  visitors:['visitor','doorbell','delivery','guest','tradie','front door'],
+  toileting:['toilet','pee','poo','urine','accident','marking','house trained'],
+  destructive:['chew','destroy','dig','shoe','furniture','garden','swallow'],
+  settling:['settle','sleep','restless','zoom','switch off','pacing','overtired'],
+  barking:['bark','noise','window','fence'],
+  pulling:['pull','lead','leash','walk'],
+  recall:['recall','come','run away','won’t come','wont come'],
+  jumping:['jump','greet','paws up']
+};
+
 const GENERAL_WHISPERS = [
   'Dogs repeat what works. Change what works, and the dog changes.',
   'You’re not training the dog every day — but every day, the dog is learning.',
@@ -768,15 +1091,16 @@ const VIEWS = {
       todayHtml = `<div class="streakline" style="margin-bottom:6px"><span>🐾</span><span>${tierLine()}</span></div>`;
     }
 
-    // Decode cards
-    const packCards = Object.values(PACKS).map(pk => {
-      const activeCard = active.find(c=>c.behaviour===pk.id);
-      return `<button class="card tap" onclick="startDecode('${pk.id}')">
-        <span class="btile">${pk.emoji}</span>
-        <span><h3>${pk.label}${activeCard?'<span class="pill">In progress</span>':''}</h3>
-        <p>${fill(pk.tagline)}</p></span>
-      </button>`;
-    }).join('');
+    // Grouped territory map: simple front door, comprehensive depth behind it.
+    const packCards = TERRITORY_GROUPS.map(group => `<div class="kicker">${group.label}</div>` +
+      group.ids.map(id => {
+        const pk=PACKS[id], activeCard=active.find(c=>c.behaviour===pk.id);
+        return `<button class="card tap" onclick="startDecode('${pk.id}')">
+          <span class="btile">${pk.emoji}</span>
+          <span><h3>${pk.label}${activeCard?'<span class="pill">In progress</span>':''}</h3>
+          <p>${fill(pk.tagline)}</p></span>
+        </button>`;
+      }).join('')).join('');
 
     // graduated keepsakes
     let doneHtml = '';
@@ -795,26 +1119,67 @@ const VIEWS = {
       ${meetCard}
       ${todayHtml}
       <div class="whisper"><span class="w-ico">🦴</span><p><span class="w-tag">Today’s trainer’s whisper</span>${fill(dailyWhisper())}</p></div>
-      <div class="kicker">What’s ${name} doing?</div>
-      ${packCards}
-      <button class="card tap" onclick="go('other')">
-        <span class="btile">💬</span>
-        <span><h3>Something else?</h3><p>Barking, digging, bigger worries — here’s the honest picture.</p></span>
+      <button class="card tap" onclick="go('intake')" style="margin-top:14px">
+        <span class="btile">✍️</span>
+        <span><h3>Tell me what happened</h3><p>Use your own words. PawPocket will find the right starting point — privately, on this device.</p></span>
       </button>
+      ${packCards}
+      ${S.moments.length ? `<button class="card tap" onclick="go('moments')">
+        <span class="btile">💚</span><span><h3>Saved dog moments</h3>
+        <p>${S.moments.length} ${S.moments.length===1?'read':'reads'} worth remembering or sharing.</p></span></button>` : ''}
       <button class="card tap" onclick="go('evidence')">
         <span class="btile">✓</span>
         <span><h3>Why trust this?</h3><p>Our humane method, safety limits and evidence ledger.</p></span>
       </button>
       ${doneHtml}
-      <footer class="legal">PawPocket gives reward-based guidance for everyday behaviour, aligned with LIMA principles. It is not a substitute for a qualified behaviour professional — and it will tell you when a situation needs one.<br><br>Private by design: everything you tell PawPocket stays on this device. No account, no cloud, no tracking.</footer>`;
+      <footer class="legal">PawPocket gives humane, reward-based guidance for everyday behaviour. It is not a substitute for veterinary care or a qualified behaviour professional — and it will tell you when a situation needs one.<br><br>Private by design: everything you tell PawPocket stays on this device. No account, no cloud, no tracking.</footer>`;
+  },
+
+  intake() {
+    return `
+      <button class="back" onclick="go('home')">← Back</button>
+      <h2>What happened?</h2>
+      <p class="sub">${fill('Describe one moment: what {name} did, what was happening around them, and what happened next. Nothing leaves this device.')}</p>
+      <textarea id="momentText" maxlength="600" placeholder="For example: When the doorbell rang, Max barked at the door and kept pacing after the visitor sat down…"></textarea>
+      <button class="btn" onclick="routeMoment()">Find the right starting point</button>
+      <div class="block boundary"><span class="tag">Safety shortcut</span>
+        <p>If there was a bite, injury, breathing difficulty, collapse, inability to urinate, self-injury or immediate danger, create distance and contact the appropriate medical or veterinary service now.</p></div>`;
+  },
+
+  routed() {
+    const pk=PACKS[view.pack];
+    return `
+      <button class="back" onclick="go('intake')">← Edit</button>
+      <h2>${view.matched?'A useful place to start':'Let’s narrow it together'}</h2>
+      <div class="block readblk"><span class="tag">${pk.emoji} ${pk.label}</span>
+        <p>${view.matched?`Your words point most strongly to ${pk.label.toLowerCase()}. I’ll ask a safety question first, then two details about the moment.`:'I could not safely infer the territory from that description. Choose the closest below, or start with your vet if the change is sudden or concerning.'}</p></div>
+      ${view.matched?`<button class="btn" onclick="startDecode('${pk.id}')">Read this moment</button>`:
+        TERRITORY_GROUPS.map(g=>`<div class="kicker">${g.label}</div>${g.ids.map(id=>`<button class="card tap" onclick="startDecode('${id}')"><span class="btile">${PACKS[id].emoji}</span><span><h3>${PACKS[id].label}</h3></span></button>`).join('')}`).join('')}
+      <button class="btn quiet" onclick="go('home')">Home</button>`;
+  },
+
+  moments() {
+    const moments=S.moments;
+    return `
+      <button class="back" onclick="go('home')">← Home</button>
+      <h2>Saved dog moments</h2>
+      <p class="sub">A private record of the patterns you noticed and the humane moves you chose.</p>
+      ${moments.length ? moments.map((m,i)=>`<div class="block">
+        <span class="tag">${PACKS[m.pack].emoji} ${PACKS[m.pack].label} · ${m.date}</span>
+        <p><b>What you noticed</b><br>${esc(m.read)}</p>
+        <p><b>What you tried</b><br>${esc(m.action)}</p>
+        <button class="btn ghost" onclick="shareMoment(${i})">Share this moment</button>
+        <button class="btn quiet" onclick="removeMoment(${i})">Remove</button>
+      </div>`).join(''):`<div class="block readblk"><p>Your saved reads will appear here.</p></div>`}
+      <button class="btn ghost" onclick="go('home')">Back home</button>`;
   },
 
   other() {
     return `
       <button class="back" onclick="go('home')">← Back</button>
-      <h2>What about everything else?</h2>
-      <div class="block readblk"><span class="tag">Why only three behaviours</span>
-        <p>${fill('Most apps cover twenty behaviours an inch deep. PawPocket covers three a mile deep — real context, real follow-up, real plans. Barking is next (it’s secretly five different behaviours, and {name} deserves the right one).')}</p></div>
+      <h2>When PawPocket should step aside</h2>
+      <div class="block readblk"><span class="tag">A confidant knows its limits</span>
+        <p>PawPocket can help you observe and practise across twelve everyday territories. It cannot examine pain, diagnose a disorder or safely assess complex risk through a screen.</p></div>
       <div class="block boundary"><span class="tag">If you’re dealing with something bigger</span>
         <p>Growling or snapping, guarding food or toys, panic when left alone, fear of people, or anything involving a bite — that isn’t app territory, and pretending otherwise would be selling you short. Those patterns are common, very workable, and fastest with in-person help.</p>
         <p>Your vet is the best first call: they can rule out pain and refer you to a veterinary behaviourist or a qualified reward-based trainer.</p></div>
@@ -910,6 +1275,7 @@ const VIEWS = {
       <div class="block readblk"><span class="tag">Try this today</span><p>${fill(t.action, c)}</p></div>
       ${boundaries}
       <button class="btn ghost" onclick="shareResult()">Share this read</button>
+      <button class="btn ghost" onclick="saveMoment()">Save this dog moment</button>
       ${!S.profile ? `<div class="block boundary"><span class="tag">Make it personal</span>
         <p>This read was written for “a dog”. Thirty seconds about yours — name, age, home — and I’ll rewrite it for them, and remember for next time.</p></div>` : ''}
       ${already
@@ -1003,9 +1369,14 @@ const VIEWS = {
 
   checkinResult() {
     const c = S.working[view.idx];
+    const pack = c && PACKS[c.behaviour];
     return `
       <h2>${view.title}</h2>
       <div class="block readblk"><p>${view.msg}</p></div>
+      ${c && !c.done ? `<div class="block"><span class="tag">Tomorrow’s lens</span>
+        <p>${view.advanced
+          ? `Notice the earliest small sign that ${fill(pack.plan[c.step-1].cue,c.ctx).toLowerCase()}`
+          : `Repeat one comparable setup and watch ${CHECKIN_LANGUAGE[c.behaviour].better.toLowerCase()}.`}</p></div>` : ''}
       ${c && c.done ? `<button class="btn" onclick="go('wocard',{idx:${view.idx}})">🎉 See what you made</button>` : ''}
       ${view.showPlan && c && !c.done ? `<button class="btn" onclick="go('wocard',{idx:${view.idx}})">See ${view.advanced?'the new step':'today’s plan'}</button>` : ''}
       <button class="btn quiet" onclick="go('home')">Home</button>`;
@@ -1065,6 +1436,27 @@ function saveProfile() {
   const dest = profileReturn; profileReturn = 'home';
   if (dest === 'result' && decodeCtx.pack) { go('result'); return; }
   go('home');
+}
+function routeMoment() {
+  const el=document.getElementById('momentText');
+  const raw=(el&&el.value||'').trim();
+  if (!raw) { if(el){el.style.borderColor='var(--red)';el.focus();} return; }
+  const text=raw.toLowerCase();
+  if (/(bite|bitten|blood|injur|collapse|can't breathe|cannot breathe|can't urinate|cannot urinate|self.?injur|immediate danger)/.test(text)) {
+    decodeCtx={pack:'reactivity',sourceText:raw};
+    go('red'); return;
+  }
+  let best=null,score=0;
+  Object.entries(ROUTER_KEYWORDS).forEach(([id,words])=>{
+    const s=words.reduce((n,w)=>n+(text.includes(w)?1:0),0);
+    if(s>score){best=id;score=s;}
+  });
+  if(best) {
+    decodeCtx={pack:best,sourceText:raw};
+    go('routed',{pack:best,matched:true});
+  } else {
+    go('routed',{pack:'settling',matched:false});
+  }
 }
 function startDecode(packId) {
   decodeCtx = { pack: packId };
@@ -1213,6 +1605,33 @@ function shareResult() {
       if (b) b.textContent = 'Copied — ready to send';
     }).catch(()=>{});
   }
+}
+
+function saveMoment() {
+  if (!decodeCtx.pack) return;
+  const pack=PACKS[decodeCtx.pack], target=pack.targets[decodeCtx.who], driver=pack.drivers[decodeCtx.next];
+  if (!target || !driver) return;
+  const moments=S.moments;
+  moments.unshift({
+    pack:pack.id,
+    date:new Date().toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'}),
+    read:fill(target.intro,decodeCtx)+' '+fill(driver.core,decodeCtx),
+    action:fill(target.action,decodeCtx)
+  });
+  S.moments=moments.slice(0,30);
+  const buttons=[...document.querySelectorAll('.btn')];
+  const b=buttons.find(x=>x.textContent.includes('Save this dog moment'));
+  if(b){b.textContent='Saved to your dog moments';b.disabled=true;}
+}
+function shareMoment(idx) {
+  const m=S.moments[idx];
+  if(!m)return;
+  const text=`A moment I noticed with ${(S.profile&&S.profile.name)||'our dog'}:\n\n${m.read}\n\nWhat I’m trying:\n${m.action}\n\nShared from PawPocket.`;
+  if(navigator.share) navigator.share({title:'A PawPocket dog moment',text}).catch(()=>{});
+  else if(navigator.clipboard) navigator.clipboard.writeText(text).catch(()=>{});
+}
+function removeMoment(idx) {
+  const moments=S.moments; moments.splice(idx,1); S.moments=moments; render();
 }
 
 render();
