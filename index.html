@@ -1971,7 +1971,12 @@ function unfoldBrandPromise() {
       promise.appendChild(wordSpan);
       if (wordIndex < words.length - 1) promise.appendChild(document.createTextNode(' '));
     });
-    if (thoughtIndex < thoughts.length - 1) promise.appendChild(document.createTextNode(' '));
+    if (thoughtIndex < thoughts.length - 1) {
+      const lineBreak = document.createElement('br');
+      lineBreak.className = 'brand-break';
+      lineBreak.setAttribute('aria-hidden', 'true');
+      promise.appendChild(lineBreak);
+    }
   });
 }
 
