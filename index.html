@@ -86,9 +86,10 @@
     display: inline-block; opacity: 0;
     transform: translateY(0.35em) rotateX(-80deg) scaleY(0.35);
     transform-origin: center bottom;
-    animation: brand-letter-unfold 460ms cubic-bezier(.2,.75,.25,1) forwards;
+    animation: brand-letter-unfold 720ms cubic-bezier(.2,.75,.25,1) forwards;
     animation-delay: var(--letter-delay);
   }
+  .brand-word { display: inline-block; white-space: nowrap; }
   @keyframes brand-letter-unfold {
     60% { opacity: 1; transform: translateY(-0.05em) rotateX(8deg) scaleY(1.04); }
     100% { opacity: 1; transform: none; }
@@ -1947,17 +1948,30 @@ function unfoldBrandPromise() {
   const promise = document.querySelector('.brand-promise');
   if (!promise) return;
   const message = promise.textContent;
-  const secondThought = message.indexOf('Grow closer.');
   promise.setAttribute('aria-label', message);
   promise.textContent = '';
-  [...message].forEach((character, index) => {
-    const letter = document.createElement('span');
-    letter.className = 'brand-letter';
-    letter.setAttribute('aria-hidden', 'true');
-    letter.textContent = character === ' ' ? '\u00a0' : character;
-    const thoughtPause = index >= secondThought ? 220 : 0;
-    letter.style.setProperty('--letter-delay', `${80 + index * 28 + thoughtPause}ms`);
-    promise.appendChild(letter);
+  const thoughts = ['Understand your dog more.', 'Grow closer.'];
+  thoughts.forEach((thought, thoughtIndex) => {
+    const words = thought.split(' ');
+    words.forEach((word, wordIndex) => {
+      const wordSpan = document.createElement('span');
+      wordSpan.className = 'brand-word';
+      wordSpan.setAttribute('aria-hidden', 'true');
+      [...word].forEach((character, characterIndex) => {
+        const letter = document.createElement('span');
+        letter.className = 'brand-letter';
+        letter.textContent = character;
+        const priorCharacters = words.slice(0, wordIndex).join('').length + wordIndex;
+        const delay = thoughtIndex === 0
+          ? 120 + (priorCharacters + characterIndex) * 45
+          : 1600 + (words.length - 1 - wordIndex) * 250 + characterIndex * 45;
+        letter.style.setProperty('--letter-delay', `${delay}ms`);
+        wordSpan.appendChild(letter);
+      });
+      promise.appendChild(wordSpan);
+      if (wordIndex < words.length - 1) promise.appendChild(document.createTextNode(' '));
+    });
+    if (thoughtIndex < thoughts.length - 1) promise.appendChild(document.createTextNode(' '));
   });
 }
 
