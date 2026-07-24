@@ -121,6 +121,34 @@
     width:100%; min-height:44px; border:0; background:transparent; color:var(--muted);
     font:600 0.78rem/1.4 var(--sans); cursor:pointer; padding:9px 8px 7px; margin:0 0 2px;
   }
+  .skillcard {
+    border:1px solid var(--moss-line); border-radius:18px; padding:16px 18px; margin:12px 0;
+    background:linear-gradient(135deg,rgba(47,111,79,.08),rgba(217,142,63,.07));
+  }
+  .skillcard .eyebrow { display:block; color:#875015; font-size:.76rem; font-weight:800; letter-spacing:.09em; text-transform:uppercase; margin-bottom:5px; }
+  .skillcard b { color:var(--moss-dark); font-family:var(--serif); font-size:1.05rem; }
+  .skillcard p { color:var(--muted); font-size:.86rem; line-height:1.5; margin:5px 0 0; }
+  .curiosity {
+    border:1px solid rgba(217,142,63,.32); border-radius:20px; padding:18px; margin:14px 0;
+    background:var(--amber-soft);
+  }
+  .curiosity h3 { font-family:var(--serif); color:var(--moss-dark); font-size:1.15rem; line-height:1.35; margin:5px 0 8px; }
+  .curiosity p { color:var(--ink); font-size:.9rem; line-height:1.55; margin:0 0 10px; }
+  .curiosity .chip { background:rgba(255,253,249,.88); box-shadow:none; margin-top:8px; }
+  details.depth {
+    border:1px solid var(--moss-line); border-radius:16px; background:var(--card);
+    padding:0 16px; margin:10px 0;
+  }
+  details.depth summary {
+    cursor:pointer; min-height:48px; display:flex; align-items:center; color:var(--moss-dark);
+    font-weight:700; font-size:.92rem; list-style:none;
+  }
+  details.depth summary::-webkit-details-marker { display:none; }
+  details.depth summary::after { content:'＋'; margin-left:auto; color:var(--amber-ink); font-size:1.1rem; }
+  details.depth[open] summary::after { content:'−'; }
+  details.depth .inside { border-top:1px solid var(--moss-line); padding:12px 0 15px; }
+  details.depth p { margin:0 0 10px; line-height:1.6; font-size:.9rem; }
+  .library-btn { margin-top:18px; }
   .duepill { background: rgba(250,247,242,0.18); border-radius: 999px; padding: 4px 11px; font-weight: 600; font-size: 0.72rem; letter-spacing: 0.02em; }
   .duepill.hot { background: var(--amber); color: #2b1a06; }
   .streakline { display: flex; align-items: center; gap: 8px; margin: 2px 0 0; font-size: 0.86rem; color: var(--muted); }
@@ -299,6 +327,8 @@ const S = (() => {
     set working(v) { write('pp_working', v); },
     get moments()   { return read('pp_moments') || []; },
     set moments(v)  { write('pp_moments', v); },
+    get thread()    { return read('pp_thread'); },
+    set thread(v)   { write('pp_thread', v); },
     get stats()    { return read('pp_stats') || { applied: 0, decodes: 0, graduated: 0 }; },
     set stats(v)   { write('pp_stats', v); }
   };
@@ -338,6 +368,87 @@ const CHECKIN_LANGUAGE = {
   separation:{prompt:'On video during one safe absence, what changed?',better:'More calm time or faster settling',same:'About the same distress signs',worse:'Earlier panic, escape attempts, injury, or no recovery'},
   reactivity:{prompt:'At a safe distance from one trigger, what changed?',better:'Softer body or quicker recovery',same:'About the same threshold and recovery',worse:'More intensity, less distance needed, or a safety concern'},
   guarding:{prompt:'With management in place, what changed?',better:'More relaxed around the safe setup',same:'About the same tension or avoidance',worse:'More freezing, growling, lunging, snapping, or bite risk'}
+};
+
+function curiosity(question, tomorrow, options) {
+  return {question, tomorrow, options:options.map(([label,insight])=>({label,insight}))};
+}
+const CURIOSITY = {
+  jumping:curiosity(
+    'What happens in the second before the paws leave the floor?',
+    'Watch one greeting and notice the earliest change — speed, gaze or body height — before the jump.',
+    [['The whole body speeds up','Speed is the beginning of this greeting, not just the jump. Creating a pause earlier may be easier than correcting paws later.'],['They lock onto the person','The greeting starts with attention narrowing. A check-in before the approach may create a better choice.'],['They look at me first','That glance is a valuable opening: your dog is already asking what happens next.'],['I’ve never noticed','Perfect. Tomorrow’s job is not to stop the jump — it is simply to catch what comes first.']]
+  ),
+  pulling:curiosity(
+    'When does the lead first become tight?',
+    'Notice the first metre or trigger where slack disappears; that is the teachable moment.',
+    [['At the front door','The walk may begin above thinking speed. A calmer launch could change everything that follows.'],['At the first interesting smell','Access to scent is likely part of the reward. Slack lead can become the key that opens it.'],['When a dog or person appears','The trigger, not walking itself, may be changing capacity. Distance belongs in the plan.'],['I’ve never noticed','Track the first tight step tomorrow. Earlier information makes a smaller intervention possible.']]
+  ),
+  recall:curiosity(
+    'What is the first sign that the recall has landed?',
+    'Watch ears, head and weight shift before feet move. Response begins earlier than running back.',
+    [['An ear turns','That tiny orientation is the first response. Marking it can help the full return grow.'],['The head turns','The cue has reached your dog; the next question is whether the environment still outbids you.'],['They pause before moving','The pause is decision-making, not necessarily refusal. Make the return easier and better paid.'],['I’ve never noticed','Tomorrow, watch the body before the feet. Recall starts with attention, not arrival.']]
+  ),
+  barking:curiosity(
+    'What happens immediately before the first bark?',
+    'Look for stillness, a rush, a glance or scanning before the noise begins.',
+    [['The body goes still','Stillness suggests the concern begins before the sound. The freeze is tomorrow’s useful moment.'],['They rush toward it','Movement may be carrying arousal forward. More distance and an earlier turn can interrupt the run-up.'],['They look at me first','That glance is social information. Your dog may already be checking what you will do.'],['I’ve never noticed','Tomorrow, do not count barks. Catch the first visible change before them.']]
+  ),
+  settling:curiosity(
+    'What does “not settling” look like first?',
+    'Notice whether the first sign is following, pacing, mouthing or repeatedly getting up.',
+    [['Following every movement','Monitoring may be keeping the nervous system on duty. Predictability could matter more than another command.'],['Pacing or changing places','Restlessness is useful data about comfort, arousal or unmet needs. Track the pattern before adding activity.'],['Mouthing or wild play','Overtiredness can look active. A quieter landing may help more than another high-energy outlet.'],['I’ve never noticed','Tomorrow, watch the first two minutes of wind-down and name the earliest restlessness.']]
+  ),
+  destructive:curiosity(
+    'When is the forbidden object most valuable?',
+    'Notice timing: after quiet, after excitement, when alone or when humans react.',
+    [['After a long quiet period','The object may be supplying activity and problem-solving. The need is part of the solution.'],['After excitement or frustration','Chewing may be regulating arousal. Match the outlet to the moment, not only the texture.'],['When nobody is watching','Access and self-reward may be enough — or video may reveal distress that needs a different route.'],['When we chase or grab','The social game may now be part of the value. A calm trade changes the prediction.']]
+  ),
+  toileting:curiosity(
+    'What reliably happens before an accident?',
+    'Track the event immediately before it: waking, eating, play, arrival or being left.',
+    [['Waking or eating','Timing may be more useful than waiting for a signal. Proactive opportunity can make success easy.'],['Play or excitement','Arousal changes awareness and capacity. Build a toilet opportunity into the transition.'],['Being left or confined','The context may involve schedule, barrier difficulty or distress; observation matters before interpretation.'],['There seems to be no pattern','A two-day time, place and volume log often reveals what memory misses — and sudden change starts with a vet.']]
+  ),
+  visitors:curiosity(
+    'How does your dog’s body change when the visitor begins moving?',
+    'Compare a seated visitor with a moving one; they can feel like different events.',
+    [['They stay loose','Movement may be within current capacity. Protect that softness and keep greetings optional.'],['They become still or watch closely','The pressure rises before any noise. Distance at the first stare is more useful than correction later.'],['They move closer, then retreat','Curiosity and concern can coexist. Approach is not consent to touch.'],['I’ve never compared them','Tomorrow, compare still and moving guests from a safe distance. Recovery is the clue.']]
+  ),
+  handling:curiosity(
+    'What is the earliest “not yet” signal during care?',
+    'Watch for a head turn, weight shift, pause in eating or moving a body part away.',
+    [['A head turn or lip lick','A small signal is valuable communication. Pausing now protects trust and future care.'],['They pull the body part away','That is a clear request for less duration, pressure or restraint.'],['They stop taking food','Capacity may already be gone. Food refusal is a useful stop sign, not failed bribery.'],['I’ve never noticed','Tomorrow’s success is finding the first whisper before your dog needs to shout.']]
+  ),
+  separation:curiosity(
+    'What does the first minute on video show?',
+    'Record one safe, very short absence and notice whether your dog settles, monitors or escalates.',
+    [['They check the door, then rest','Brief monitoring with recovery is a strength. Increase difficulty slowly enough to preserve it.'],['They remain alert or pace','The nervous system may not be coming down yet. Duration should stay below escalation.'],['Vocalising grows rather than fades','An escalating curve is distress information. Do not use “cry it out”; involve your vet.'],['I haven’t used video','Video replaces guilt and guesswork with a timeline. Keep the first observation safely short.']]
+  ),
+  reactivity:curiosity(
+    'What is the first visible sign your dog has noticed the trigger?',
+    'At a safe distance, watch for ear, mouth, weight and gaze changes before a reaction.',
+    [['The mouth closes','That small change can mark the start of concern. Create distance while your dog can still think.'],['The body leans forward','Weight shift is the beginning of the reaction sequence. An arc away now is cheaper than recovery later.'],['They stare and stop moving','Stillness is not calm here; it may be the threshold approaching.'],['I’ve never noticed','Tomorrow, your skill is spotting orientation — not waiting for barking or lunging.']]
+  ),
+  guarding:curiosity(
+    'What does safe prevention look like before concern exists?',
+    'Notice whether human approach reliably adds value and whether resource space stays undisturbed.',
+    [['We leave eating space undisturbed','Predictable space reduces reasons for conflict. Prevention is already working.'],['We sometimes take things to test them','Testing can teach loss. Replace it with approach-adds-value and voluntary trades.'],['Children or pets can approach resources','Management should change first. Vulnerable family members should never be part of a training test.'],['I haven’t thought about prevention','That is the opportunity: build trust before there is anything to fix.']]
+  )
+};
+
+const READING_SKILLS = {
+  jumping:['Reading the run-up','You’re learning to see a greeting before it reaches the paws.'],
+  pulling:['Finding the first tension','You’re learning where the environment begins to outbid the walk.'],
+  recall:['Reading orientation','You’re noticing the response before the feet return.'],
+  barking:['Reading recovery','You’re learning what happens before and after the noise.'],
+  settling:['Reading regulation','You’re distinguishing a need for rest from a need for more activity.'],
+  destructive:['Matching need to outlet','You’re reading timing, texture and payoff instead of blaming the object.'],
+  toileting:['Finding the reliable context','You’re turning accidents into observable timing information.'],
+  visitors:['Reading social pressure','You’re noticing how distance, movement and choice change the moment.'],
+  handling:['Reading consent signals','You’re noticing the whisper before your dog needs to shout.'],
+  separation:['Reading the distress curve','You’re replacing guesses with a safe, observable timeline.'],
+  reactivity:['Finding threshold early','You’re protecting distance before the nervous system tips over.'],
+  guarding:['Protecting trust around value','You’re making approach predict safety rather than loss.']
 };
 
 // migrate: lifetime stats from any pre-existing cards
@@ -1042,6 +1153,44 @@ function tierLine() {
   return 'This is what a trained eye looks like — and ' + n + ' can feel the difference.';
 }
 
+function skillCard(active) {
+  const thread=S.thread;
+  const id=(thread&&thread.pack)||(active[0]&&active[0].behaviour);
+  const skill=id&&READING_SKILLS[id];
+  if (!skill) return `
+    <div class="skillcard"><span class="eyebrow">The skill underneath everything</span>
+      <b>Notice before you interpret</b>
+      <p>Start with one real moment. Context turns “bad behaviour” into something you can understand.</p></div>`;
+  return `<div class="skillcard"><span class="eyebrow">Dog-reading skill you’re building</span>
+    <b>${skill[0]}</b><p>${fill(skill[1])}</p></div>`;
+}
+
+function threadCard() {
+  const thread=S.thread;
+  if (!thread || !PACKS[thread.pack]) return '';
+  const pack=PACKS[thread.pack];
+  if (!thread.observed) return `
+    <button class="card tap" onclick="go('observe')">
+      <span class="btile">🔎</span><span><h3>Continue exploring</h3>
+      <p>${fill(thread.tomorrow)}</p><span class="pill">${pack.label}</span></span>
+    </button>`;
+  return `
+    <button class="card tap" onclick="go('threadSummary')">
+      <span class="btile">💡</span><span><h3>What you learned</h3>
+      <p>${fill(thread.insight)}</p><span class="pill">${pack.label}</span></span>
+    </button>`;
+}
+
+function curiosityBlock(packId) {
+  const c=CURIOSITY[packId];
+  if (!c) return '';
+  return `<div class="curiosity"><span class="tag">One thing worth discovering</span>
+    <h3>${fill(c.question)}</h3>
+    <p>The answer changes what matters next.</p>
+    ${c.options.map((o,i)=>`<button class="chip" onclick="answerCuriosity('${packId}',${i})">${fill(o.label)}</button>`).join('')}
+  </div>`;
+}
+
 // ---------- daily whisper ----------
 function dailyWhisper() {
   const active = S.working.filter(c=>!c.done).map(c=>c.behaviour);
@@ -1115,9 +1264,7 @@ const VIEWS = {
     }
 
     // Grouped territory map: simple front door, comprehensive depth behind it.
-    const visibleGroups = territoriesExpanded
-      ? TERRITORY_GROUPS
-      : [{label:'Popular starting points',ids:['jumping','barking','settling','recall']}];
+    const visibleGroups = territoriesExpanded ? TERRITORY_GROUPS : [];
     const packCards = visibleGroups.map(group => `<div class="kicker">${group.label}</div>` +
       group.ids.map(id => {
         const pk=PACKS[id], activeCard=active.find(c=>c.behaviour===pk.id);
@@ -1144,18 +1291,21 @@ const VIEWS = {
       <h2>${greeting()}.</h2>
       ${meetCard}
       ${todayHtml}
-      <div class="whisper"><span class="w-ico">🦴</span><p><span class="w-tag">Today’s trainer’s whisper</span>${fill(dailyWhisper())}</p></div>
       <button class="today confidant" onclick="go('intake')">
         <div class="t-kick"><span>PawPocket confidant</span><span class="duepill hot">Start here</span></div>
         <p class="t-cue">Tell me what happened.</p>
         <div class="t-foot"><span>I’ll help you find the pattern, the safety line and one humane next move.</span><span>Open →</span></div>
       </button>
       <button class="trustline" onclick="go('evidence')">Private on this device · reward-based · clear safety limits →</button>
-      ${packCards}
-      ${territoriesExpanded ? '' : `<button class="btn ghost" onclick="expandTerritories()">Explore all 12 territories</button>`}
+      ${threadCard()}
+      <div class="whisper"><span class="w-ico">🔎</span><p><span class="w-tag">Something worth noticing</span>${fill(dailyWhisper())}</p></div>
+      ${skillCard(active)}
       ${S.moments.length ? `<button class="card tap" onclick="go('moments')">
         <span class="btile">💚</span><span><h3>Saved dog moments</h3>
         <p>${S.moments.length} ${S.moments.length===1?'read':'reads'} worth remembering or sharing.</p></span></button>` : ''}
+      ${territoriesExpanded
+        ? `<div class="kicker">Explore by territory</div>${packCards}`
+        : `<button class="btn ghost library-btn" onclick="expandTerritories()">Explore the library · 12 territories</button>`}
       <button class="card tap" onclick="go('evidence')">
         <span class="btile">✓</span>
         <span><h3>Why trust this?</h3><p>Our humane method, safety limits and evidence ledger.</p></span>
@@ -1297,12 +1447,19 @@ const VIEWS = {
     return `
       <button class="back" onclick="go('home')">← Start over</button>
       <h2>The read</h2>
-      <div class="block readblk"><span class="tag">What’s likely happening</span>
-        <p>${fill(t.intro, c)}</p><p>${fill(d.core, c)}</p>${ageLine?`<p>${fill(ageLine, c)}</p>`:''}</div>
-      <div class="block"><span class="tag">Behaviour lens</span><p>${fill(d.lens, c)}</p></div>
-      <div class="block"><span class="tag">The common trap</span><p>${fill(d.trap, c)}</p></div>
+      <div class="block readblk"><span class="tag">The short read</span>
+        <p>${fill(t.intro, c)}</p></div>
       <div class="block readblk"><span class="tag">Try this today</span><p>${fill(t.action, c)}</p></div>
       ${boundaries}
+      ${curiosityBlock(c.pack)}
+      <details class="depth"><summary>Why PawPocket reads it this way</summary>
+        <div class="inside"><p>${fill(d.core,c)}</p>${ageLine?`<p>${fill(ageLine,c)}</p>`:''}</div></details>
+      <details class="depth"><summary>Learn the pattern</summary>
+        <div class="inside"><p><b>The behaviour lens</b><br>${fill(d.lens,c)}</p>
+        <p><b>The common trap</b><br>${fill(d.trap,c)}</p></div></details>
+      <details class="depth"><summary>Method and safety</summary>
+        <div class="inside"><p>${PRODUCT_DOCTRINE.promise}</p>
+        <button class="btn ghost" onclick="go('evidence')">See the evidence ledger</button></div></details>
       <button class="btn ghost" onclick="shareResult()">Share this read</button>
       <button class="btn ghost" onclick="saveMoment()">Save this dog moment</button>
       ${!S.profile ? `<div class="block boundary"><span class="tag">Make it personal</span>
@@ -1313,8 +1470,61 @@ const VIEWS = {
         : (!S.profile
           ? `<button class="btn" onclick="editProfile('result')">Rewrite it for my dog</button>
              <button class="btn quiet" onclick="go('home')">Maybe later</button>`
-          : `<button class="btn" onclick="startWorking()">Work on this with me</button>
+          : `<button class="btn" onclick="startWorking()">Follow the 3-step trail</button>
              <button class="btn quiet" onclick="go('home')">Maybe later</button>`)}`;
+  },
+
+  discovery() {
+    const c=CURIOSITY[view.pack], option=c&&c.options[view.option];
+    if (!c || !option) return VIEWS.home();
+    return `
+      <button class="back" onclick="go('result')">← Back to the read</button>
+      <h2>That detail matters.</h2>
+      <div class="block readblk"><span class="tag">What it may tell you</span>
+        <p>${fill(option.insight)}</p></div>
+      <div class="curiosity"><span class="tag">Your next episode</span>
+        <h3>${fill(c.tomorrow)}</h3>
+        <p>No test. No need to fix it. Just notice one comparable moment.</p></div>
+      <button class="btn" onclick="carryCuriosity('${view.pack}',${view.option})">Carry this into tomorrow</button>
+      <button class="btn ghost" onclick="shareDiscovery('${view.pack}',${view.option})">Share this discovery</button>`;
+  },
+
+  observe() {
+    const thread=S.thread;
+    if (!thread || !PACKS[thread.pack]) return VIEWS.home();
+    return `
+      <button class="back" onclick="go('home')">← Home</button>
+      <span class="stepbadge">${PACKS[thread.pack].emoji} ${PACKS[thread.pack].label}</span>
+      <h2>What did you notice?</h2>
+      <div class="curiosity"><span class="tag">The question you carried</span>
+        <h3>${fill(thread.tomorrow)}</h3></div>
+      <div class="chips">
+        <button class="chip" onclick="completeObservation('saw')">I saw the pattern</button>
+        <button class="chip" onclick="completeObservation('different')">Something different happened</button>
+        <button class="chip" onclick="completeObservation('none')">The moment didn’t happen</button>
+        <button class="chip" onclick="completeObservation('unsure')">I’m still not sure</button>
+      </div>`;
+  },
+
+  threadSummary() {
+    const thread=S.thread;
+    if (!thread || !PACKS[thread.pack]) return VIEWS.home();
+    const resultLines={
+      saw:'You found the pattern in real life. Observation is becoming a skill, not a guess.',
+      different:'Different is valuable information. Your dog changed the hypothesis — that is how good behaviour work gets smarter.',
+      none:'No moment means no forced conclusion. The question can stay open without becoming homework.',
+      unsure:'Uncertainty is honest data. One observation never has to carry the whole answer.'
+    };
+    return `
+      <button class="back" onclick="go('home')">← Home</button>
+      <h2>What you learned</h2>
+      <div class="block readblk"><span class="tag">${PACKS[thread.pack].emoji} ${PACKS[thread.pack].label}</span>
+        <p>${fill(thread.insight)}</p></div>
+      <div class="skillcard"><span class="eyebrow">Your trained eye</span>
+        <b>${resultLines[thread.result]||resultLines.unsure}</b>
+        <p>${READING_SKILLS[thread.pack][1]}</p></div>
+      <button class="btn" onclick="go('intake')">Explore another real moment</button>
+      <button class="btn quiet" onclick="clearThread()">Close this investigation</button>`;
   },
 
   amber() {
@@ -1429,6 +1639,38 @@ const VIEWS = {
 
 // ---------- actions ----------
 let profileReturn = 'home';
+function answerCuriosity(packId, option) {
+  go('discovery',{pack:packId,option});
+}
+function carryCuriosity(packId, optionIndex) {
+  const c=CURIOSITY[packId], option=c&&c.options[optionIndex];
+  if (!c || !option) { go('home'); return; }
+  S.thread={
+    pack:packId, question:c.question, selected:option.label, insight:option.insight,
+    tomorrow:c.tomorrow, createdAt:today0(), observed:false
+  };
+  go('home');
+}
+function completeObservation(result) {
+  const thread=S.thread;
+  if (!thread || thread.observed) { go('threadSummary'); return; }
+  thread.observed=true; thread.result=result; thread.observedAt=today0(); S.thread=thread;
+  if (result!=='none') {
+    const st=S.stats; st.applied+=1; S.stats=st;
+  }
+  go('threadSummary');
+}
+function clearThread() {
+  S.thread=null;
+  go('home');
+}
+function shareDiscovery(packId, optionIndex) {
+  const c=CURIOSITY[packId], option=c&&c.options[optionIndex], pack=PACKS[packId];
+  if (!c || !option || !pack) return;
+  const text=`Something I noticed about ${(S.profile&&S.profile.name)||'our dog'}:\\n\\n${fill(option.insight)}\\n\\nTomorrow I’m watching for:\\n${fill(c.tomorrow)}\\n\\nShared from PawPocket.`;
+  if (navigator.share) navigator.share({title:`PawPocket · ${pack.label}`,text}).catch(()=>{});
+  else if (navigator.clipboard) navigator.clipboard.writeText(text).catch(()=>{});
+}
 function expandTerritories() {
   territoriesExpanded = true;
   render();
