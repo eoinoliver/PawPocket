@@ -4,8 +4,8 @@
 <meta name="robots" content="noindex, nofollow">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>LittleLens — Know what to do when your little one does that.</title>
-<meta name="description" content="LittleLens helps parents read the child in front of them and choose the next kind, effective move.">
+<title>LittleLens — See the moment. Choose the next kind move.</title>
+<meta name="description" content="A private early-years confidant that helps parents read real family moments, choose one useful next move and learn from what happens.">
 <meta name="theme-color" content="#3f63a6" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#151821" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-title" content="LittleLens">
@@ -152,7 +152,12 @@
     width: 100%; padding: 13px 14px; border-radius: 13px; border: 1.5px solid var(--brand-line);
     background: var(--card); font-size: 1rem; font-family: inherit; color: var(--ink);
   }
-  input[type=text]:focus { outline: none; border-color: var(--brand); }
+  textarea {
+    width: 100%; padding: 14px; border-radius: 13px; border: 1.5px solid var(--brand-line);
+    background: var(--card); font-size: 1rem; line-height: 1.5; font-family: inherit; color: var(--ink);
+    resize: vertical;
+  }
+  input[type=text]:focus, textarea:focus { outline: none; border-color: var(--brand); }
   .opts { display: flex; flex-wrap: wrap; gap: 8px; }
   .opt {
     padding: 11px 16px; border-radius: 999px; border: 1.5px solid var(--brand-line);
@@ -235,7 +240,7 @@
     </button>
     <div class="brand" onclick="go('home')">
       <h1>LittleLens</h1>
-      <p>Know what to do when your little one does that.</p>
+      <p>See the moment. Choose the next kind move.</p>
     </div>
     <button class="avatarbtn" id="avatarbtn" aria-label="Your child's profile" onclick="editProfile()">🧒</button>
   </header>
@@ -267,6 +272,8 @@ const S = (() => {
     set profile(v) { write('ll_profile', v); },
     get working()  { return read('ll_working') || []; },
     set working(v) { write('ll_working', v); },
+    get moments()   { return read('ll_moments') || []; },
+    set moments(v)  { write('ll_moments', v); },
     get stats()    { return read('ll_stats') || { applied: 0, decodes: 0, graduated: 0 }; },
     set stats(v)   { write('ll_stats', v); }
   };
@@ -284,13 +291,635 @@ const PRODUCT_DOCTRINE = {
   ]
 };
 
+function buildExpansionPack(c) {
+  return {
+    id:c.id, label:c.label, emoji:c.emoji, tagline:c.tagline, doneLine:c.doneLine,
+    gate:{
+      q:c.gateQ || 'Quick check first — which is closest?',
+      opts:[
+        {id:'no',label:c.safeLabel,route:'green'},
+        {id:'hurt',label:c.boundaryLabel,route:'boundary'},
+        {id:'often',label:c.amberLabel,route:'amber'},
+        {id:'scared',label:c.redLabel,route:'red'}
+      ]
+    },
+    boundary:c.boundary,
+    kidsBoundary:c.kidsBoundary || '',
+    chips:[
+      {id:'who',q:c.contextQ,opts:c.contexts.map(x=>({id:x[0],label:x[1]}))},
+      {id:'next',q:c.responseQ,opts:c.responses.map(x=>({id:x[0],label:x[1]}))}
+    ],
+    drivers:c.drivers, targets:c.targets, ageLines:c.ageLines, plan:c.plan,
+    checkins:c.checkins, whenMap:c.whenMap,
+    amber:{
+      title:c.amberTitle || 'Let’s bring in a real person',
+      body:c.amberBody
+    },
+    red:{
+      title:c.redTitle || 'Safety comes first',
+      body:c.redBody,
+      script:c.redScript
+    },
+    whispers:c.whispers
+  };
+}
+
+const EXPANSION_PACKS = {};
+
+EXPANSION_PACKS.sleep = buildExpansionPack({
+  id:'sleep', label:'Sleep & bedtime', emoji:'🌙',
+  tagline:'Bedtime battles, calling out, night waking and very early mornings.',
+  doneLine:'A bedtime rhythm your family understands.',
+  gateQ:'Before we look at bedtime, which is closest?',
+  safeLabel:'Settling is hard, but {name} is otherwise well and safe',
+  boundaryLabel:'{name} climbs, wanders or gets into unsafe places at night',
+  amberLabel:'Sleep has been difficult most nights for several weeks, or daytime life is suffering',
+  redLabel:'Breathing, severe pain, unusual drowsiness or illness worries me',
+  boundary:'Make the sleep space safe before changing the routine: secure stairs and exits, remove climbable hazards, and use age-appropriate sleep furniture. Behaviour advice comes after physical safety.',
+  contextQ:'Where is sleep getting stuck?',
+  contexts:[
+    ['start','Getting into bed or starting the routine'],
+    ['settle','Settling after lights out'],
+    ['wake','Waking or calling out overnight'],
+    ['early','Waking very early for the day']
+  ],
+  responseQ:'What usually happens next?',
+  responses:[
+    ['extend','The routine stretches — one more book, drink or cuddle'],
+    ['return','I repeatedly return them to bed'],
+    ['stay','I stay until they fall asleep'],
+    ['change','We change tactics depending on the night']
+  ],
+  drivers:{
+    extend:{core:'Extra requests can be genuine bids for comfort and also a way to delay the ending. If the finish line keeps moving, {name} cannot yet predict when bedtime is actually complete.',lens:'Predictability is calming. A short routine that ends the same way gives the body a clearer sleep cue.',trap:'Adding “one last thing” each night can accidentally make negotiation part of the routine.'},
+    return:{core:'Returning {name} to bed is a reasonable boundary, but lots of talking or emotional energy can turn each return into a new interaction.',lens:'Boring, warm consistency usually teaches more than a new explanation at 10 pm.',trap:'Changing the speech, warning or consequence on every return keeps the moment interesting.'},
+    stay:{core:'Your presence may be the cue {name} currently uses to fall asleep. That is not wrong; it simply means waking without that cue can feel different from how sleep began.',lens:'If you want a change, fade support gradually rather than removing comfort in one leap.',trap:'Leaving suddenly before {name} has another predictable settling cue can make bedtime feel less safe.'},
+    change:{core:'When bedtime changes shape each night, {name} has to keep testing to discover tonight’s rule. Exhaustion makes this understandable for everyone.',lens:'Choose one small response you can repeat for several nights before judging it.',trap:'A new strategy every night makes it impossible to learn which part is helping.'}
+  },
+  targets:{
+    start:{intro:'The bedtime battle often begins before bed: stopping play, separating from you and moving into a quieter state are several transitions stacked together.',action:'Tonight, use the same three-step runway: one quiet activity, teeth and toilet, then one book or song. Say the order before you begin and let {name} tick off each step.'},
+    settle:{intro:'If {name} is in bed but not sleepy, the issue may be timing or a body that has not wound down yet—not simply refusal.',action:'Keep the final 30–60 minutes quieter and screen-free. Notice when {name} naturally becomes sleepy; start the routine so bed meets that window rather than a long awake stretch.'},
+    wake:{intro:'Night waking is common, but the response can become part of what {name} expects between sleep cycles.',action:'Before bed, agree on one quiet overnight response. Keep lights low, words brief and the response as similar as possible each time.'},
+    early:{intro:'Very early waking can be shaped by light, noise, naps and total sleep—not just bedtime behaviour.',action:'For three mornings, note bedtime, nap, first wake and light/noise. Change only the clearest cue, such as morning light or a late nap, so you can see what matters.'}
+  },
+  ageLines:{
+    one:'At one, night waking and needing help to settle can still be common. Comfort and safe sleep come before independence goals.',
+    two:'At two, bedtime combines separation, autonomy and a rapidly changing sleep pattern. A short, repeated routine does a lot of the teaching.',
+    three:'At three, imagination and negotiation are growing together. Clear routines can hold both comfort and a limit.',
+    fourfive:'At four and five, {name} can help design the routine and practise a simple plan for worries or wake-ups.'
+  },
+  plan:[
+    {n:1,title:'See the rhythm',cue:'Track bedtime, settling, wakes and naps for three days without trying to perfect anything.',reward:'Notice and name each completed routine step.',avoid:'Changing several sleep variables at once.'},
+    {n:2,title:'Make the ending predictable',cue:'Use the same short routine and the same final words for several nights.',reward:'Praise cooperation with the routine, not the act of falling asleep.',avoid:'Adding new negotiations after the finish line.'},
+    {n:3,title:'Fade one support',cue:'If your family wants less help to settle, reduce one small part gradually while keeping warmth.',reward:'Any small step done with less support.',avoid:'Removing every comfort cue at once.'}
+  ],
+  checkins:{
+    better:['The rhythm is becoming easier to read. Keep the same runway and move to a more predictable ending.','A clearer ending is landing. Now fade only one support, slowly.','GRADUATE'],
+    graduate:'Your family did not “win bedtime” — you built a rhythm everyone can recognise. Keep the routine simple enough to survive ordinary life.',
+    same:'Hold one variable steady for a few more nights and check timing: a child who is not sleepy yet cannot be routine-d into sleep.',
+    worse:'Worse sleep can reflect illness, discomfort, anxiety, schedule change or a routine mismatch. Return to safety and the log. If it persists or affects daytime functioning, speak with your GP or child and family health nurse.',
+    didnt:'No guilt. Tonight, do only this: say the three bedtime steps before the first one starts.'
+  },
+  whenMap:{start:'at the start of bedtime',settle:'after lights out',wake:'during night waking',early:'at the early start'},
+  amberBody:[
+    'Persistent sleep difficulty can affect the whole family and deserves more than another internet trick.',
+    'Keep a simple one-week sleep record and take it to your GP or child and family health nurse. Mention snoring, breathing, pain, restless sleep, medicines and daytime tiredness.'
+  ],
+  redBody:[
+    'If {name} has difficulty breathing, is unusually hard to wake, seems seriously unwell or is in immediate danger, call 000.',
+    'For non-emergency health advice in Australia, call Healthdirect on 1800 022 222.'
+  ],
+  redScript:'“Hi — I’m worried about my child’s sleep because [what you’re seeing]. It has been happening [when/how often], and I’m concerned about [breathing, pain, safety or daytime impact]. What should I do next?”',
+  whispers:['The best bedtime routine is the one your family can repeat.','Praise the routine step; sleep itself cannot be performed on command.','One steady change teaches more than five desperate ones.']
+});
+
+EXPANSION_PACKS.toileting = buildExpansionPack({
+  id:'toileting', label:'Toileting & accidents', emoji:'🚽',
+  tagline:'Readiness, resistance, accidents, holding on and going backwards.',
+  doneLine:'Body signals met with less pressure.',
+  safeLabel:'Accidents or resistance, but {name} is comfortable and otherwise well',
+  boundaryLabel:'Bathrooms or rushing to the toilet are creating a fall or supervision risk',
+  amberLabel:'There is pain, hard stools, frequent holding, or progress has stopped for weeks',
+  redLabel:'Blood, severe pain, vomiting, a swollen tummy or {name} seems very unwell',
+  boundary:'Make access physically safe: stable step, supported feet, supervision and an easy route. Never leave a young child unattended around water or unsafe bathroom equipment.',
+  contextQ:'What is the hardest part right now?',
+  contexts:[
+    ['ready','Starting or wondering whether {name} is ready'],
+    ['resist','Refusing to sit or becoming upset'],
+    ['accident','Daytime accidents after some progress'],
+    ['poo','Holding poo or avoiding bowel movements']
+  ],
+  responseQ:'What tends to happen after a miss or refusal?',
+  responses:[
+    ['remind','I remind or ask very often'],
+    ['reward','I offer a reward for success'],
+    ['frustrate','My frustration shows'],
+    ['pause','I back off because I don’t want a battle']
+  ],
+  drivers:{
+    remind:{core:'Frequent reminders can help a child notice patterns, but too many questions can turn toileting into an adult project that {name} resists.',lens:'The skill has several parts: noticing the body signal, pausing play, getting there, managing clothes and releasing.',trap:'Asking “do you need to go?” every few minutes can create automatic “no” without building body awareness.'},
+    reward:{core:'A small celebration can support practice, but a large prize can make toileting feel like a performance rather than a body skill.',lens:'Reward the steps {name} controls—telling you, sitting, trying—not whether the body produces something.',trap:'Making the reward depend only on a wee or poo can add pressure to a process the child cannot force.'},
+    frustrate:{core:'Accidents are inconvenient, and frustration is human. Shame or alarm can make {name} want to hide the body signal or the accident.',lens:'Neutral cleanup protects dignity and keeps attention on learning the sequence.',trap:'Turning an accident into a moral event—“you know better”—confuses a developing skill with intent.'},
+    pause:{core:'Backing off can be wise when toileting has become a battle. A pause works best when it is intentional, not a silent worry that follows everyone around.',lens:'Readiness can change. Pausing is data, not defeat.',trap:'Restarting every few days under new pressure gives neither the pause nor the practice time to work.'}
+  },
+  targets:{
+    ready:{intro:'Readiness is not one birthday. It is a cluster of skills: awareness, communication, mobility, clothing and some interest in the process.',action:'For three days, simply notice signs: staying dry for stretches, hiding to poo, telling you afterwards, or interest in the toilet. Build language before a campaign.'},
+    resist:{intro:'Refusal may mean the toilet feels unfamiliar, uncomfortable, pressured or simply less interesting than play.',action:'Remove the demand today. Let {name} choose potty or toilet seat, sit clothed for ten seconds if willing, and end before distress. Familiarity first.'},
+    accident:{intro:'Setbacks can follow excitement, stress, illness, change or signals noticed too late. One accident does not erase the skill.',action:'Use one neutral line—“wee goes in the toilet; let’s get dry”—and note when it happened. Look for the repeatable time rather than blame.'},
+    poo:{intro:'Holding poo can begin after one painful bowel movement and become a cycle: fear leads to holding, which can make stools harder and the next attempt more difficult.',action:'Do not turn this into a willpower contest. Offer water and fibre-rich foods, supported feet on the toilet, and speak with a GP or child and family health nurse about pain or constipation.'}
+  },
+  ageLines:{
+    one:'At one, most children are learning body signals rather than independently toileting. Language and familiarity are enough.',
+    two:'At two, readiness varies widely. Independence can help one day and produce a firm “no” the next.',
+    three:'At three, routines and clothing skills often make practice easier, but accidents remain part of learning.',
+    fourfive:'At four and five, persistent daytime accidents, pain or major regression deserve a calm health conversation—not shame.'
+  },
+  plan:[
+    {n:1,title:'Read the body',cue:'Notice timing and signals for three days.',reward:'Praise telling, noticing or trying.',avoid:'Pressure, comparison or repeated testing.'},
+    {n:2,title:'Make access easy',cue:'Use predictable toilet times and supported feet.',reward:'Each completed step in the routine.',avoid:'Keeping a reluctant child seated.'},
+    {n:3,title:'Hand over the skill',cue:'Prompt less as {name} begins noticing earlier.',reward:'Independent signals and calm recovery from misses.',avoid:'Treating accidents as deliberate.'}
+  ],
+  checkins:{
+    better:['You are seeing the body pattern. Make access easier and keep praise on controllable steps.','The routine is becoming familiar. Begin handing one step back to {name}.','GRADUATE'],
+    graduate:'You turned toileting from a test into a body skill. Keep dignity, supported access and neutral cleanup as the permanent rules.',
+    same:'Check whether the goal matches readiness. Practise one component—clothes, sitting, telling—rather than demanding the whole chain.',
+    worse:'More resistance, holding or accidents can follow stress or discomfort. Pause pressure. Pain, hard stools, blood, frequent accidents or a sudden regression should be discussed with a GP.',
+    didnt:'No guilt. Today, name one body signal without asking for action: “your body is doing a wee.”'
+  },
+  whenMap:{ready:'while building readiness',resist:'around toilet refusal',accident:'after accidents',poo:'around bowel movements'},
+  amberBody:[
+    'Pain, constipation, holding and persistent accidents are not problems to solve through firmer consequences.',
+    'Speak with your GP or child and family health nurse. A short record of stools, pain, fluids and accidents will help.'
+  ],
+  redBody:[
+    'Severe abdominal pain, vomiting, blood, marked swelling or a child who seems very unwell needs prompt medical advice. Call 000 for an emergency or Healthdirect on 1800 022 222 for guidance.'
+  ],
+  redScript:'“Hi — I’m worried about toileting because {name} has [pain, blood, holding or accidents]. It has been happening [how often], and I’ve noticed [other symptoms]. What should we do?”',
+  whispers:['Accidents are information, not misconduct.','Reward the step the child controls, not what the body produces.','A pause can be a wise part of learning.']
+});
+
+EXPANSION_PACKS.food = buildExpansionPack({
+  id:'food', label:'Food & mealtimes', emoji:'🥕',
+  tagline:'Fussy eating, food refusal, grazing and mealtime pressure.',
+  doneLine:'Less pressure and more useful food curiosity.',
+  safeLabel:'Selective or changeable eating, but {name} has energy and is growing',
+  boundaryLabel:'Mealtimes involve unsafe climbing, throwing or choking hazards',
+  amberLabel:'{name} eats a very small range, avoids whole food groups, or growth or energy worries me',
+  redLabel:'Choking, breathing trouble, severe allergic symptoms, dehydration or serious illness',
+  boundary:'Seat {name} safely and supervise eating. Cut food for age and remove choking hazards. Behaviour guidance never replaces safe food preparation or emergency care.',
+  contextQ:'What is happening most often?',
+  contexts:[
+    ['new','New or unfamiliar foods are refused'],
+    ['little','Very little is eaten at meals'],
+    ['demand','Only one preferred food is accepted'],
+    ['chaos','Mealtimes become roaming, throwing or conflict']
+  ],
+  responseQ:'What do you usually do next?',
+  responses:[
+    ['persuade','Persuade, count bites or ask for “just one”'],
+    ['replace','Make a different meal they will accept'],
+    ['reward','Offer dessert or a treat for eating'],
+    ['leave','End the meal because everyone is stressed']
+  ],
+  drivers:{
+    persuade:{core:'Encouragement comes from care, but repeated attention can make each bite feel like a test. Appetite and willingness usually work better with lower pressure.',lens:'The adult chooses what, when and where food is offered; the child decides whether and how much to eat from what is available.',trap:'Counting bites makes the adult the manager of an internal body signal.'},
+    replace:{core:'A replacement meal protects today’s intake, but an unlimited menu can teach {name} to wait for the preferred option.',lens:'Include one familiar food alongside the family offering so safety does not require a second restaurant.',trap:'Presenting a better offer immediately after refusal can make refusal the route to custom food.'},
+    reward:{core:'A treat can buy a bite, but it also advertises that the treat is valuable and the other food is a chore.',lens:'Curiosity grows through repeated, low-pressure contact: seeing, touching, smelling and tasting all count.',trap:'Using dessert as payment can weaken attention to hunger and fullness.'},
+    leave:{core:'Ending a highly stressful meal can be the right reset. If meals routinely disappear at the first refusal, there is less chance to become familiar with food and family rhythm.',lens:'Aim for a short, predictable meal—not a long battle.',trap:'Swinging between pressure and abrupt endings makes the table hard to predict.'}
+  },
+  targets:{
+    new:{intro:'Young children commonly notice tiny differences in taste, texture, colour and shape. Refusing an unfamiliar food is often caution, not disrespect.',action:'Offer one tiny piece beside a familiar food with no requirement to eat it. Let seeing, touching or smelling count as today’s exposure.'},
+    little:{intro:'Young appetites can vary greatly across days and growth phases. One light meal matters less than the pattern across time.',action:'For three days, look at the whole day rather than one plate. Keep regular meals and snacks, and avoid constant grazing between them.'},
+    demand:{intro:'A preferred food is predictable and safe. Expanding variety works better by building bridges than removing every safe option.',action:'Serve one familiar food plus one family food. Change just one feature at a time—shape, brand, texture or presentation.'},
+    chaos:{intro:'Roaming and throwing can mean the meal is too long, the seat is uncomfortable, hunger has passed, or the social reaction has become the interesting part.',action:'Make the next meal shorter and seated, offer a small portion, and use one calm line for throwing: “food stays on the table.” End when eating is clearly finished.'}
+  },
+  ageLines:{
+    one:'At one, eating is sensory and messy. Safe seating, varied exposure and responsive feeding matter more than table manners.',
+    two:'At two, appetite often varies and independence arrives at the table. Two acceptable choices can reduce the tug-of-war.',
+    three:'At three, {name} can help wash, stir or serve food; involvement can build familiarity without pressure.',
+    fourfive:'At four and five, food language can shift from “good/bad” to taste, texture, colour and what bodies need.'
+  },
+  plan:[
+    {n:1,title:'Lower the pressure',cue:'Offer one familiar and one learning food at a predictable meal.',reward:'Curiosity—looking, touching, smelling or tasting.',avoid:'Bite counts, bargaining or commentary on quantity.'},
+    {n:2,title:'Build familiarity',cue:'Repeat one learning food in tiny portions across several days.',reward:'Any new interaction with the food.',avoid:'Changing several features at once.'},
+    {n:3,title:'Share the table',cue:'Give {name} one useful mealtime job.',reward:'Participation and noticing body signals.',avoid:'Turning dessert into currency.'}
+  ],
+  checkins:{
+    better:['Pressure is dropping and curiosity has room. Repeat one food without raising the demand.','Familiarity is growing. Bring {name} into one mealtime job.','GRADUATE'],
+    graduate:'You did not force a “good eater.” You made food safer to explore. Keep predictable offers, familiar options and respect for appetite.',
+    same:'Same is normal with new food. Make the portion tiny, keep one familiar option and count exposure rather than bites.',
+    worse:'A shrinking food range, distress, pain, choking, low energy or growth concern deserves professional input. Speak with a GP, child and family health nurse or accredited practising dietitian.',
+    didnt:'No guilt. At the next meal, change only the commentary: describe the food, not how much {name} eats.'
+  },
+  whenMap:{new:'with new foods',little:'at light meals',demand:'around preferred foods',chaos:'during difficult mealtimes'},
+  amberBody:[
+    'A very restricted range, avoiding whole food groups, pain, distress, low energy or growth concern deserves an individual assessment.',
+    'Start with your GP or child and family health nurse. An accredited practising dietitian can help with nutrition while other professionals explore feeding or sensory concerns.'
+  ],
+  redBody:[
+    'Call 000 for choking, breathing difficulty, collapse or severe allergic symptoms. Signs of dehydration or serious illness need prompt medical advice.'
+  ],
+  redScript:'“Hi — I’m worried about {name}’s eating because [what is happening]. Their current safe foods are [examples], and I’m concerned about [growth, energy, pain, choking or distress]. What assessment do we need?”',
+  whispers:['Curiosity is progress: looking and touching count before tasting.','You provide the food and rhythm; the child listens to their body.','A familiar food can be a bridge, not a surrender.']
+});
+
+EXPANSION_PACKS.screens = buildExpansionPack({
+  id:'screens', label:'Screens & stopping', emoji:'📱',
+  tagline:'Turning it off, asking again, family limits and the transition afterwards.',
+  doneLine:'Screen endings that feel more predictable.',
+  safeLabel:'Stopping is hard, but the content and situation are otherwise safe',
+  boundaryLabel:'Screen use happens while walking, eating unsafely or near traffic, water or stairs',
+  amberLabel:'Screens are regularly displacing sleep, movement, meals, play or family life',
+  redLabel:'{name} has seen harmful content, been contacted by someone unsafe, or is in immediate danger',
+  boundary:'Remove the device from physically unsafe situations and supervise first. No transition technique is more important than roads, water, stairs, choking safety or age-appropriate content.',
+  contextQ:'Where does the screen struggle happen?',
+  contexts:[
+    ['stop','Turning it off when time is up'],
+    ['ask','Repeated asking throughout the day'],
+    ['routine','Screens have become part of meals, dressing or calming'],
+    ['together','Adults in the family use different rules']
+  ],
+  responseQ:'What usually happens next?',
+  responses:[
+    ['warn','I give lots of warnings and extensions'],
+    ['snatch','I take it away when nothing else works'],
+    ['give','I give it back to end the reaction'],
+    ['lecture','I explain why too much screen is bad']
+  ],
+  drivers:{
+    warn:{core:'Warnings help when they are concrete. Too many changing warnings can teach {name} that “five minutes” is the beginning of negotiation, not useful information.',lens:'The transition needs a visible ending and a clear next activity.',trap:'Extending after each protest makes the boundary hard to predict.'},
+    snatch:{core:'Taking a device abruptly may be necessary sometimes, but the sudden loss of a highly engaging activity can intensify the transition.',lens:'Move from warning to a repeated closing ritual where possible.',trap:'A surprise removal turns attention toward the conflict rather than the skill of stopping.'},
+    give:{core:'Returning the screen ends the immediate storm, which makes perfect sense when you are depleted. Repetition can make the storm part of the route back to the device.',lens:'Keep the limit, reduce the demand after it: connection, movement or a ready next activity.',trap:'The screen becoming the main way to recover from losing the screen creates a closed loop.'},
+    lecture:{core:'At the stopping point, {name} is dealing with loss and transition. A lesson about brains or health is unlikely to help in that exact moment.',lens:'Teach family screen values away from the conflict; use few words at the switch-off.',trap:'Long explanations can sound like a negotiable case when the decision has already been made.'}
+  },
+  targets:{
+    stop:{intro:'Stopping a screen combines a strong attention pull with an abrupt transition away from a preferred activity. Difficulty stopping does not prove addiction or bad character.',action:'Before the next session, agree on the ending: “when this episode ends, we park the tablet and choose bath or blocks.” Use the device’s natural endpoint rather than an invisible minute where possible.'},
+    ask:{intro:'If screen access varies from day to day, asking repeatedly is a rational way to discover whether this is a yes moment.',action:'Create one simple answer the day can rely on: a visual “screen time is after lunch” cue or a consistent window. Point to the plan instead of deciding from scratch.'},
+    routine:{intro:'Screens often enter hard routines because they work quickly. Removing them without replacing their job leaves the original difficulty exposed.',action:'Choose only one routine to change. Replace the screen’s function: music for movement, a photo checklist for dressing, conversation or a small toy at the table.'},
+    together:{intro:'When adults use different rules, {name} keeps testing because the real family rule is unclear.',action:'Adults choose one shared minimum today: when, where, or how screens end. It is better to agree on one enforceable rule than argue over an ideal system.'}
+  },
+  ageLines:{
+    one:'At one, screens should never replace supervision, movement, sleep or responsive interaction. Transitions need your physical help.',
+    two:'At two, time is abstract. Endpoints, pictures and an immediate next activity work better than countdown maths.',
+    three:'At three, {name} can practise parking the device and choosing between two next activities.',
+    fourfive:'At four and five, involve {name} in a simple family screen plan while adults keep responsibility for the boundary.'
+  },
+  plan:[
+    {n:1,title:'Make it predictable',cue:'Choose one reliable screen window and one ending signal.',reward:'Hands the device over or moves to the next step.',avoid:'Renegotiating the rule at every request.'},
+    {n:2,title:'Build the bridge',cue:'Have the next activity physically ready before the screen ends.',reward:'Any movement toward the next activity.',avoid:'A lecture at switch-off.'},
+    {n:3,title:'Practise stopping',cue:'Let {name} press stop or park the device when possible.',reward:'Participation in the ending ritual.',avoid:'Using more screen as the only recovery from losing it.'}
+  ],
+  checkins:{
+    better:['The ending is becoming more predictable. Now build a stronger bridge to what comes next.','The bridge is working. Give {name} one role in stopping.','GRADUATE'],
+    graduate:'You built a stopping skill, not a perfect screen-free child. Keep the family plan predictable and the next part of life ready.',
+    same:'Make the ending more visible and the next activity easier. “Soon” is hard to use; an episode ending or a timer they can see is clearer.',
+    worse:'If screens are displacing sleep, eating, movement, relationships or most other play, step back and speak with your GP or child and family health nurse for individual guidance.',
+    didnt:'No guilt. Before the next screen begins, say exactly how it will end.'
+  },
+  whenMap:{stop:'at switch-off',ask:'during repeated requests',routine:'inside daily routines',together:'across caregivers'},
+  amberBody:[
+    'When screen use consistently replaces sleep, movement, family interaction, meals or nearly all other play, a personalised plan is more useful than guilt.',
+    'Speak with your GP or child and family health nurse. Bring a simple picture of when, where and what {name} watches or plays.'
+  ],
+  redBody:[
+    'If a child is in immediate danger, call 000. Preserve evidence of unsafe contact without sharing it further, stop contact and seek police or eSafety guidance.',
+    'For online-safety help in Australia, visit the eSafety Commissioner or contact police if a child is at risk.'
+  ],
+  redScript:'“I’m worried about a screen or online-safety situation involving my young child. What happened was [brief facts], and I’m concerned because [risk]. What should I do now?”',
+  whispers:['Start with the ending before the screen starts.','Replace the job the screen was doing, not just the object.','A family rule works when tired adults can still use it.']
+});
+
+EXPANSION_PACKS.siblings = buildExpansionPack({
+  id:'siblings', label:'Sibling conflict', emoji:'🫶',
+  tagline:'Jealousy, grabbing, rivalry, baby disruption and repeated fights.',
+  doneLine:'Conflict that teaches repair instead of rivalry.',
+  safeLabel:'Arguments, jealousy or grabbing, but everyone can be kept safe',
+  boundaryLabel:'Fights become physical or a younger child cannot protect themselves',
+  amberLabel:'One child is persistently frightened, targeted or excluded, or conflict dominates family life',
+  redLabel:'There is serious injury, strangling, use of an object as a weapon, or immediate danger',
+  boundary:'Separate children before someone is hurt and supervise closely around known flashpoints. Protect the smaller or more vulnerable child without assigning permanent roles like “the bully” and “the victim.”',
+  kidsBoundary:'Young siblings need active supervision; they cannot be expected to solve unsafe physical conflict alone.',
+  contextQ:'What usually starts it?',
+  contexts:[
+    ['toy','A toy, object or turn'],
+    ['attention','Competing for adult attention'],
+    ['space','Touching, crowding or interrupting play'],
+    ['baby','A new baby or younger sibling changes the balance']
+  ],
+  responseQ:'How do you usually step in?',
+  responses:[
+    ['judge','Work out who started it and who is right'],
+    ['share','Tell them to share or say sorry'],
+    ['separate','Separate everyone immediately'],
+    ['older','Expect the older child to know better']
+  ],
+  drivers:{
+    judge:{core:'Finding facts matters for safety, but becoming the courtroom can pull both children toward proving innocence rather than solving the next moment.',lens:'First stop harm, then describe what each child needed and build a workable next step.',trap:'A long investigation while everyone is upset can intensify the contest for your side.'},
+    share:{core:'Sharing and apology are complex social skills. Forced words can end the adult discomfort without creating understanding or repair.',lens:'Coach concrete repair: return the object, check the hurt child, choose a turn order, practise the words later.',trap:'“Say sorry” can become a password that closes the case without changing the pattern.'},
+    separate:{core:'Separation is exactly right for unsafe conflict. If every small disagreement is ended before any coaching, children lose chances to practise negotiation with support.',lens:'Use separation for safety, then return later for one tiny problem-solving step.',trap:'Treating every disagreement as an emergency can prevent skill-building.'},
+    older:{core:'Older children may have more skills, but always yielding can create resentment and let the younger child avoid learning boundaries.',lens:'Fair does not always mean identical; it means each child receives safety, a voice and an age-appropriate expectation.',trap:'“You’re older” can make maturity feel like losing access to protection.'}
+  },
+  targets:{
+    toy:{intro:'A favourite object creates a concrete collision: both children want control now, while waiting and perspective-taking are still developing.',action:'Stop grabbing, state the ownership or turn clearly, and use a visible short turn: “Mia has it; Sam is next when the timer rings.” Put away truly special toys before shared play.'},
+    attention:{intro:'Adult attention can feel scarce during busy moments. Escalation is one reliable way to make the parent arrive.',action:'Name the queue: “I hear both of you. Ava first for one minute, then Leo.” Give each child a small predictable pocket of undivided attention later.'},
+    space:{intro:'Parallel play and deep concentration can make a sibling’s touch feel like an invasion, especially when the child cannot yet negotiate space.',action:'Create one protected play spot and teach one boundary line: “stop, I’m using this.” Stay close enough to help the words work.'},
+    baby:{intro:'A new baby changes access to bodies, time and family roles. Jealous behaviour can be communication about loss, not rejection of the baby.',action:'Give {name} one baby-free ten-minute ritual today and say what has not changed: “you still get our book after bath.” Do not require enthusiasm about the baby.'}
+  },
+  ageLines:{
+    one:'At one, children need adults to manage space and objects; genuine turn-taking is only beginning.',
+    two:'At two, possession and immediate wants dominate. Very short turns and duplicate materials can prevent impossible demands.',
+    three:'At three, {name} can practise a boundary phrase and a visible turn with close adult support.',
+    fourfive:'At four and five, children can contribute solution ideas after calm, but still need adults to protect fairness and safety.'
+  },
+  plan:[
+    {n:1,title:'Stop harm, skip labels',cue:'Separate unsafe bodies and describe the problem without deciding who is “the bad one.”',reward:'Any pause, boundary word or safe body.',avoid:'Comparisons and permanent roles.'},
+    {n:2,title:'Make turns visible',cue:'Use ownership, a short timer or separate space so the solution is concrete.',reward:'Waiting, handing over or asking.',avoid:'Demanding instant sharing.'},
+    {n:3,title:'Coach repair',cue:'After calm, help each child do one repair action.',reward:'Checking, returning, rebuilding or trying words.',avoid:'Forced affection or scripted apologies.'}
+  ],
+  checkins:{
+    better:['Safety is holding. Make the solution more visible with turns or protected space.','The children can see the structure. Now coach one concrete repair.','GRADUATE'],
+    graduate:'Your children did not stop disagreeing; they gained a safer route through it. Keep protection, fairness and repair stronger than blame.',
+    same:'Move upstream. Duplicate high-conflict materials, protect special toys and stay closer during the predictable ten minutes.',
+    worse:'More fear, injury, targeting or one child losing access to ordinary family life deserves professional support. Start with your GP, child and family health nurse or a qualified family practitioner.',
+    didnt:'No guilt. At the next conflict, replace “who started it?” with “what needs to be safe now?”'
+  },
+  whenMap:{toy:'around toys and turns',attention:'around adult attention',space:'during crowded play',baby:'after family change'},
+  amberBody:[
+    'Persistent fear, targeting, injury or a child who cannot safely participate in family life is more than ordinary rivalry.',
+    'Increase supervision and speak with your GP, child and family health nurse or an evidence-based parenting service.'
+  ],
+  redBody:['Call 000 for serious injury or immediate danger. Separate children and do not ask them to resolve a dangerous situation together.'],
+  redScript:'“I need help with unsafe conflict between children in our home. It involves [what happens], it occurs [how often], and I’m concerned because [injury, fear or power difference]. What support is available?”',
+  whispers:['Fair means everyone gets safety and a voice—not always the same thing.','Repair is an action, not a password.','Protect special toys before asking young children to share everything.']
+});
+
+EXPANSION_PACKS.sharing = buildExpansionPack({
+  id:'sharing', label:'Sharing & play', emoji:'🧸',
+  tagline:'Taking turns, snatching, playdates and joining other children.',
+  doneLine:'More play skills and fewer impossible expectations.',
+  safeLabel:'Turn-taking is hard, but play remains safe',
+  boundaryLabel:'Grabbing or conflict creates a physical safety risk',
+  amberLabel:'{name} is persistently distressed around peers or unable to take part in play settings',
+  redLabel:'A child is being seriously hurt, threatened or is in immediate danger',
+  boundary:'Stop unsafe grabbing or physical contact and create space. Young children need adults close enough to make turn-taking physically possible.',
+  contextQ:'Which play moment is hardest?',
+  contexts:[
+    ['own','Someone wants {name}’s special toy'],
+    ['want','{name} wants what another child has'],
+    ['wait','Waiting for a turn'],
+    ['join','Joining or staying in shared play']
+  ],
+  responseQ:'What do you usually ask for?',
+  responses:[
+    ['share','“You have to share”'],
+    ['sorry','“Give it back and say sorry”'],
+    ['timer','Use a timer or strict equal turns'],
+    ['avoid','Remove the toy or end the playdate']
+  ],
+  drivers:{
+    share:{core:'“Share” is abstract. For a young child it can sound like “give away the thing that currently feels yours.”',lens:'Teach the smaller skill: whose turn, what happens next, and which things do not have to be shared.',trap:'Demanding immediate generosity can create more guarding rather than more cooperation.'},
+    sorry:{core:'Returning an object is useful repair. A forced apology may produce the word before the child understands the effect.',lens:'Action first: return, check, rebuild. Add language when calm.',trap:'Treating “sorry” as the whole repair can hide the play skill that is missing.'},
+    timer:{core:'Timers make turns visible, but rigid equality can still be too hard if the turn is long or a child is deeply engaged.',lens:'Start with very short, successful turns and choose activities with many pieces or roles.',trap:'Using the timer as an adult weapon can shift the conflict from the toy to the timer.'},
+    avoid:{core:'Removing a high-conflict object can save a playdate and is sometimes excellent setup. Avoiding all shared play removes the practice that builds the skill.',lens:'Protect the special item, then practise with easier, plentiful materials.',trap:'Expecting the hardest toy to teach the first sharing lesson.'}
+  },
+  targets:{
+    own:{intro:'Not every possession should be a sharing lesson. Adults also have special things they do not hand over on demand.',action:'Before play, let {name} choose one or two special toys to put away. Everything left out is for supported turns.'},
+    want:{intro:'Wanting another child’s exact object is normal; the hard skill is holding the want while waiting or finding an alternative.',action:'Block the grab, name the queue and offer a real bridge: “Noah has it. You’re next. Hold this piece while you wait.”'},
+    wait:{intro:'Waiting is not one skill—it needs a clear endpoint, something to do and confidence that the turn will arrive.',action:'Use a very short visible turn and narrate the handover. Start with ten or twenty seconds, not an adult-sized wait.'},
+    join:{intro:'Joining play requires reading a group, finding a role and tolerating that others already have a plan. That is advanced work for a young child.',action:'Coach one entry line and one role: “Can I build the road?” or “You can carry the blocks.” Stay for the first minute, then fade back.'}
+  },
+  ageLines:{
+    one:'At one, children mostly play alongside others and need adults to manage objects and bodies.',
+    two:'At two, immediate possession is powerful and genuine sharing is only beginning. Duplicate toys and tiny turns help.',
+    three:'At three, {name} can begin to understand a visible queue and practise short turn-taking.',
+    fourfive:'At four and five, cooperative roles and simple negotiation become more available, especially with adult coaching nearby.'
+  },
+  plan:[
+    {n:1,title:'Protect what is special',cue:'Put away one special toy and choose easier shared materials.',reward:'Safe play near another child.',avoid:'Making every possession a moral test.'},
+    {n:2,title:'Make turns concrete',cue:'Use names, a short timer and an immediate waiting job.',reward:'Waiting, asking or handing over.',avoid:'Long invisible waits.'},
+    {n:3,title:'Teach entry and repair',cue:'Practise one joining phrase and one repair action.',reward:'Successful entry, return or rebuild.',avoid:'Forced friendship or apology.'}
+  ],
+  checkins:{
+    better:['The setup is kinder. Now make the turn visible and very short.','The turn is becoming usable. Add one joining or repair skill.','GRADUATE'],
+    graduate:'You replaced “be nice” with skills a young child can actually practise. Keep special things protected and shared play supported.',
+    same:'Choose an easier material with duplicates and shorten the wait dramatically. Success comes before endurance.',
+    worse:'If peer situations cause persistent distress, fear or exclusion, speak with your child’s educator, GP or child and family health nurse.',
+    didnt:'No guilt. Before the next playdate, put away one special toy together.'
+  },
+  whenMap:{own:'with special possessions',want:'when another child has the toy',wait:'while waiting',join:'when joining play'},
+  amberBody:[
+    'Persistent distress, withdrawal, conflict or inability to participate in ordinary play deserves a fuller picture.',
+    'Start with your child’s educator, GP or child and family health nurse. Ask what they notice across settings.'
+  ],
+  redBody:['Stop the situation and call 000 if a child is seriously injured or in immediate danger.'],
+  redScript:'“I’m looking for support with {name}’s play with other children. I’m seeing [what happens] across [settings], and I’m concerned because [impact]. What should we look at next?”',
+  whispers:['Sharing starts with turns you can see.','Some things can be special and put away.','Teach the role, not just “go play.”']
+});
+
+EXPANSION_PACKS.whining = buildExpansionPack({
+  id:'whining', label:'Whining & demanding', emoji:'📣',
+  tagline:'The voice, the repeated ask and the moment your patience disappears.',
+  doneLine:'Needs expressed in ways everyone can hear.',
+  safeLabel:'The voice is wearing, but everyone is physically safe',
+  boundaryLabel:'Demanding escalates into throwing, running off or unsafe behaviour',
+  amberLabel:'Distress is frequent, intense or paired with changes in speech, hearing, sleep or daily functioning',
+  redLabel:'{name} is in immediate danger, seriously unwell, or someone may be harmed',
+  boundary:'Move away from hazards and contain unsafe behaviour before coaching voice or words. A communication lesson can wait until bodies are safe.',
+  contextQ:'When is the voice hardest to bear?',
+  contexts:[
+    ['want','When {name} wants something now'],
+    ['help','When they need help or attention'],
+    ['tired','Late day, hungry, tired or overloaded'],
+    ['habit','It seems to be the default voice all day']
+  ],
+  responseQ:'What do you usually do?',
+  responses:[
+    ['correct','Say “use your nice voice” repeatedly'],
+    ['answer','Answer the request to make it stop'],
+    ['ignore','Ignore until the voice changes'],
+    ['snap','Eventually snap or raise my voice']
+  ],
+  drivers:{
+    correct:{core:'“Nice voice” makes sense to an adult but may not tell {name} what sound or words to use. Repeating the instruction can become another layer of noise.',lens:'Model one short replacement phrase in the tone you want.',trap:'Correcting the voice without helping with the message leaves the communication job unsolved.'},
+    answer:{core:'Answering quickly is efficient. If the fastest responses consistently follow the whiny version, that version gets the clearest results.',lens:'Acknowledge the need, then prompt one usable phrase before acting when {name} has capacity.',trap:'Waiting through several clear asks and responding only when the voice peaks can accidentally train the peak.'},
+    ignore:{core:'Briefly waiting can create room for another attempt, but total ignoring can escalate a child who is genuinely struggling to communicate or connect.',lens:'Attend to the need without paying extra attention to the delivery: “I hear you want help. Try: help please.”',trap:'Withholding all connection until perfect delivery can make communication harder.'},
+    snap:{core:'Repeated whining is designed by evolution to be hard to ignore; losing patience does not make you a bad parent. A loud correction may stop the sound without teaching the alternative.',lens:'Use a parent-sized plan: fewer words, one model, and permission to pause.',trap:'Demanding calm communication while communicating through a shout creates two competing lessons.'}
+  },
+  targets:{
+    want:{intro:'A wanted object plus immature waiting skills can compress the whole message into one urgent sound.',action:'Use one repeatable frame: “You want ___. Ask: can I have ___?” Answer the request after the attempt, even if the voice is not perfect.'},
+    help:{intro:'Whining can be an efficient attachment signal: it gets an adult to turn, especially when ordinary bids have been missed in a busy moment.',action:'Give one clear connection response—eye contact, touch or “I’m listening”—then help {name} say or show the request.'},
+    tired:{intro:'When the body is tired, hungry or overloaded, the polished voice is often the first skill to disappear.',action:'Lower the language demand. Offer food, rest or a simpler choice and save voice coaching for a better-resourced moment.'},
+    habit:{intro:'A default whiny tone may be a learned pattern, a speech habit, or simply the sound adults notice most. It needs specific observation before a big interpretation.',action:'Catch three ordinary-voice moments today and respond warmly and quickly. Build the signal you want to hear, not only the one you want to stop.'}
+  },
+  ageLines:{
+    one:'At one, tone and gesture carry more of the message than words. Help translate rather than requiring polished speech.',
+    two:'At two, wants are faster than language. A two- or three-word model is enough.',
+    three:'At three, {name} can practise a short request, but tiredness will still erase the skill.',
+    fourfive:'At four and five, involve {name} in choosing a family phrase for asking again without shaming their natural voice.'
+  },
+  plan:[
+    {n:1,title:'Translate the need',cue:'Name what {name} is asking for before correcting delivery.',reward:'Any clearer word, gesture or ordinary-voice attempt.',avoid:'“Stop whining” without a replacement.'},
+    {n:2,title:'Model one phrase',cue:'Use the same short request frame every time.',reward:'The attempt, not vocal perfection.',avoid:'Making them repeat it many times.'},
+    {n:3,title:'Catch the quiet signal',cue:'Respond quickly to ordinary requests and bids for attention.',reward:'Clear communication before escalation.',avoid:'Noticing only the loudest version.'}
+  ],
+  checkins:{
+    better:['You found the need under the sound. Now make one replacement phrase easy to borrow.','The phrase is becoming available. Start catching the quieter signal earlier.','GRADUATE'],
+    graduate:'You did not shame a voice out of {name}; you built a clearer route to being heard. Keep responding to the message while coaching the form.',
+    same:'Shorten the replacement phrase and choose a better-resourced moment. A tired child may need help, not rehearsal.',
+    worse:'If communication has changed suddenly, {name} seems not to hear, speech is regressing, or distress is frequent across the day, speak with your GP or child and family health nurse.',
+    didnt:'No guilt. Next time, say only: “I hear you. Try: help please.”'
+  },
+  whenMap:{want:'during urgent wants',help:'during bids for help',tired:'when resources are low',habit:'across the day'},
+  amberBody:[
+    'A persistent change in voice, speech, hearing, communication or overall functioning deserves assessment rather than more correction.',
+    'Speak with your GP or child and family health nurse and describe when it happens across different settings.'
+  ],
+  redBody:['Call 000 if a child is seriously unwell, in immediate danger or someone may be harmed.'],
+  redScript:'“I’m concerned about a change in {name}’s communication. I’m seeing [what happens], it occurs [when], and I’ve also noticed [hearing, speech, distress or other changes]. What should we assess?”',
+  whispers:['Translate first, coach second.','Respond to the message without rewarding the escalation.','A tired voice needs a smaller ask.']
+});
+
+EXPANSION_PACKS.separation = buildExpansionPack({
+  id:'separation', label:'Separation & clinginess', emoji:'👋',
+  tagline:'Drop-off tears, leaving the room, new carers and “only you.”',
+  doneLine:'Goodbyes that carry trust, not surprise.',
+  safeLabel:'Goodbyes are tearful, but {name} settles with a trusted carer',
+  boundaryLabel:'{name} runs after adults, leaves a safe area or becomes physically unsafe',
+  amberLabel:'Distress is severe, lasts a long time, or prevents childcare, sleep or ordinary family life',
+  redLabel:'There is an unsafe caregiver situation, abduction risk, immediate danger or serious harm',
+  boundary:'Use secure handovers, gates and direct adult-to-adult transfer. Never rely on a young child understanding “stay there” around roads, doors or unfamiliar places.',
+  contextQ:'Which separation is hardest?',
+  contexts:[
+    ['drop','Childcare or preschool drop-off'],
+    ['home','You leaving the room or house'],
+    ['other','Staying with another trusted adult'],
+    ['night','Separation at bedtime or overnight']
+  ],
+  responseQ:'How do you usually leave?',
+  responses:[
+    ['linger','Stay, return or restart the goodbye'],
+    ['sneak','Slip away while {name} is distracted'],
+    ['promise','Promise not to be long or offer a reward'],
+    ['firm','Get firm because the goodbye is taking over']
+  ],
+  drivers:{
+    linger:{core:'Staying longer comes from love, but repeated almost-leavings can make the child relive the separation many times.',lens:'A short, truthful ritual gives the goodbye a beginning and an end.',trap:'Returning after the final goodbye can teach that escalating might reopen it.'},
+    sneak:{core:'Slipping away avoids the painful goodbye now, but {name} may become more watchful because departures can happen without warning.',lens:'Trust grows when the adult says goodbye and reliably returns, even when tears come.',trap:'Avoiding the goodbye can make every distraction feel risky.'},
+    promise:{core:'A reward or “I’ll be quick” can comfort, but young children cannot judge adult time well. A concrete return point is more usable.',lens:'Say what will happen before you return: “after afternoon tea, I come back.”',trap:'Promises about minutes can feel broken even when the adult is on time.'},
+    firm:{core:'A clear boundary helps. If firmness becomes dismissal—“don’t be silly”—the child loses help naming a very real feeling.',lens:'Confidence and empathy can coexist: “you don’t want me to go; Nana will keep you safe; I come back after lunch.”',trap:'Trying to argue the fear away can make the goodbye longer.'}
+  },
+  targets:{
+    drop:{intro:'Drop-off combines separation, a busy environment and a handover of trust. Tears at the doorway do not tell you how the whole day will go.',action:'Use the same 20-second ritual: connect, name the return point, hand directly to the educator, goodbye once. Ask the educator when and how {name} settles.'},
+    home:{intro:'Following you from room to room can be closeness, uncertainty or a stage where your absence is difficult to represent.',action:'Practise a tiny separation while calm: “I’m putting this cup away and coming back after this song.” Return exactly when you said.'},
+    other:{intro:'A trusted adult becomes safer through repeated shared experience, not through being told they are safe.',action:'Build a bridge visit: all three of you play, then you step away briefly while the other adult continues the same activity.'},
+    night:{intro:'Bedtime is a daily separation and imagination is louder in the dark. Needing reassurance does not mean the child is manipulating you.',action:'Create one predictable connection token: a phrase, photo, soft toy or short check. Explain exactly what happens after lights out.'}
+  },
+  ageLines:{
+    one:'At one, separation anxiety is a common developmental pattern. Truthful goodbyes and trusted handovers matter more than independence.',
+    two:'At two, {name} can remember that you leave but has a limited sense of when you return. Use concrete events, not clock time.',
+    three:'At three, short rehearsal, stories and a repeated ritual can make the sequence more predictable.',
+    fourfive:'At four and five, {name} can help choose the goodbye ritual and practise a small brave step.'
+  },
+  plan:[
+    {n:1,title:'Make return believable',cue:'Use one truthful, concrete return point.',reward:'Any engagement with the trusted carer after goodbye.',avoid:'Sneaking away or promising clock time they cannot use.'},
+    {n:2,title:'Shorten the ritual',cue:'Use the same warm goodbye once.',reward:'Brave steps, including feeling sad and still staying safe.',avoid:'Restarting the goodbye.'},
+    {n:3,title:'Practise tiny separations',cue:'Rehearse short, successful absences in calm moments.',reward:'Recovery and reconnection.',avoid:'Forcing the hardest separation first.'}
+  ],
+  checkins:{
+    better:['The return is becoming believable. Keep it truthful and shorten the ritual.','The ritual is holding. Practise one tiny separation outside the hardest moment.','GRADUATE'],
+    graduate:'You did not teach {name} never to miss you. You built evidence that goodbye is safe and return is reliable.',
+    same:'Make the return point more concrete and ask the other caregiver what happens five minutes after you leave—not only at the door.',
+    worse:'If separation distress is severe, persists for weeks, prevents ordinary activities or affects sleep and health, speak with your GP or child and family health nurse.',
+    didnt:'No guilt. Practise one 30-second “I go and come back” moment at home.'
+  },
+  whenMap:{drop:'at drop-off',home:'during small home separations',other:'with another trusted adult',night:'at night'},
+  amberBody:[
+    'Separation distress that is severe, prolonged or prevents childcare, sleep or ordinary family life deserves individual support.',
+    'Start with your GP, child and family health nurse or child’s educator. Ask what they see before, during and after separation.'
+  ],
+  redBody:['If you believe a caregiver is unsafe, a child may be taken, or anyone is in immediate danger, call 000. Do not use exposure or forced separation in an unsafe situation.'],
+  redScript:'“I need help with a separation or caregiver-safety concern involving my young child. The situation is [brief facts], and I’m worried because [risk]. What should I do now?”',
+  whispers:['A truthful goodbye builds more trust than a painless disappearance.','Brave can include tears.','Tell a young child what happens before you return, not how many minutes.']
+});
+
+EXPANSION_PACKS.fears = buildExpansionPack({
+  id:'fears', label:'Fears & worries', emoji:'🕯️',
+  tagline:'Darkness, monsters, noises, new places and reassurance loops.',
+  doneLine:'Fear met with belief and small brave steps.',
+  safeLabel:'The fear is upsetting, but {name} can still take part with support',
+  boundaryLabel:'Fear causes bolting, freezing or unsafe avoidance',
+  amberLabel:'Worry is frequent, severe, lasts for weeks or limits sleep, play, childcare or family life',
+  redLabel:'{name} describes harm, an unsafe person, immediate danger or serious distress',
+  boundary:'Protect {name} from the immediate hazard and stay physically close. Do not force contact with a feared person, animal, place or situation to prove it is safe.',
+  contextQ:'What kind of fear is showing up?',
+  contexts:[
+    ['dark','Darkness, monsters or bedtime imagination'],
+    ['noise','Loud sounds, animals or sensory surprises'],
+    ['new','New people, places or activities'],
+    ['whatif','Repeated “what if?” questions and reassurance']
+  ],
+  responseQ:'What do you usually do?',
+  responses:[
+    ['reassure','Keep reassuring that nothing bad will happen'],
+    ['dismiss','Say there is nothing to be scared of'],
+    ['avoid','Let {name} avoid it completely'],
+    ['push','Encourage or push them through quickly']
+  ],
+  drivers:{
+    reassure:{core:'Reassurance offers immediate relief. If the same certainty is needed again and again, {name} may be borrowing your answer instead of building their own coping step.',lens:'Acknowledge the fear, answer once, then move to what {name} can do.',trap:'Trying to guarantee that nothing bad will ever happen creates a promise no parent can keep.'},
+    dismiss:{core:'The danger may be imaginary to you while the feeling is physically real to {name}. Dismissal can add loneliness to fear.',lens:'Believe the feeling without confirming the feared story: “the monster feels real; I know this room is safe.”',trap:'“Don’t be silly” teaches the child to hide the fear rather than work through it.'},
+    avoid:{core:'Avoidance brings relief and is appropriate for genuine danger. For safe situations, total avoidance can prevent {name} learning that fear can rise and fall.',lens:'Use a tiny, supported step—not the whole feared situation.',trap:'Reorganising family life around every safe fear can make the fear look more powerful.'},
+    push:{core:'A large forced step can overwhelm the child and confirm that the situation is unbearable.',lens:'Bravery grows on a ladder: one step small enough to complete, repeated until ordinary.',trap:'Measuring courage by absence of fear misses the real skill: acting safely while fear is present.'}
+  },
+  targets:{
+    dark:{intro:'Imagination expands before the ability to separate every imagined possibility from the room in front of them.',action:'Name what is real, then build one plan: night-light, room check once, comfort object, final phrase. Avoid a long nightly search that treats the monster as plausible.'},
+    noise:{intro:'Sudden sound or sensory input can trigger the body before {name} has words for what happened.',action:'Give control where possible: warn before the sound, increase distance, offer headphones, and let {name} choose one small approach.'},
+    new:{intro:'Caution in a new place can be protective. Some children need more observation time before participation.',action:'Arrive early or preview with a photo. Set one tiny goal—stand at the door, wave to the adult, stay five minutes—then leave success intact.'},
+    whatif:{intro:'Repeated questions may be an attempt to obtain certainty. Each answer works briefly, so the brain asks again.',action:'Answer once, name the worry and return one coping question: “that’s the worry asking again—what could we do if you felt scared?”'}
+  },
+  ageLines:{
+    one:'At one, fear is communicated through body and proximity. Protection, naming and gentle distance are the main tools.',
+    two:'At two, imagination and language are growing. Keep explanations concrete and steps very small.',
+    three:'At three, stories and pretend play can rehearse coping when used away from the peak.',
+    fourfive:'At four and five, {name} can help draw a bravery ladder and choose the first step.'
+  },
+  plan:[
+    {n:1,title:'Believe the feeling',cue:'Name fear without confirming the feared story.',reward:'Telling, pointing or staying near the situation safely.',avoid:'Shame, surprise exposure or “there’s nothing to fear.”'},
+    {n:2,title:'Build one tiny step',cue:'Choose the smallest safe approach {name} can complete.',reward:'Doing the step with fear present.',avoid:'Jumping to the hardest version.'},
+    {n:3,title:'Hand over a coping tool',cue:'Practise one breath, phrase, object or plan before the fear arrives.',reward:'Using the tool or recovering afterwards.',avoid:'Endless certainty-giving.'}
+  ],
+  checkins:{
+    better:['The fear was heard without taking over. Choose one tiny brave step.','The step is possible. Add one coping tool {name} can own.','GRADUATE'],
+    graduate:'You did not promise a fear-free world. You helped {name} feel fear, stay safe and take a small step anyway.',
+    same:'The step may still be too large. Cut it in half until {name} can succeed while mildly uncomfortable, not overwhelmed.',
+    worse:'Fear that persists for weeks, spreads, causes severe distress or limits ordinary life deserves professional support. Start with your GP or child and family health nurse.',
+    didnt:'No guilt. Next time, replace “there’s nothing to fear” with “I believe you feel scared; I’m here.”'
+  },
+  whenMap:{dark:'around darkness',noise:'around sensory surprises',new:'in new situations',whatif:'during reassurance loops'},
+  amberBody:[
+    'Worry that is severe, persistent or stopping sleep, play, childcare or family life deserves individual support.',
+    'Start with your GP or child and family health nurse. A simple record of triggers, avoidance and recovery will help.'
+  ],
+  redBody:[
+    'If {name} describes harm or an unsafe person, listen calmly, do not interrogate, record their words and seek professional safeguarding advice. Call 000 for immediate danger.'
+  ],
+  redScript:'“My young child has told or shown me [their words/behaviour]. I’m concerned about [possible harm or immediate risk]. I need advice on keeping them safe and what to do next.”',
+  whispers:['Believe the feeling without confirming the scary story.','Bravery is a small step taken with fear still present.','Answer the worry once, then practise the plan.']
+});
+
 const EVIDENCE_LEDGER = [
   {level:'Foundation', title:'WHO parenting intervention guideline', body:'Nurturing relationships, positive parenting skills and alternatives to harsh parenting.', url:'https://www.who.int/publications/i/item/9789240065505'},
   {level:'Foundation', title:'American Academy of Pediatrics', body:'Developmentally appropriate teaching, clear limits, modelling, redirection and specific praise rather than physical or verbal punishment.', url:'https://publications.aap.org/pediatrics/article/142/6/e20183112/37452/Effective-Discipline-to-Raise-Healthy-Children'},
   {level:'Development', title:'Harvard Center on the Developing Child', body:'Responsive back-and-forth interaction and naming what young children see, do and feel.', url:'https://developingchild.harvard.edu/key-concept/serve-and-return/'},
   {level:'Australia', title:'Raising Children Network', body:'Government-supported practical guidance on early-childhood behaviour and when to seek help.', url:'https://raisingchildren.net.au/toddlers/behaviour'},
   {level:'Australia', title:'Healthdirect', body:'Australian pathways for health advice, urgent help and emergency care.', url:'https://www.healthdirect.gov.au/'},
-  {level:'Evidence translation', title:'Parenting Research Centre', body:'Australian evidence synthesis and implementation expertise for parenting support.', url:'https://www.parentingrc.org.au/'}
+  {level:'Evidence translation', title:'Parenting Research Centre', body:'Australian evidence synthesis and implementation expertise for parenting support.', url:'https://www.parentingrc.org.au/'},
+  {level:'Development', title:'CDC developmental milestones', body:'Age-banded developmental monitoring from one to five, with clear “act early” guidance when parents have concerns.', url:'https://www.cdc.gov/milestones'},
+  {level:'Sleep', title:'Raising Children Network · toddler sleep', body:'Australian guidance on sleep needs, bedtime routines, settling and when persistent problems need help.', url:'https://raisingchildren.net.au/toddlers/sleep/understanding-sleep/toddler-sleep'},
+  {level:'Food', title:'Raising Children Network · fussy eating', body:'Low-pressure, repeated food exposure, familiar choices and professional review when range or growth is concerning.', url:'https://raisingchildren.net.au/toddlers/nutrition-fitness/common-concerns/fussy-eating'},
+  {level:'Toileting', title:'Raising Children Network · toilet training', body:'Readiness, routines, neutral handling of setbacks and the importance of addressing constipation or pain.', url:'https://raisingchildren.net.au/toddlers/health-daily-care/from-nappy-to-toilet/toilet-training-guide'},
+  {level:'Relationships', title:'Raising Children Network · siblings and sharing', body:'Age-realistic sharing expectations, safety-first conflict handling, visible turns and supported repair.', url:'https://raisingchildren.net.au/preschoolers/behaviour/friends-siblings'},
+  {level:'Anxiety', title:'Raising Children Network · separation anxiety', body:'Truthful goodbyes, gradual supported separation and professional support when anxiety limits family life.', url:'https://raisingchildren.net.au/babies/behaviour/common-concerns/separation-anxiety'}
 ];
 
 const CHECKIN_LANGUAGE = {
@@ -311,7 +940,37 @@ const CHECKIN_LANGUAGE = {
     better:'Fewer incidents, safer contact, or an alternative appeared',
     same:'About the same frequency and intensity',
     worse:'More frequent, more forceful, or someone was hurt'
-  }
+  },
+  sleep:{prompt:'Thinking about one comparable night, what changed?',better:'The routine, settling or recovery was easier',same:'About the same settling and waking',worse:'Less sleep, more distress or a new health concern'},
+  toileting:{prompt:'Thinking about body signals and toilet steps, what changed?',better:'More noticing, trying or neutral recovery',same:'About the same readiness and accidents',worse:'More pain, holding, distress or accidents'},
+  food:{prompt:'Thinking about one comparable meal, what changed?',better:'Less pressure or more food curiosity',same:'About the same range and mealtime stress',worse:'Less intake, more distress or a health concern'},
+  screens:{prompt:'Thinking about one screen ending, what changed?',better:'A clearer ending or easier transition',same:'About the same protest and recovery',worse:'More conflict or greater impact on family life'},
+  siblings:{prompt:'Thinking about one predictable sibling flashpoint, what changed?',better:'Safer bodies, clearer turns or some repair',same:'About the same conflict and recovery',worse:'More fear, force, targeting or injury'},
+  sharing:{prompt:'Thinking about one shared-play moment, what changed?',better:'A safer turn, wait, entry or repair',same:'About the same support was needed',worse:'More distress, exclusion or physical conflict'},
+  whining:{prompt:'Thinking about one repeated request, what changed?',better:'A clearer request or quicker calm response',same:'About the same voice and support',worse:'More distress or a broader communication concern'},
+  separation:{prompt:'Thinking about one comparable goodbye, what changed?',better:'A shorter recovery or more trust in the handover',same:'About the same distress and recovery',worse:'Longer distress or more impact on daily life'},
+  fears:{prompt:'Thinking about one safe fear situation, what changed?',better:'A small brave step or better recovery',same:'About the same fear and avoidance',worse:'More distress, spreading fear or less daily participation'}
+};
+
+const TERRITORY_GROUPS = [
+  {label:'Big feelings & cooperation', ids:['meltdowns','listening','hitting','whining']},
+  {label:'Daily rhythms', ids:['sleep','toileting','food','screens']},
+  {label:'Relationships & confidence', ids:['siblings','sharing','separation','fears']}
+];
+
+const CONCERN_KEYWORDS = {
+  meltdowns:['tantrum','meltdown','screaming','lost it','huge feelings','outburst'],
+  listening:['listen','ignore','asked','instruction','cooperate','won’t do'],
+  hitting:['hit','bite','push','kick','throw','hurt','aggressive'],
+  whining:['whine','whining','moan','demand','nag','shout','yell'],
+  sleep:['sleep','bed','bedtime','night','wake','waking','nap','settle'],
+  toileting:['toilet','potty','wee','poo','accident','nappy','wet','constipation'],
+  food:['food','eat','meal','dinner','picky','fussy','hungry','vegetable'],
+  screens:['screen','ipad','tablet','tv','phone','youtube','game','device'],
+  siblings:['sibling','brother','sister','jealous','baby','fighting'],
+  sharing:['share','sharing','turn','toy','playdate','friend','snatch'],
+  separation:['separate','separation','childcare','drop-off','cling','clingy','leave','goodbye'],
+  fears:['fear','scared','afraid','worry','worried','anxious','dark','monster']
 };
 
 // migrate: lifetime stats from any pre-existing cards
@@ -412,9 +1071,9 @@ meltdowns: {
     fix:{ core:'Changing a limit can bring quick relief, especially when everyone is exhausted. But if the answer changes mainly during the biggest reactions, the pattern can become harder for both of you to predict next time.',
       lens:'Warmth and a steady limit can sit together: “I know you wanted it. The answer is still no, and I’m here.”',
       trap:'The trap is not one imperfect moment. It is an unpredictable pattern where the boundary changes only after the reaction becomes overwhelming.' },
-    firm:{ core:'A raised voice adds fuel to a fire that’s already burning. {name}’s stress system is lit up, and a bigger, louder adult reads as more threat, not more control. Even cross attention is intense connection — and a young nervous system escalates to match.',
-      lens:'Children co-regulate — they borrow your calm to find their own. Match their storm and there’s no calm left to borrow.',
-      trap:'Getting bigger than the meltdown can end this one through fear, but it teaches {name} that big feelings are met with bigger ones — modelling the very thing you want them to grow out of.' },
+    firm:{ core:'A raised voice can add more intensity to a moment that is already hard for {name} to manage. It may stop behaviour briefly without making the next response more available.',
+      lens:'A quieter adult response can reduce the load, but no parent needs perfect calm. Safety now and repair later still matter.',
+      trap:'Trying to overpower the volume can turn the moment into two people escalating rather than one child receiving a clear boundary.' },
     flee:{ core:'Feeling your own stress spike is a human response, not a parenting failure. When you have even a little capacity, slowing your voice or taking one breath can make the moment easier to navigate. When you do not, safety and getting through it are enough.',
       lens:'Your steadiness can help, but you do not have to be perfectly calm. Repair afterwards also teaches something important.',
       trap:'The trap is expecting yourself to perform perfect calm. A smaller goal — safe body, fewer words, repair later — is more useful.' }
@@ -424,14 +1083,14 @@ meltdowns: {
       action:'Next outing, plan the exit before you need it: name the feeling out loud (“you really wanted that — it’s so hard”), get down to their level, and if you can, move somewhere quieter to ride it out. You’re not performing for onlookers; you’re being the calm {name} can’t find yet.' },
     transition:{ intro:'Transitions are tiny griefs for a young child — the good thing is ending, and their brain hasn’t built the “there’ll be more later” muscle yet. The meltdown is the size of the loss, not the size of the offence.',
       action:'Today, warn the transition before it lands: “two more goes, then we tidy up.” Then connect as you cross it — “you were having such a good time, it’s hard to stop.” Expect the feeling; you’re softening it, not preventing it.' },
-    no:{ intro:'When “no” triggers the storm, {name} isn’t being defiant — a young child feels a blocked want as a genuine emergency. The size of the reaction measures how real the want felt, not how spoiled they are.',
+    no:{ intro:'When “no” triggers the storm, a blocked want can feel enormous to a young child whose waiting and disappointment skills are still developing. The reaction does not tell you that {name} is spoiled.',
       action:'Today, hold the limit and the feeling at once: keep the “no” steady, but meet the upset with warmth — “you really, really wanted it. I get it. The answer’s still no, and I’m right here.” Empathy isn’t caving.' },
     tired:{ intro:'By the end of the day {name}’s tank is empty — low blood sugar, tiredness, and a whole day of holding it together. The last-straw meltdown is usually about the twelve things before it, not the small thing that tipped it.',
       action:'Today, get ahead of the tank: an earlier snack, a wind-down before the witching hour, fewer demands late in the day. You can’t reason a tired brain full — but you can protect it from empty.' }
   },
   ageLines:{
     one:'At this age {name} has enormous feelings and almost no words for them yet — meltdowns are how a one-year-old says “this is too much.” Comfort is the whole curriculum right now.',
-    two:'At two, {name}’s wants have raced ahead of their words and their self-control. This is the “terrible twos” — really just a small person with big feelings and no brakes yet. Completely on schedule.',
+    two:'At two, wants often race ahead of words and self-control. Big reactions can be common at this age, while frequency and intensity still vary widely between children.',
     three:'At three, {name} understands far more than they can manage — they know what they want and can’t always cope when it’s blocked. More language now, but the brakes are still being built.',
     fourfive:'At four and five, {name} is starting to name feelings and wait a little — but under tiredness or stress the young brain still floods. A big one doesn’t erase the progress; the skill is just still cooking.'
   },
@@ -451,7 +1110,7 @@ meltdowns: {
   ],
   checkins:{
     better:[
-      'That’s co-regulation working — your calm gave {name}’s storm somewhere to land. Step 2: connect on the way down before you redirect.',
+      'Something in the setup or response helped recovery. Keep it steady and move to step 2: connect on the way down before you redirect.',
       'The recoveries are getting shorter, aren’t they? That’s the repair muscle growing. Step 3: teach the feeling-tool in the calm moments.',
       'GRADUATE'
     ],
@@ -518,10 +1177,10 @@ listening: {
     ]}
   ],
   drivers:{
-    repeat:{ core:'Every unheeded “put your shoes on” quietly teaches that the first ask is optional — the real deadline is somewhere around the fifth. {name} isn’t being sneaky; they’ve simply learned the true rule from how it plays out: nothing happens until the voice changes.',
-      lens:'A repeated instruction trains the child to wait for the repeat. The number you stop at is the number they learn they can ignore up to.',
+    repeat:{ core:'When an instruction is repeated many times before anything changes, {name} may learn that the first ask is not yet the moment to shift attention. They may also genuinely need closer contact or help starting.',
+      lens:'Make the first ask easier to notice, then help the first step happen instead of increasing volume.',
       trap:'Asking again (and again) feels like patience, but it teaches {name} that early asks don’t count — so why stop the fun for one?' },
-    shout:{ core:'When action only comes after the shout or the “1… 2…”, the shout becomes the actual instruction. {name} learns to run the clock until your voice tips over — not out of defiance, but because that’s the pattern that’s been rehearsed.',
+    shout:{ core:'When action regularly begins only after a shout or countdown, the louder cue can become the most reliable signal that the transition is real. That pattern can change with clearer first contact and follow-through.',
       lens:'If calm asks don’t work but loud ones do, you’ve accidentally taught that only loud counts. The aim is to make the quiet ask the one that means it.',
       trap:'Counting to three can work through mild threat, but it trains {name} to move on “three” — quietly teaching that one and two are ignorable.' },
     do:{ core:'Doing it yourself ends the standoff and gets everyone out the door — but it also tells {name} that not-responding makes the job disappear. The instruction evaporates, and so does the reason to act on the next one.',
@@ -553,7 +1212,7 @@ listening: {
       reward:'The moment they start — warm, specific praise: “you came the first time, thank you.”',
       avoid:'Calling instructions across the room, stacking three at once, or repeating before you’ve actually connected.' },
     { n:2, title:'Make the first ask count',
-      cue:'Ask once. Then, instead of repeating, help them begin — a hand on the task, a playful start. The first ask always means something.',
+      cue:'Get close, connect, ask once, then help the first step begin rather than repeating from a distance.',
       reward:'Cooperation paid in connection: praise, a smile, the next fun thing.',
       avoid:'Repeating, counting, or rescuing. If nothing happens, move toward helping — not toward louder.' },
     { n:3, title:'Build the habit',
@@ -636,13 +1295,13 @@ hitting: {
       trap:'Focusing only on the child who was hurt can accidentally teach {name} that hurting someone gets them ignored — attention they may then chase in louder ways.' }
   },
   targets:{
-    frustrated:{ intro:'Frustration-hitting is the most common kind at this age: {name} hits the wall of a blocked want with the only tool a young nervous system reaches for — the body. It’s a feeling with no words yet, coming out through the hands.',
+    frustrated:{ intro:'When frustration and limited language meet, the body can become the fastest available response. The behaviour still needs a firm stop while the missing communication skill is taught.',
       action:'Today, give the feeling a different exit: block the hit gently (“I won’t let you hit”), name it (“you’re SO cross the tower fell”), and offer a hands-safe alternative — “you can stamp, squeeze this cushion, or come to me.” Same feeling, safer outlet.' },
     sibling:{ intro:'Sibling hitting is loaded — rivalry, territory, and big love-and-resentment all at once. {name} isn’t a bad sibling; they’re a young child sharing their people and their space before they’ve got the skills to do it smoothly.',
       action:'Today, protect first (stay in range, block contact), then coach both sides: “you wanted the space — and hands are for gentle. Tell her, or come get me.” Catch and praise every gentle moment between them — the good ones need noticing more than the bad ones need punishing.' },
     excited:{ intro:'Sometimes the hurt comes from joy, not anger — play ramps up, the body outruns the brakes, and an excited whack or bite lands. {name} isn’t being aggressive; they’re over the top of their own arousal.',
       action:'Today, catch the ramp before it tips: notice the giddy edge and step in early — slow the game, swap in something calmer, name it (“that got really wild — let’s bring it down a notch”). You’re teaching the brakes before the crash.' },
-    overwhelmed:{ intro:'When hitting comes with tiredness or overload, it’s the nervous system spilling over — too much input, not enough reserve. The hit is a distress signal, not a decision.',
+    overwhelmed:{ intro:'When hitting clusters around tiredness, noise, crowding or change, overload may be part of the pattern. That possibility helps you change the setup without excusing harm.',
       action:'Today, read the overwhelm as the real problem: lower the volume, dim the demands, offer a quiet corner or a cuddle before the tank hits empty. Prevent the spill and there’s far less to correct.' }
   },
   ageLines:{
@@ -689,7 +1348,7 @@ hitting: {
     title:'This needs real help now',
     body:[
       'If the hurting frightens you, if an adult is hurting {name}, or if a child is in danger, please reach for real help straight away — this is exactly the situation where stepping outside an app is the right and protective thing to do.',
-      'Right now, the only priority is safety: separate the children if needed, keep the smallest ones out of reach, and if you feel close to losing control yourself, put {name} somewhere safe and take a moment to breathe before you respond.',
+      'Right now, prioritise safety: separate children, move away from hazards and bring in another safe adult if you can. If you think you or a child may be harmed, call 000.',
       'For ongoing help, contact your GP or child and family health nurse. If anyone is in immediate danger in Australia, call 000. If you are worried a child is being harmed, contact the child-protection service in your state or territory.'
     ],
     script:'“Hi — I’m looking for some help. My young child is hitting and hurting others and I’m finding it hard to manage safely. I’d like some support — can you point me in the right direction?”'
@@ -705,24 +1364,26 @@ hitting: {
 }
 };
 
+Object.assign(PACKS, EXPANSION_PACKS);
+
 const GENERAL_WHISPERS = [
-  'Connection before correction — always, at every age.',
-  'Behaviour is communication. The question is always “what’s this feeling telling me?”',
-  'You’re not raising a good day — you’re raising a person. The long game wins.',
-  'Regulate yourself first. You can’t pour calm from an empty cup.',
-  'Catch them being good. What you notice grows.',
-  'The goal isn’t a child who obeys — it’s a child who trusts you enough to learn.'
+  'Connection makes teaching easier; safety can still require a clear stop first.',
+  'Behaviour carries information. Context helps you read it.',
+  'You’re not raising a perfect day — you’re building a relationship across many ordinary ones.',
+  'You do not need perfect calm. Safe now and repair later still teaches.',
+  'Notice the small skill when it appears; that is the moment to strengthen it.',
+  'The goal is not instant obedience. It is growing safety, skill and trust.'
 ];
 
 // ---------- identity arc ----------
 function tierLine() {
   const p = S.profile || {}, n = esc(p.name || 'your little one');
-  const a = S.stats.applied;
-  if (a <= 0)  return 'Day one of learning to read ' + n + '.';
-  if (a < 3)   return 'You’re starting to catch the moments that matter.';
-  if (a < 7)   return a + ' days applied — the patterns are showing themselves.';
-  if (a < 14)  return 'A week of showing up. You’re reading ' + n + ', not guessing.';
-  return 'This is what attuned looks like — and ' + n + ' can feel the difference.';
+  const a = S.stats.applied, d=S.stats.decodes, m=S.moments.length;
+  if (a <= 0 && d <= 0) return 'Day one of learning to read ' + n + '.';
+  if (a < 3) return `You’ve looked closely at ${d||1} real ${d===1?'moment':'moments'} — noticing is the first parenting skill.`;
+  if (a < 7) return a + ' days applied — you’re testing patterns, not blaming people.';
+  if (a < 14) return `A week of showing up. ${m?m+' family moments saved. ':''}You’re reading ${n}, not guessing.`;
+  return 'This is attuned parenting: notice, try, learn, repair — and keep the relationship bigger than the hard moment.';
 }
 
 // ---------- daily reminder ----------
@@ -739,6 +1400,7 @@ function dailyWhisper() {
 let view = { name:'home' };
 let decodeCtx = {};
 let draftProfile = {};
+let pendingConcernText = '';
 
 function go(name, data) { view = { name, ...(data||{}) }; render(); window.scrollTo(0,0); }
 
@@ -787,14 +1449,24 @@ const VIEWS = {
       todayHtml = `<div class="streakline" style="margin-bottom:6px"><span>🌱</span><span>${tierLine()}</span></div>`;
     }
 
-    const packCards = Object.values(PACKS).map(pk => {
-      const activeCard = active.find(c=>c.behaviour===pk.id);
-      return `<button class="card tap" onclick="startDecode('${pk.id}')">
-        <span class="btile">${pk.emoji}</span>
-        <span><h3>${pk.label}${activeCard?'<span class="pill">In progress</span>':''}</h3>
-        <p>${fill(pk.tagline)}</p></span>
-      </button>`;
-    }).join('');
+    const packCards = TERRITORY_GROUPS.map(group => `
+      <div class="kicker">${group.label}</div>
+      ${group.ids.map(id => {
+        const pk = PACKS[id], activeCard = active.find(c=>c.behaviour===pk.id);
+        return `<button class="card tap" onclick="startDecode('${pk.id}')">
+          <span class="btile">${pk.emoji}</span>
+          <span><h3>${pk.label}${activeCard?'<span class="pill">In progress</span>':''}</h3>
+          <p>${fill(pk.tagline)}</p></span>
+        </button>`;
+      }).join('')}`).join('');
+
+    const recentMoments = S.moments.slice(0,3);
+    const momentsHtml = recentMoments.length ? `
+      <div class="kicker">Saved family moments</div>
+      ${recentMoments.map((m,i)=>`<button class="card tap" onclick="openMoment(${i})">
+        <span class="btile">${PACKS[m.pack].emoji}</span>
+        <span><h3>${PACKS[m.pack].label}</h3><p>${esc(m.summary)}</p><span class="pill">${fmtDay(m.date)}</span></span>
+      </button>`).join('')}` : '';
 
     let doneHtml = '';
     if (done.length) {
@@ -812,11 +1484,17 @@ const VIEWS = {
       ${meetCard}
       ${todayHtml}
       <div class="whisper"><span class="w-ico">💛</span><p><span class="w-tag">Today’s gentle reminder</span>${fill(dailyWhisper())}</p></div>
-      <div class="kicker">What’s ${name} doing?</div>
+      <button class="today" onclick="go('intake')">
+        <div class="t-kick"><span>LittleLens confidant</span><span class="duepill hot">Start here</span></div>
+        <p class="t-cue">Tell me what happened.</p>
+        <div class="t-foot"><span>I’ll help you find the pattern, the safety line and one useful next move.</span><span>Open →</span></div>
+      </button>
+      ${momentsHtml}
+      <div class="kicker">Or choose the territory</div>
       ${packCards}
       <button class="card tap" onclick="go('other')">
         <span class="btile">💬</span>
-        <span><h3>Something else?</h3><p>Whining, sleep, potty, siblings, screens — and the bigger worries. Here’s the honest picture.</p></span>
+        <span><h3>Something feels different</h3><p>Speech, hearing, development, sudden changes, caregiver strain or a concern that doesn’t fit.</p></span>
       </button>
       <button class="card tap" onclick="go('evidence')">
         <span class="btile">✓</span>
@@ -826,17 +1504,72 @@ const VIEWS = {
       <footer class="legal">LittleLens gives evidence-informed guidance for everyday toddler and preschool behaviour. It does not diagnose and is not a substitute for your GP, child and family health nurse or another qualified professional — and it will tell you when to reach for one.<br><br>Private by design: everything you tell LittleLens stays on this device. No account, no cloud, no tracking.</footer>`;
   },
 
+  intake() {
+    const examples = ['Bedtime takes forever','She keeps biting her brother','He asks for the iPad all day','Drop-off is heartbreaking'];
+    return `
+      <button class="back" onclick="go('home')">← Back</button>
+      <span class="stepbadge">Private · stays on this device</span>
+      <h2>What happened?</h2>
+      <p class="sub">Use your own words. LittleLens matches the moment to a governed guide — it does not diagnose or generate advice from thin air.</p>
+      <label for="concernText">The short version</label>
+      <textarea id="concernText" rows="4" maxlength="240" placeholder="e.g. Every night she gets out of bed six times..."></textarea>
+      <button class="btn" onclick="routeConcern()">Help me read it</button>
+      <div class="kicker">Or borrow a starting point</div>
+      <div class="chips">${examples.map(x=>`<button class="chip" onclick="useConcernExample('${x.replace(/'/g,"\\'")}')">${x}</button>`).join('')}</div>
+      <div class="block boundary"><span class="tag">Immediate safety</span>
+        <p>If a child is seriously hurt, very unwell or in immediate danger in Australia, call 000. For health advice, call Healthdirect on 1800 022 222.</p></div>`;
+  },
+
+  intakeMatch() {
+    const matches = view.matches || [];
+    const text = view.text || '';
+    if (!matches.length) return `
+      <button class="back" onclick="go('intake')">← Back</button>
+      <h2>I don’t want to guess</h2>
+      <div class="block readblk"><p>That moment matters, but I can’t match it confidently from those words. Choose the closest territory below, or use the “something feels different” route for a broader concern.</p></div>
+      ${TERRITORY_GROUPS.map(g=>`<div class="kicker">${g.label}</div>${g.ids.map(id=>`<button class="card tap" onclick="startDecode('${id}')"><span class="btile">${PACKS[id].emoji}</span><span><h3>${PACKS[id].label}</h3><p>${PACKS[id].tagline}</p></span></button>`).join('')}`).join('')}
+      <button class="btn ghost" onclick="go('other')">Something feels different</button>`;
+    return `
+      <button class="back" onclick="go('intake')">← Back</button>
+      <span class="stepbadge">Your words</span>
+      <h2>${esc(text)}</h2>
+      <p class="sub">This sounds closest to:</p>
+      ${matches.slice(0,3).map((m,i)=>`<button class="${i===0?'today':'card tap'}" onclick="startDecode('${m.id}')">
+        ${i===0?`<div class="t-kick"><span>Best match</span><span class="duepill hot">Start here</span></div>
+        <p class="t-cue">${PACKS[m.id].emoji} ${PACKS[m.id].label}</p>
+        <div class="t-foot"><span>${PACKS[m.id].tagline}</span><span>Decode →</span></div>`
+        :`<span class="btile">${PACKS[m.id].emoji}</span><span><h3>${PACKS[m.id].label}</h3><p>${PACKS[m.id].tagline}</p></span>`}
+      </button>`).join('')}
+      <button class="btn quiet" onclick="go('intakeMatch',{matches:[],text:${JSON.stringify(text)}})">None of these</button>`;
+  },
+
+  moment() {
+    const m = S.moments[view.idx];
+    if (!m || !PACKS[m.pack]) return VIEWS.home();
+    const pack=PACKS[m.pack];
+    return `
+      <button class="back" onclick="go('home')">← Home</button>
+      <span class="stepbadge">Saved ${fmtDay(m.date)}</span>
+      <h2>${pack.emoji} ${pack.label}</h2>
+      <div class="block readblk"><span class="tag">What you noticed</span><p>${esc(m.summary)}</p></div>
+      <div class="block"><span class="tag">The lens</span><p>${m.lens}</p></div>
+      <div class="block readblk"><span class="tag">The next move</span><p>${m.action}</p></div>
+      <button class="btn" onclick="shareMoment(${view.idx})">Send this moment</button>
+      <button class="btn ghost" onclick="startDecode('${m.pack}')">Decode a new ${pack.label.toLowerCase()} moment</button>
+      <button class="btn quiet" onclick="removeMoment(${view.idx})">Remove saved moment</button>`;
+  },
+
   other() {
     return `
       <button class="back" onclick="go('home')">← Back</button>
-      <h2>What about everything else?</h2>
-      <div class="block readblk"><span class="tag">Why only three behaviours</span>
-        <p>${fill('Most apps skim twenty behaviours an inch deep. LittleLens goes a mile deep on three — real context, a real plan, real follow-up. Sleep and sharing are next (each is really several behaviours in a trench coat, and {name} deserves the right read).')}</p></div>
-      <div class="block boundary"><span class="tag">If it’s something bigger</span>
-        <p>Aggression that frightens you, a child who seems constantly distressed or fearful, worries about development, speech or hearing, or anything where a child’s safety is at stake — that isn’t app territory, and pretending otherwise would let you down. These are common, workable, and best met with real support.</p>
-        <p>Your GP or child and family health nurse is a good first call: they can look at the whole picture and connect you with the right help.</p></div>
+      <h2>Something feels different</h2>
+      <div class="block readblk"><span class="tag">Trust the concern</span>
+        <p>You know ${fill('{name}')} in a way an app never can. A sudden change, lost skill, concern about speech or hearing, persistent distress, pain, or a pattern that limits ordinary life deserves a fuller look.</p></div>
+      <div class="block boundary"><span class="tag">Your useful next move</span>
+        <p>Write down three things: what you see, when it happens, and what has changed. Take that short pattern to your GP or child and family health nurse. Ask directly whether hearing, development, health, stress or the environment should be assessed.</p></div>
       <div class="block"><span class="tag">Say this when you reach out</span>
         <div class="script">“Hi — I’m looking for some support with my young child. What I’m seeing is [what’s happening], it happens [when], and I’m concerned because [what worries you]. Can you help or point me in the right direction?”</div></div>
+      <button class="btn" onclick="shareConcernScript()">Send this to my partner</button>
       <button class="btn ghost" onclick="go('home')">Back home</button>`;
   },
 
@@ -928,6 +1661,7 @@ const VIEWS = {
       <div class="block readblk"><span class="tag">Try this today</span><p>${fill(t.action, c)}</p></div>
       ${boundaries}
       <button class="btn ghost" onclick="shareResult()">Share this lens</button>
+      <button class="btn quiet" onclick="saveCurrentMoment()">Save this family moment</button>
       ${!S.profile ? `<div class="block boundary"><span class="tag">Make it personal</span>
         <p>This read was written for “a child”. Thirty seconds about yours — name, age, home — and I’ll rewrite it for them, and remember for next time.</p></div>` : ''}
       ${already
@@ -1021,9 +1755,16 @@ const VIEWS = {
 
   checkinResult() {
     const c = S.working[view.idx];
+    const pack = c && PACKS[c.behaviour];
+    const nextStep = c && !c.done ? pack.plan[c.step-1] : null;
     return `
       <h2>${view.title}</h2>
       <div class="block readblk"><p>${view.msg}</p></div>
+      ${nextStep ? `<div class="today">
+        <div class="t-kick"><span>Tomorrow with ${esc((S.profile&&S.profile.name)||'your little one')}</span><span class="duepill">One small move</span></div>
+        <p class="t-cue">${fill(nextStep.cue,c.ctx)}</p>
+        <div class="t-foot"><span>${pack.emoji} ${pack.label}</span><span>${fmtDay(c.nextCheckin)}</span></div>
+      </div>` : ''}
       ${c && c.done ? `<button class="btn" onclick="go('wocard',{idx:${view.idx}})">🎉 See what you made</button>` : ''}
       ${view.showPlan && c && !c.done ? `<button class="btn" onclick="go('wocard',{idx:${view.idx}})">See ${view.advanced?'the new step':'today’s plan'}</button>` : ''}
       <button class="btn quiet" onclick="go('home')">Home</button>`;
@@ -1047,6 +1788,69 @@ const VIEWS = {
 
 // ---------- actions ----------
 let profileReturn = 'home';
+
+function scoreConcern(text) {
+  const clean = text.toLowerCase();
+  return Object.entries(CONCERN_KEYWORDS).map(([id, words])=>({
+    id,
+    score:words.reduce((n,w)=>n+(clean.includes(w)?(w.includes(' ')?3:2):0),0)
+  })).filter(x=>x.score>0).sort((a,b)=>b.score-a.score);
+}
+function routeConcern() {
+  const el = document.getElementById('concernText');
+  const text = (el ? el.value : '').trim().slice(0,240);
+  if (!text) {
+    if (el) { el.style.borderColor='var(--red)'; el.focus(); }
+    return;
+  }
+  pendingConcernText = text;
+  go('intakeMatch',{matches:scoreConcern(text),text});
+}
+function useConcernExample(text) {
+  const el = document.getElementById('concernText');
+  if (el) el.value=text;
+}
+function saveCurrentMoment() {
+  if (!decodeCtx.pack) return;
+  const pack=PACKS[decodeCtx.pack], target=pack.targets[decodeCtx.who], driver=pack.drivers[decodeCtx.next];
+  const moments=S.moments;
+  moments.unshift({
+    pack:decodeCtx.pack,
+    date:today0(),
+    summary:decodeCtx.sourceText || `${pack.label}: ${target.intro.replaceAll('{name}',(S.profile&&S.profile.name)||'your little one')}`,
+    lens:fill(driver.lens,decodeCtx),
+    action:fill(target.action,decodeCtx)
+  });
+  S.moments=moments.slice(0,12);
+  const buttons=[...document.querySelectorAll('.btn')];
+  const b=buttons.find(x=>x.textContent.includes('Save this family moment'));
+  if (b) { b.textContent='Saved for your family'; b.disabled=true; }
+}
+function openMoment(idx) { go('moment',{idx}); }
+function removeMoment(idx) {
+  const moments=S.moments; moments.splice(idx,1); S.moments=moments; go('home');
+}
+function shareMoment(idx) {
+  const m=S.moments[idx]; if(!m)return;
+  const pack=PACKS[m.pack];
+  const text=`A LittleLens family moment: ${pack.label}\n\nWhat we noticed:\n${m.summary}\n\nThe lens:\n${stripHtml(m.lens)}\n\nOne thing to try:\n${stripHtml(m.action)}\n\nhttps://pawpocket.com.au/littlelens/`;
+  shareText(`${pack.label} · LittleLens`,text,'Send this moment');
+}
+function shareConcernScript() {
+  const text='A useful note for our family:\\n\\nWhat we are seeing: [what happens]\\nWhen it happens: [time, place, trigger]\\nWhat changed: [sleep, health, family, childcare, routine]\\nWhat worries us: [impact or safety]\\n\\nLet’s compare what we each notice and decide whether to speak with our GP or child and family health nurse.';
+  shareText('A LittleLens family note',text,'Send this to my partner');
+}
+function stripHtml(text) {
+  const d=document.createElement('div'); d.innerHTML=text; return d.textContent||'';
+}
+function shareText(title,text,buttonLabel) {
+  if (navigator.share) navigator.share({title,text}).catch(()=>{});
+  else if (navigator.clipboard) navigator.clipboard.writeText(text).then(()=>{
+    const b=[...document.querySelectorAll('.btn')].find(x=>x.textContent.includes(buttonLabel));
+    if(b)b.textContent='Copied — ready to send';
+  }).catch(()=>{});
+}
+
 function editProfile(returnTo) {
   profileReturn = (typeof returnTo === 'string') ? returnTo : 'home';
   draftProfile = Object.assign({}, S.profile || {});
@@ -1085,7 +1889,8 @@ function saveProfile() {
   go('home');
 }
 function startDecode(packId) {
-  decodeCtx = { pack: packId };
+  decodeCtx = { pack: packId, sourceText: pendingConcernText };
+  pendingConcernText = '';
   go('gate', { pack: packId });
 }
 function answerGate(id) {
