@@ -4,8 +4,8 @@
 <meta name="robots" content="noindex, nofollow">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>LittleLens — See the moment. Choose the next kind move.</title>
-<meta name="description" content="A private early-years confidant that helps parents read real family moments, choose one useful next move and learn from what happens.">
+<title>LittleLens — Understand their moment. Choose the next move.</title>
+<meta name="description" content="A private early-years confidant that helps parents understand a real family moment, choose one useful next move and learn from what happens.">
 <meta name="theme-color" content="#3f63a6" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#151821" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-title" content="LittleLens">
@@ -74,10 +74,36 @@
     flex: 0 0 auto; cursor: pointer; border: none; padding: 0;
     box-shadow: var(--shadow);
   }
-  .mark svg { width: 24px; height: 24px; }
+  .lens-glyph {
+    position: relative; width: 23px; height: 23px; border: 2px solid #fbf9f4;
+    border-radius: 50%; box-shadow: inset 0 0 0 5px rgba(251,249,244,0.16);
+  }
+  .lens-glyph::before {
+    content: ""; position: absolute; width: 5px; height: 5px; border-radius: 50%;
+    background: #fbf9f4; left: 7px; top: 7px;
+  }
+  .lens-glyph::after {
+    content: "✦"; position: absolute; right: -7px; top: -9px;
+    color: #fbf9f4; font-size: 0.7rem; line-height: 1;
+  }
   .brand { cursor: pointer; }
   .brand h1 { font-family: var(--serif); font-size: 1.35rem; margin: 0; letter-spacing: 0; color: var(--brand-dark); font-weight: 700; }
-  .brand p { margin: 1px 0 0; font-size: 0.78rem; color: var(--muted); letter-spacing: 0.01em; }
+  .brand p {
+    margin: 1px 0 0; font-size: 0.78rem; color: var(--muted);
+    letter-spacing: 0.01em; line-height: 1.25;
+  }
+  .brand-letter {
+    display: inline-block; opacity: 0;
+    transform: translateY(0.35em) rotateX(-80deg) scaleY(0.35);
+    transform-origin: center bottom;
+    animation: brand-letter-unfold 460ms cubic-bezier(.2,.75,.25,1) forwards;
+    animation-delay: var(--letter-delay);
+  }
+  .brand-word { display: inline-block; white-space: nowrap; }
+  @keyframes brand-letter-unfold {
+    60% { opacity: 1; transform: translateY(-0.05em) rotateX(8deg) scaleY(1.04); }
+    100% { opacity: 1; transform: none; }
+  }
   .avatarbtn {
     margin-left: auto; width: 44px; height: 44px; border-radius: 50%;
     background: var(--brand-soft); border: 1.5px solid var(--brand-line);
@@ -113,6 +139,17 @@
   .today .t-foot { display: flex; align-items: center; justify-content: space-between; gap:12px; font-size: 0.82rem; color: rgba(238,242,250,0.85); }
   .today .t-foot span:first-child { flex:1 1 auto; min-width:0; }
   .today .t-foot span:last-child { flex:0 0 auto; }
+  .moment-grid {
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px; margin: 10px 0 18px;
+  }
+  .moment-choice {
+    min-height: 50px; padding: 11px 12px; border-radius: 14px;
+    border: 1px solid var(--brand-line); background: var(--card); color: var(--ink);
+    font: 650 0.82rem/1.3 var(--sans); text-align: left; cursor: pointer;
+    box-shadow: 0 2px 12px -10px rgba(44,71,125,0.35);
+  }
+  .moment-choice:active { transform: scale(0.98); background: var(--brand-soft); }
   .confidant { margin-top:14px; }
   .trustline {
     width:100%; min-height:44px; border:0; background:transparent; color:var(--muted);
@@ -139,7 +176,7 @@
   .btn:active { transform: scale(0.985); background: var(--brand-dark); }
   .btn.ghost { background: transparent; color: var(--brand-dark); border: 1.5px solid var(--brand-line); box-shadow: none; }
   .btn.quiet { background: transparent; color: var(--muted); font-weight: 500; font-size: 0.9rem; padding: 10px; box-shadow: none; min-height:44px; }
-  .btn:focus-visible, .chip:focus-visible, .opt:focus-visible, .back:focus-visible, .card.tap:focus-visible, .today:focus-visible, .avatarbtn:focus-visible, .mark:focus-visible, .trustline:focus-visible {
+  .btn:focus-visible, .chip:focus-visible, .opt:focus-visible, .back:focus-visible, .card.tap:focus-visible, .today:focus-visible, .avatarbtn:focus-visible, .mark:focus-visible, .trustline:focus-visible, .moment-choice:focus-visible {
     outline: 3px solid var(--brand); outline-offset: 2px;
   }
   .err { color: var(--red); font-size: 0.88rem; font-weight: 600; margin: 8px 0 0; }
@@ -242,20 +279,20 @@
     .planline { grid-template-columns:1fr; gap:4px; }
     .today .t-foot { align-items:flex-end; }
   }
+  @media (prefers-reduced-motion: reduce) {
+    .brand-letter { opacity: 1; transform: none; animation: none; }
+  }
 </style>
 </head>
 <body>
 <div class="shell">
   <header class="top">
     <button class="mark" aria-label="LittleLens home" onclick="go('home')">
-      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <path d="M12 5c.5 3.2 1.8 4.5 5 5-3.2.5-4.5 1.8-5 5-.5-3.2-1.8-4.5-5-5 3.2-.5 4.5-1.8 5-5z" fill="#fbf9f4"/>
-        <circle cx="17.6" cy="16.6" r="1.5" fill="#fbf9f4"/>
-      </svg>
+      <span class="lens-glyph" aria-hidden="true"></span>
     </button>
     <div class="brand" onclick="go('home')">
       <h1>LittleLens</h1>
-      <p>See the moment. Choose the next kind move.</p>
+      <p class="brand-promise" aria-label="Understand their moment. Choose the next move.">Understand their moment. Choose the next move.</p>
     </div>
     <button class="avatarbtn" id="avatarbtn" aria-label="Your child's profile" onclick="editProfile()">🧒</button>
   </header>
@@ -1416,7 +1453,6 @@ let view = { name:'home' };
 let decodeCtx = {};
 let draftProfile = {};
 let pendingConcernText = '';
-let territoriesExpanded = false;
 
 function go(name, data) { view = { name, ...(data||{}) }; render(); window.scrollTo(0,0); }
 
@@ -1472,20 +1508,6 @@ const VIEWS = {
       todayHtml = `<div class="streakline" style="margin-bottom:6px"><span>🌱</span><span>${tierLine()}</span></div>`;
     }
 
-    const visibleGroups = territoriesExpanded
-      ? TERRITORY_GROUPS
-      : [{label:'Popular starting points',ids:['meltdowns','sleep','listening','hitting']}];
-    const packCards = visibleGroups.map(group => `
-      <div class="kicker">${group.label}</div>
-      ${group.ids.map(id => {
-        const pk = PACKS[id], activeCard = active.find(c=>c.behaviour===pk.id);
-        return `<button class="card tap" onclick="startDecode('${pk.id}')">
-          <span class="btile">${pk.emoji}</span>
-          <span><h3>${pk.label}${activeCard?'<span class="pill">In progress</span>':''}</h3>
-          <p>${fill(pk.tagline)}</p></span>
-        </button>`;
-      }).join('')}`).join('');
-
     const recentMoments = S.moments.slice(0,3);
     const momentsHtml = recentMoments.length ? `
       <div class="kicker">Saved family moments</div>
@@ -1509,27 +1531,53 @@ const VIEWS = {
       <h2>${greeting()}.</h2>
       ${meetCard}
       ${todayHtml}
-      <div class="whisper"><span class="w-ico">💛</span><p><span class="w-tag">Today’s gentle reminder</span>${fill(dailyWhisper())}</p></div>
       <button class="today confidant" onclick="go('intake')">
-        <div class="t-kick"><span>LittleLens confidant</span><span class="duepill hot">Start here</span></div>
-        <p class="t-cue">Tell me what happened.</p>
-        <div class="t-foot"><span>I’ll help you find the pattern, the safety line and one useful next move.</span><span>Open →</span></div>
+        <div class="t-kick"><span>Start with the moment</span><span class="duepill hot">About 2 min</span></div>
+        <p class="t-cue">What happened with ${name}?</p>
+        <div class="t-foot"><span>Tell me in your own words. We’ll understand it together and choose one next move.</span><span>Open →</span></div>
+      </button>
+      <div class="moment-grid" aria-label="Common moments">
+        <button class="moment-choice" onclick="startDecode('meltdowns')">🌋 Big feelings</button>
+        <button class="moment-choice" onclick="startDecode('listening')">👂 Won’t cooperate</button>
+        <button class="moment-choice" onclick="startDecode('hitting')">🛡️ Someone got hurt</button>
+        <button class="moment-choice" onclick="startDecode('sleep')">🌙 Sleep is hard</button>
+      </div>
+      <div class="whisper"><span class="w-ico">💛</span><p><span class="w-tag">One thing to notice today</span>${fill(dailyWhisper())}</p></div>
+      ${momentsHtml}
+      <div class="kicker">Keep understanding</div>
+      <button class="card tap" onclick="go('library')">
+        <span class="btile">🔎</span>
+        <span><h3>Explore the family moment library</h3><p>All 12 guides, organised for when you want to learn more—not when you need one answer now.</p></span>
       </button>
       <button class="trustline" onclick="go('evidence')">Private on this device · evidence-informed · clear safety limits →</button>
-      ${momentsHtml}
-      <div class="kicker">Or choose the territory</div>
-      ${packCards}
-      ${territoriesExpanded ? '' : `<button class="btn ghost" onclick="expandTerritories()">Explore all 12 territories</button>`}
-      <button class="card tap" onclick="go('other')">
-        <span class="btile">💬</span>
-        <span><h3>Something feels different</h3><p>Speech, hearing, development, sudden changes, caregiver strain or a concern that doesn’t fit.</p></span>
-      </button>
-      <button class="card tap" onclick="go('evidence')">
-        <span class="btile">✓</span>
-        <span><h3>Why trust this?</h3><p>What LittleLens will do, what it won’t, and the evidence underneath it.</p></span>
-      </button>
       ${doneHtml}
       <footer class="legal">LittleLens gives evidence-informed guidance for everyday toddler and preschool behaviour. It does not diagnose and is not a substitute for your GP, child and family health nurse or another qualified professional — and it will tell you when to reach for one.<br><br>Private by design: everything you tell LittleLens stays on this device. No account, no cloud, no tracking.</footer>`;
+  },
+
+  library() {
+    return `
+      <button class="back" onclick="go('home')">← Home</button>
+      <span class="stepbadge">Explore when you’re curious</span>
+      <h2>The family moment library</h2>
+      <p class="sub">Choose the closest moment—not a label for your child. Each guide helps you read what may be happening and try one small, kind next move.</p>
+      ${TERRITORY_GROUPS.map(group => `
+        <div class="kicker">${group.label}</div>
+        ${group.ids.map(id => {
+          const pack = PACKS[id];
+          const activeCard = S.working.find(c=>!c.done && c.behaviour===id);
+          return `<button class="card tap" onclick="startDecode('${id}')">
+            <span class="btile">${pack.emoji}</span>
+            <span><h3>${pack.label}${activeCard?'<span class="pill">In progress</span>':''}</h3>
+            <p>${fill(pack.tagline)}</p></span>
+          </button>`;
+        }).join('')}
+      `).join('')}
+      <div class="kicker">When a guide is not enough</div>
+      <button class="card tap" onclick="go('other')">
+        <span class="btile">💬</span>
+        <span><h3>Something feels different</h3><p>Speech, hearing, development, sudden changes, caregiver strain or a concern that does not fit.</p></span>
+      </button>
+      <button class="btn ghost" onclick="go('home')">Back home</button>`;
   },
 
   intake() {
@@ -1817,16 +1865,6 @@ const VIEWS = {
 // ---------- actions ----------
 let profileReturn = 'home';
 
-function expandTerritories() {
-  territoriesExpanded = true;
-  render();
-  const heading = [...document.querySelectorAll('.kicker')].find(x=>x.textContent.includes('Big feelings'));
-  if (heading) {
-    heading.setAttribute('tabindex','-1');
-    heading.focus({preventScroll:true});
-    heading.scrollIntoView({behavior:'smooth',block:'start'});
-  }
-}
 function scoreConcern(text) {
   const clean = text.toLowerCase();
   return Object.entries(CONCERN_KEYWORDS).map(([id, words])=>({
@@ -2084,6 +2122,36 @@ function shareResult() {
   }
 }
 
+function unfoldBrandPromise() {
+  const promise = document.querySelector('.brand-promise');
+  if (!promise) return;
+  const message = promise.textContent;
+  const secondThought = message.indexOf('Choose the next move.');
+  promise.setAttribute('aria-label', message);
+  promise.textContent = '';
+  let characterIndex = 0;
+  message.split(' ').forEach((word, wordIndex, words) => {
+    const wordSpan = document.createElement('span');
+    wordSpan.className = 'brand-word';
+    wordSpan.setAttribute('aria-hidden', 'true');
+    [...word].forEach(character => {
+      const letter = document.createElement('span');
+      letter.className = 'brand-letter';
+      letter.textContent = character;
+      const thoughtPause = characterIndex >= secondThought ? 220 : 0;
+      letter.style.setProperty('--letter-delay', `${80 + characterIndex * 28 + thoughtPause}ms`);
+      wordSpan.appendChild(letter);
+      characterIndex += 1;
+    });
+    promise.appendChild(wordSpan);
+    if (wordIndex < words.length - 1) {
+      promise.appendChild(document.createTextNode(' '));
+      characterIndex += 1;
+    }
+  });
+}
+
+unfoldBrandPromise();
 render();
 </script>
 </body>
