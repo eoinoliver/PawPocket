@@ -11,6 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%232f6f4f'/%3E%3Cpath d='M12 14.5c-2.9 0-6 2.1-6 4.6 0 1.2 1 1.9 2.3 1.9.9 0 1.7-.3 2.5-.6.4-.2.8-.3 1.2-.3s.8.1 1.2.3c.8.3 1.6.6 2.5.6 1.3 0 2.3-.7 2.3-1.9 0-2.5-3.1-4.6-6-4.6z' fill='%23faf7f2'/%3E%3Cellipse cx='6.2' cy='10.5' rx='1.8' ry='2.3' fill='%23faf7f2'/%3E%3Cellipse cx='10.2' cy='7.6' rx='1.8' ry='2.3' fill='%23faf7f2'/%3E%3Cellipse cx='13.8' cy='7.6' rx='1.8' ry='2.3' fill='%23faf7f2'/%3E%3Cellipse cx='17.8' cy='10.5' rx='1.8' ry='2.3' fill='%23faf7f2'/%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="pawpocket-pounddawg.png">
 <style>
   :root {
     --ink: #1c2a23;
@@ -80,9 +81,11 @@
   .brand p { margin: 1px 0 0; font-size: 0.78rem; color: var(--muted); letter-spacing: 0.01em; }
   .avatarbtn {
     margin-left: auto; width: 44px; height: 44px; border-radius: 50%;
-    background: var(--moss-soft); border: 1.5px solid var(--moss-line);
-    font-size: 1.35rem; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+    background: #e8e8dc; border: 1.5px solid var(--moss-line); padding: 0;
+    cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+    overflow: hidden; flex: 0 0 auto; box-shadow: var(--shadow);
   }
+  .avatarbtn img { display: block; width: 100%; height: 100%; object-fit: cover; }
   /* ---------- type ---------- */
   h2 { font-family: var(--serif); font-size: 1.7rem; letter-spacing: -0.01em; color: var(--moss-dark); margin: 4px 0 8px; line-height: 1.2; font-weight: 700; }
   .sub { color: var(--muted); font-size: 0.95rem; margin: 0 0 18px; line-height: 1.55; }
@@ -297,7 +300,9 @@
       <h1>PawPocket</h1>
       <p>Understand your dog. Grow closer.</p>
     </div>
-    <button class="avatarbtn" id="avatarbtn" aria-label="Your dog's profile" onclick="editProfile()">🐕</button>
+    <button class="avatarbtn" id="avatarbtn" aria-label="Your dog's profile" onclick="editProfile()">
+      <img src="pawpocket-pounddawg.png" alt="" width="44" height="44">
+    </button>
   </header>
   <main id="app"></main>
 </div>
@@ -1215,7 +1220,7 @@ function render() {
   app.innerHTML = v();
   const p = S.profile;
   const ab = document.getElementById('avatarbtn');
-  if (ab) ab.textContent = (p && p.avatar) || '🐕';
+  if (ab) ab.setAttribute('aria-label', p && p.name ? `${p.name}'s profile` : "Your dog's profile");
   if (view.name !== 'home' && typeof app.querySelector === 'function') {
     const focusTarget = app.querySelector('h2');
     if (focusTarget) {
@@ -1400,7 +1405,7 @@ const VIEWS = {
       <p class="sub">Stays on this device — no account, nothing uploaded, ever.</p>
       <label>Name</label>
       <input type="text" id="pname" placeholder="e.g. Max" value="${esc(draftProfile.name||'')}" oninput="draftProfile.name=this.value">
-      <label>Pick their portrait</label>
+      <label>Pick their keepsake portrait</label>
       <div class="opts">${avatarOpts}</div>
       ${fields}
       <div style="height:18px"></div>
