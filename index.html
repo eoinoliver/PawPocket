@@ -70,7 +70,7 @@
   header.top { display: flex; align-items: center; gap: 12px; padding: 6px 0 22px; }
   .mark {
     display: inline-flex; align-items: center; justify-content: center;
-    width: 42px; height: 42px; border-radius: 14px; background: var(--moss);
+    width: 44px; height: 44px; border-radius: 14px; background: var(--moss);
     flex: 0 0 auto; cursor: pointer; border: none; padding: 0;
     box-shadow: var(--shadow);
   }
@@ -87,8 +87,8 @@
   h2 { font-family: var(--serif); font-size: 1.7rem; letter-spacing: -0.01em; color: var(--moss-dark); margin: 4px 0 8px; line-height: 1.2; font-weight: 700; }
   .sub { color: var(--muted); font-size: 0.95rem; margin: 0 0 18px; line-height: 1.55; }
   .kicker {
-    font-size: 0.7rem; font-weight: 700; letter-spacing: 0.11em; text-transform: uppercase;
-    color: var(--amber-ink); margin: 26px 0 10px;
+    font-size: 0.76rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+    color: #875015; margin: 26px 0 10px;
   }
   /* ---------- cards ---------- */
   .card {
@@ -113,7 +113,14 @@
   }
   .today .t-kick { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(242,247,243,0.75); margin-bottom: 8px; display:flex; justify-content:space-between; align-items:center; }
   .today .t-cue { font-family: var(--serif); font-size: 1.16rem; line-height: 1.45; margin: 0 0 14px; }
-  .today .t-foot { display: flex; align-items: center; justify-content: space-between; font-size: 0.82rem; color: rgba(242,247,243,0.85); }
+  .today .t-foot { display: flex; align-items: center; justify-content: space-between; gap:12px; font-size: 0.82rem; color: rgba(242,247,243,0.85); }
+  .today .t-foot span:first-child { flex: 1 1 auto; min-width: 0; }
+  .today .t-foot span:last-child { flex: 0 0 auto; }
+  .confidant { margin-top: 14px; }
+  .trustline {
+    width:100%; min-height:44px; border:0; background:transparent; color:var(--muted);
+    font:600 0.78rem/1.4 var(--sans); cursor:pointer; padding:9px 8px 7px; margin:0 0 2px;
+  }
   .duepill { background: rgba(250,247,242,0.18); border-radius: 999px; padding: 4px 11px; font-weight: 600; font-size: 0.72rem; letter-spacing: 0.02em; }
   .duepill.hot { background: var(--amber); color: #2b1a06; }
   .streakline { display: flex; align-items: center; gap: 8px; margin: 2px 0 0; font-size: 0.86rem; color: var(--muted); }
@@ -131,12 +138,12 @@
     display: block; width: 100%; padding: 15px 18px; border-radius: 15px; border: none;
     background: var(--moss); color: #fff; font-size: 1rem; font-weight: 700; cursor: pointer;
     font-family: inherit; margin-top: 10px; box-shadow: var(--shadow);
-    transition: transform .1s ease;
+    transition: transform .1s ease; min-height: 48px;
   }
   .btn:active { transform: scale(0.985); background: var(--moss-dark); }
   .btn.ghost { background: transparent; color: var(--moss-dark); border: 1.5px solid var(--moss-line); box-shadow: none; }
-  .btn.quiet { background: transparent; color: var(--muted); font-weight: 500; font-size: 0.9rem; padding: 10px; box-shadow: none; }
-  .btn:focus-visible, .chip:focus-visible, .opt:focus-visible, .back:focus-visible, .card.tap:focus-visible, .today:focus-visible, .avatarbtn:focus-visible, .mark:focus-visible {
+  .btn.quiet { background: transparent; color: var(--muted); font-weight: 500; font-size: 0.9rem; padding: 10px; box-shadow: none; min-height:44px; }
+  .btn:focus-visible, .chip:focus-visible, .opt:focus-visible, .back:focus-visible, .card.tap:focus-visible, .today:focus-visible, .avatarbtn:focus-visible, .mark:focus-visible, .trustline:focus-visible {
     outline: 3px solid var(--moss); outline-offset: 2px;
   }
   .err { color: var(--red); font-size: 0.88rem; font-weight: 600; margin: 8px 0 0; }
@@ -235,7 +242,15 @@
     margin-top: 40px; font-size: 0.75rem; color: var(--muted); line-height: 1.6;
     border-top: 1px solid var(--moss-line); padding-top: 16px;
   }
-  .back { color: var(--muted); font-size: 0.85rem; cursor: pointer; margin-bottom: 12px; display: inline-block; background: none; border: none; font-family: inherit; padding: 4px 0; }
+  .back { color:var(--muted); font-size:0.85rem; cursor:pointer; margin-bottom:12px; display:inline-flex; align-items:center; min-height:44px; background:none; border:none; font-family:inherit; padding:8px 4px 8px 0; }
+  .profile-actions {
+    position:sticky; bottom:calc(10px + env(safe-area-inset-bottom)); z-index:5;
+    padding:8px 0; background:linear-gradient(to bottom, transparent, var(--paper) 24%);
+  }
+  @media (max-width: 350px) {
+    .planline { grid-template-columns: 1fr; gap: 4px; }
+    .today .t-foot { align-items:flex-end; }
+  }
 </style>
 </head>
 <body>
@@ -1041,6 +1056,7 @@ function dailyWhisper() {
 let view = { name:'home' };
 let decodeCtx = {};
 let draftProfile = {};
+let territoriesExpanded = false;
 
 function go(name, data) { view = { name, ...(data||{}) }; render(); window.scrollTo(0,0); }
 
@@ -1051,6 +1067,13 @@ function render() {
   const p = S.profile;
   const ab = document.getElementById('avatarbtn');
   if (ab) ab.textContent = (p && p.avatar) || '🐕';
+  if (view.name !== 'home' && typeof app.querySelector === 'function') {
+    const focusTarget = app.querySelector('h2');
+    if (focusTarget) {
+      focusTarget.setAttribute('tabindex','-1');
+      setTimeout(()=>focusTarget.focus({preventScroll:true}),0);
+    }
+  }
 }
 
 // ---------- views ----------
@@ -1092,7 +1115,10 @@ const VIEWS = {
     }
 
     // Grouped territory map: simple front door, comprehensive depth behind it.
-    const packCards = TERRITORY_GROUPS.map(group => `<div class="kicker">${group.label}</div>` +
+    const visibleGroups = territoriesExpanded
+      ? TERRITORY_GROUPS
+      : [{label:'Popular starting points',ids:['jumping','barking','settling','recall']}];
+    const packCards = visibleGroups.map(group => `<div class="kicker">${group.label}</div>` +
       group.ids.map(id => {
         const pk=PACKS[id], activeCard=active.find(c=>c.behaviour===pk.id);
         return `<button class="card tap" onclick="startDecode('${pk.id}')">
@@ -1119,11 +1145,14 @@ const VIEWS = {
       ${meetCard}
       ${todayHtml}
       <div class="whisper"><span class="w-ico">🦴</span><p><span class="w-tag">Today’s trainer’s whisper</span>${fill(dailyWhisper())}</p></div>
-      <button class="card tap" onclick="go('intake')" style="margin-top:14px">
-        <span class="btile">✍️</span>
-        <span><h3>Tell me what happened</h3><p>Use your own words. PawPocket will find the right starting point — privately, on this device.</p></span>
+      <button class="today confidant" onclick="go('intake')">
+        <div class="t-kick"><span>PawPocket confidant</span><span class="duepill hot">Start here</span></div>
+        <p class="t-cue">Tell me what happened.</p>
+        <div class="t-foot"><span>I’ll help you find the pattern, the safety line and one humane next move.</span><span>Open →</span></div>
       </button>
+      <button class="trustline" onclick="go('evidence')">Private on this device · reward-based · clear safety limits →</button>
       ${packCards}
+      ${territoriesExpanded ? '' : `<button class="btn ghost" onclick="expandTerritories()">Explore all 12 territories</button>`}
       ${S.moments.length ? `<button class="card tap" onclick="go('moments')">
         <span class="btile">💚</span><span><h3>Saved dog moments</h3>
         <p>${S.moments.length} ${S.moments.length===1?'read':'reads'} worth remembering or sharing.</p></span></button>` : ''}
@@ -1225,7 +1254,7 @@ const VIEWS = {
       <div class="opts">${avatarOpts}</div>
       ${fields}
       <div style="height:18px"></div>
-      <button class="btn" onclick="saveProfile()">Done</button>`;
+      <div class="profile-actions"><button class="btn" onclick="saveProfile()">Done</button></div>`;
   },
 
   gate() {
@@ -1328,7 +1357,7 @@ const VIEWS = {
       ${due
         ? `<button class="btn" onclick="go('checkin',{idx:${view.idx}})">Check in — what changed?</button>`
         : `<div class="block boundary"><p>Try the small step in one real setup. Your next reflection opens ${fmtDay(c.nextCheckin)} — the space between taps is where you and ${esc(p.name||'your dog')} learn.</p></div>`}
-      <button class="btn quiet" onclick="removeCard(${view.idx})">Stop working on this</button>`;
+      <button class="btn quiet" onclick="confirmStop(this, ${view.idx})">Stop working on this</button>`;
   },
 
   keepsake() {
@@ -1400,6 +1429,16 @@ const VIEWS = {
 
 // ---------- actions ----------
 let profileReturn = 'home';
+function expandTerritories() {
+  territoriesExpanded = true;
+  render();
+  const heading = [...document.querySelectorAll('.kicker')].find(x=>x.textContent.includes('Everyday skills'));
+  if (heading) {
+    heading.setAttribute('tabindex','-1');
+    heading.focus({preventScroll:true});
+    heading.scrollIntoView({behavior:'smooth',block:'start'});
+  }
+}
 function editProfile(returnTo) {
   profileReturn = (typeof returnTo === 'string') ? returnTo : 'home';
   draftProfile = Object.assign({}, S.profile || {});
@@ -1496,6 +1535,12 @@ function startWorking() {
 function removeCard(idx) {
   const wo = S.working; wo.splice(idx,1); S.working = wo;
   go('home');
+}
+function confirmStop(btn, idx) {
+  if (btn.dataset.armed) { removeCard(idx); return; }
+  btn.dataset.armed = '1';
+  btn.textContent = 'Tap again to stop and clear this plan';
+  btn.setAttribute('aria-label','Confirm: stop working on this and clear the plan');
 }
 function confirmClear(btn, idx) {
   if (btn.dataset.armed) { removeCard(idx); return; }
