@@ -92,6 +92,7 @@
   }
   /* ---------- cards ---------- */
   .card {
+    text-decoration: none; color: inherit;
     background: var(--card); border: 1px solid var(--moss-line); border-radius: 20px;
     padding: 18px; margin-bottom: 12px; box-shadow: var(--shadow);
   }
@@ -280,6 +281,30 @@ const S = (() => {
   };
 })();
 
+const PRODUCT_DOCTRINE = {
+  promise:'Notice the pattern. Choose one humane next move. Learn from what happens.',
+  rules:[
+    'Use reward-based methods only — no pain, fear, intimidation or dominance framing.',
+    'Consider environment, safety, health, learning history and what the dog gains or avoids.',
+    'Prefer management and easier setups before asking for more behaviour.',
+    'Never decode bites, injury, severe distress or immediate risk through a screen.',
+    'Make observable claims and change the plan when the outcome changes.'
+  ]
+};
+
+const EVIDENCE_LEDGER = [
+  {level:'Foundation', title:'AVSAB humane dog training', body:'The American Veterinary Society of Animal Behavior recommends reward-based methods for all dog training and behaviour modification.', url:'https://avsab.org/resources/position-statements/'},
+  {level:'Professional standard', title:'IAABC Standards of Practice', body:'Assessment should consider function, environment, safety, health, learning history, choice and control, with positive reinforcement as the primary strategy.', url:'https://iaabc.org/standards-of-practice'},
+  {level:'Australia', title:'RSPCA Australia', body:'Practical Australian guidance supporting reward-based training and the human–dog relationship.', url:'https://kb.rspca.org.au/categories/companion-animals/dogs/training/what-is-reward-based-dog-training-and-why-does-the-rspca-support-it'},
+  {level:'Referral standard', title:'IAABC credentials', body:'A route to qualified behaviour consultants for complex fear, anxiety, aggression and safety cases.', url:'https://iaabc.org/en/credentials'}
+];
+
+const CHECKIN_LANGUAGE = {
+  jumping:{prompt:'Thinking about one similar greeting, what changed?',better:'More four-paws moments or a calmer recovery',same:'About the same jumping and recovery',worse:'More force, more stress, or less safety'},
+  pulling:{prompt:'Thinking about one comparable stretch of the walk, what changed?',better:'More slack lead or voluntary check-ins',same:'About the same amount of tension',worse:'More pulling, distress, pain, or loss of control'},
+  recall:{prompt:'Thinking about one safe practice setup, what changed?',better:'A faster response or easier return',same:'About the same response in that setup',worse:'Less response, more avoidance, or a safety concern'}
+};
+
 // migrate: lifetime stats from any pre-existing cards
 (function migrate(){
   const st = S.stats;
@@ -302,8 +327,12 @@ function fill(text, ctx) {
   const when = (pack && pack.whenMap && pack.whenMap[ctx.who]) || 'during everyday moments';
   return out.split('{when}').join(when);
 }
-function today0() { return new Date().toISOString().slice(0,10); }
-function tomorrow() { const d = new Date(); d.setDate(d.getDate()+1); return d.toISOString().slice(0,10); }
+function localDay(d = new Date()) {
+  const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+function today0() { return localDay(); }
+function tomorrow() { const d = new Date(); d.setDate(d.getDate()+1); return localDay(d); }
 function fmtDay(iso) {
   if (!iso || iso <= today0()) return 'today';
   if (iso === tomorrow()) return 'tomorrow';
@@ -323,19 +352,9 @@ const PROFILE_FIELDS = [
     {id:'adult', label:'Adult (1.5–7 years)'},
     {id:'senior', label:'Senior (7+)'}
   ]},
-  { id:'size', label:'Size', opts:[
-    {id:'small', label:'Small'}, {id:'medium', label:'Medium'}, {id:'large', label:'Large'}
-  ]},
-  { id:'arrival', label:'How did they join you?', opts:[
-    {id:'pup', label:'From a pup'}, {id:'rescue', label:'Rescue'},
-    {id:'rehomed', label:'Rehomed'}, {id:'longtime', label:'Long-time family dog'}
-  ]},
-  { id:'household', label:'Who’s at home?', multi:true, opts:[
+  { id:'household', label:'Who is usually part of the moment?', multi:true, opts:[
     {id:'kids', label:'Kids'}, {id:'otherdogs', label:'Other dogs'},
     {id:'visitors', label:'Regular visitors'}, {id:'adults', label:'Just adults'}
-  ]},
-  { id:'owner', label:'And you?', opts:[
-    {id:'first', label:'First dog'}, {id:'experienced', label:'Had dogs before'}
   ]}
 ];
 
@@ -782,6 +801,10 @@ const VIEWS = {
         <span class="btile">💬</span>
         <span><h3>Something else?</h3><p>Barking, digging, bigger worries — here’s the honest picture.</p></span>
       </button>
+      <button class="card tap" onclick="go('evidence')">
+        <span class="btile">✓</span>
+        <span><h3>Why trust this?</h3><p>Our humane method, safety limits and evidence ledger.</p></span>
+      </button>
       ${doneHtml}
       <footer class="legal">PawPocket gives reward-based guidance for everyday behaviour, aligned with LIMA principles. It is not a substitute for a qualified behaviour professional — and it will tell you when a situation needs one.<br><br>Private by design: everything you tell PawPocket stays on this device. No account, no cloud, no tracking.</footer>`;
   },
@@ -797,6 +820,22 @@ const VIEWS = {
         <p>Your vet is the best first call: they can rule out pain and refer you to a veterinary behaviourist or a qualified reward-based trainer.</p></div>
       <div class="block"><span class="tag">Say this when you call</span>
         <div class="script">“Hi — I’m looking for help with my dog. The behaviour is [what you’re seeing], it happens [when], and I’m concerned because [what worries you]. I’m looking for reward-based behaviour support — can you help or refer me?”</div></div>
+      <button class="btn ghost" onclick="go('home')">Back home</button>`;
+  },
+
+  evidence() {
+    return `
+      <button class="back" onclick="go('home')">← Back</button>
+      <h2>Humane, useful — and honest</h2>
+      <div class="block readblk"><span class="tag">Our promise</span><p>${PRODUCT_DOCTRINE.promise}</p></div>
+      <div class="block"><span class="tag">The rules</span>
+        ${PRODUCT_DOCTRINE.rules.map(r=>`<p>✓ ${r}</p>`).join('')}</div>
+      <div class="kicker">Evidence ledger</div>
+      ${EVIDENCE_LEDGER.map(e=>`<a class="card tap" href="${e.url}" target="_blank" rel="noopener">
+        <span class="btile">↗</span><span><h3>${e.title}</h3><p>${e.body}</p><span class="pill">${e.level}</span></span>
+      </a>`).join('')}
+      <div class="block boundary"><span class="tag">Important limit</span>
+        <p>PawPocket offers everyday training guidance, not veterinary diagnosis or complex behaviour treatment. Sudden behaviour change, pain, fear, bites, injury or immediate risk starts with your vet and a qualified reward-based professional.</p></div>
       <button class="btn ghost" onclick="go('home')">Back home</button>`;
   },
 
@@ -870,6 +909,7 @@ const VIEWS = {
       <div class="block"><span class="tag">The common trap</span><p>${fill(d.trap, c)}</p></div>
       <div class="block readblk"><span class="tag">Try this today</span><p>${fill(t.action, c)}</p></div>
       ${boundaries}
+      <button class="btn ghost" onclick="shareResult()">Share this read</button>
       ${!S.profile ? `<div class="block boundary"><span class="tag">Make it personal</span>
         <p>This read was written for “a dog”. Thirty seconds about yours — name, age, home — and I’ll rewrite it for them, and remember for next time.</p></div>` : ''}
       ${already
@@ -917,7 +957,11 @@ const VIEWS = {
         <div class="planline"><div class="k">Avoid</div><div class="v">${fill(step.avoid, c.ctx)}</div></div>
       </div>
       <p class="sub">Next check-in: <b>${fmtDay(c.nextCheckin)}</b>. Streak: <b>${c.applied||0}</b> ${ (c.applied||0)===1?'day':'days'} applied.</p>
-      <button class="btn" onclick="go('checkin',{idx:${view.idx}})">${due?'Check in — how did it go?':'Check in early'}</button>
+      ${(c.history||[]).length ? `<div class="block readblk"><span class="tag">What you’re learning</span>
+        <p>${(c.history||[]).slice(-3).map(h=>`${fmtDay(h.date)} · ${h.label}`).join('<br>')}</p></div>` : ''}
+      ${due
+        ? `<button class="btn" onclick="go('checkin',{idx:${view.idx}})">Check in — what changed?</button>`
+        : `<div class="block boundary"><p>Try the small step in one real setup. Your next reflection opens ${fmtDay(c.nextCheckin)} — the space between taps is where you and ${esc(p.name||'your dog')} learn.</p></div>`}
       <button class="btn quiet" onclick="removeCard(${view.idx})">Stop working on this</button>`;
   },
 
@@ -943,14 +987,16 @@ const VIEWS = {
     const c = S.working[view.idx];
     const p = S.profile || {};
     if (!c) return VIEWS.home();
+    const language = CHECKIN_LANGUAGE[c.behaviour];
+    if (c.nextCheckin && c.nextCheckin > today0()) return VIEWS.wocard();
     return `
       <button class="back" onclick="go('wocard',{idx:${view.idx}})">← Back</button>
       <h2>How did it go with ${esc(p.name||'your dog')}?</h2>
-      <p class="sub">Honest answers make the plan smarter — there’s no wrong one.</p>
+      <p class="sub">${language.prompt} Honest answers make the plan smarter.</p>
       <div class="chips">
-        <button class="chip" onclick="checkin(${view.idx},'better')">👍 Better</button>
-        <button class="chip" onclick="checkin(${view.idx},'same')">➡️ About the same</button>
-        <button class="chip" onclick="checkin(${view.idx},'worse')">👎 Worse</button>
+        <button class="chip" onclick="checkin(${view.idx},'better')">👍 ${language.better}</button>
+        <button class="chip" onclick="checkin(${view.idx},'same')">➡️ ${language.same}</button>
+        <button class="chip" onclick="checkin(${view.idx},'worse')">👎 ${language.worse}</button>
         <button class="chip" onclick="checkin(${view.idx},'didnt')">🙅 Didn’t get to try</button>
       </div>`;
   },
@@ -1050,7 +1096,7 @@ function startWorking() {
   if (existing >= 0) { go('wocard', { idx: existing }); return; }
   wo.push({
     behaviour: decodeCtx.pack, step:1, worseStreak:0, applied:0, done:false,
-    ctx: {...decodeCtx}, createdAt: today0(), nextCheckin: tomorrow()
+    ctx: {...decodeCtx}, history:[], createdAt: today0(), nextCheckin: tomorrow()
   });
   S.working = wo;
   go('wocard', { idx: wo.length-1 });
@@ -1080,7 +1126,10 @@ function checkin(idx, answer) {
   const wo = S.working, c = wo[idx];
   if (!c || c.done) { go('home'); return; }
   const ck = PACKS[c.behaviour].checkins;
+  const language = CHECKIN_LANGUAGE[c.behaviour];
+  if (c.nextCheckin && c.nextCheckin > today0()) { go('wocard',{idx}); return; }
   let title='', msg='', advanced=false;
+  const stepBefore = c.step;
   if (answer === 'better') {
     bumpApplied(c); c.worseStreak = 0;
     if (c.step >= 3) {
@@ -1108,6 +1157,14 @@ function checkin(idx, answer) {
   } else {
     title = 'All good'; msg = fill(ck.didnt, c.ctx);
   }
+  c.history = c.history || [];
+  c.history.push({
+    date:today0(),
+    answer,
+    stepBefore,
+    stepAfter:c.step,
+    label:answer === 'didnt' ? 'No attempt yet — the next step got smaller' : language[answer]
+  });
   c.nextCheckin = tomorrow();
   S.working = wo;
   go('checkinResult', { idx, title, msg, showPlan:true, advanced });
@@ -1138,6 +1195,22 @@ function shareKeepsake(idx) {
     navigator.clipboard.writeText(text).then(()=>{
       const b = document.querySelector('.btn');
       if (b) b.textContent = 'Copied — paste it anywhere';
+    }).catch(()=>{});
+  }
+}
+
+function shareResult() {
+  if (!decodeCtx.pack) return;
+  const pack = PACKS[decodeCtx.pack];
+  const target = pack.targets[decodeCtx.who];
+  const text = `A PawPocket read: ${pack.label}\n\nWhat might be happening:\n${fill(target.intro, decodeCtx)}\n\nOne humane thing to try:\n${fill(target.action, decodeCtx)}\n\nReward-based guidance for one real dog moment.\nhttps://pawpocket.com.au/`;
+  if (navigator.share) {
+    navigator.share({title:`PawPocket · ${pack.label}`, text}).catch(()=>{});
+  } else if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(()=>{
+      const buttons = [...document.querySelectorAll('.btn')];
+      const b = buttons.find(x=>x.textContent.includes('Share this read'));
+      if (b) b.textContent = 'Copied — ready to send';
     }).catch(()=>{});
   }
 }

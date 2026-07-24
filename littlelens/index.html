@@ -90,6 +90,7 @@
     color: var(--amber-ink); margin: 26px 0 10px;
   }
   .card {
+    text-decoration: none; color: inherit;
     background: var(--card); border: 1px solid var(--brand-line); border-radius: 20px;
     padding: 18px; margin-bottom: 12px; box-shadow: var(--shadow);
   }
@@ -271,6 +272,48 @@ const S = (() => {
   };
 })();
 
+// Everyday decision support, never diagnosis or a substitute for care.
+const PRODUCT_DOCTRINE = {
+  promise:'Notice the pattern. Choose one kind next move. Learn from what happens.',
+  rules:[
+    'Describe what might be happening — never diagnose a child.',
+    'Prefer small, observable, reversible actions over universal parenting rules.',
+    'Protect safety first; route persistent, frightening or developmental concerns to a real person.',
+    'Never use shame, fear, humiliation, threats or physical punishment.',
+    'Treat the parent as part of the system without making them the cause of every outcome.'
+  ]
+};
+
+const EVIDENCE_LEDGER = [
+  {level:'Foundation', title:'WHO parenting intervention guideline', body:'Nurturing relationships, positive parenting skills and alternatives to harsh parenting.', url:'https://www.who.int/publications/i/item/9789240065505'},
+  {level:'Foundation', title:'American Academy of Pediatrics', body:'Developmentally appropriate teaching, clear limits, modelling, redirection and specific praise rather than physical or verbal punishment.', url:'https://publications.aap.org/pediatrics/article/142/6/e20183112/37452/Effective-Discipline-to-Raise-Healthy-Children'},
+  {level:'Development', title:'Harvard Center on the Developing Child', body:'Responsive back-and-forth interaction and naming what young children see, do and feel.', url:'https://developingchild.harvard.edu/key-concept/serve-and-return/'},
+  {level:'Australia', title:'Raising Children Network', body:'Government-supported practical guidance on early-childhood behaviour and when to seek help.', url:'https://raisingchildren.net.au/toddlers/behaviour'},
+  {level:'Australia', title:'Healthdirect', body:'Australian pathways for health advice, urgent help and emergency care.', url:'https://www.healthdirect.gov.au/'},
+  {level:'Evidence translation', title:'Parenting Research Centre', body:'Australian evidence synthesis and implementation expertise for parenting support.', url:'https://www.parentingrc.org.au/'}
+];
+
+const CHECKIN_LANGUAGE = {
+  meltdowns:{
+    prompt:'Thinking about the next similar moment, what changed?',
+    better:'The storm was shorter, safer, or easier to recover from',
+    same:'About the same intensity and recovery',
+    worse:'More intense, less safe, or harder to recover from'
+  },
+  listening:{
+    prompt:'Thinking about one clear, everyday ask, what changed?',
+    better:'They responded with less repeating or support',
+    same:'It still needed about the same support',
+    worse:'It became more stressful or less safe'
+  },
+  hitting:{
+    prompt:'Thinking about hands, teeth, pushing or throwing, what changed?',
+    better:'Fewer incidents, safer contact, or an alternative appeared',
+    same:'About the same frequency and intensity',
+    worse:'More frequent, more forceful, or someone was hurt'
+  }
+};
+
 // migrate: lifetime stats from any pre-existing cards
 (function migrate(){
   const st = S.stats;
@@ -293,8 +336,12 @@ function fill(text, ctx) {
   const when = (pack && pack.whenMap && pack.whenMap[ctx.who]) || 'in everyday moments';
   return out.split('{when}').join(when);
 }
-function today0() { return new Date().toISOString().slice(0,10); }
-function tomorrow() { const d = new Date(); d.setDate(d.getDate()+1); return d.toISOString().slice(0,10); }
+function localDay(d = new Date()) {
+  const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+function today0() { return localDay(); }
+function tomorrow() { const d = new Date(); d.setDate(d.getDate()+1); return localDay(d); }
 function fmtDay(iso) {
   if (!iso || iso <= today0()) return 'today';
   if (iso === tomorrow()) return 'tomorrow';
@@ -314,21 +361,11 @@ const PROFILE_FIELDS = [
     {id:'three', label:'3 years'},
     {id:'fourfive', label:'4–5 years'}
   ]},
-  { id:'temperament', label:'Which sounds most like them lately?', opts:[
-    {id:'easy', label:'Easy-going'},
-    {id:'spirited', label:'Spirited — big feelings, full volume'},
-    {id:'sensitive', label:'Sensitive — feels things deeply'},
-    {id:'determined', label:'Determined — strong-willed'}
-  ]},
-  { id:'household', label:'Who’s at home?', multi:true, opts:[
+  { id:'household', label:'Who else is usually in the moment?', multi:true, opts:[
     {id:'siblings', label:'Older sibling(s)'},
     {id:'baby', label:'A baby / younger one'},
-    {id:'onlychild', label:'Just them'},
-    {id:'solo', label:'Often just me'}
-  ]},
-  { id:'parent', label:'And you?', opts:[
-    {id:'first', label:'First child'},
-    {id:'experienced', label:'Been here before'}
+    {id:'otheradult', label:'Another adult'},
+    {id:'solo', label:'Usually just me'}
   ]}
 ];
 
@@ -369,18 +406,18 @@ meltdowns: {
     ]}
   ],
   drivers:{
-    reason:{ core:'A child mid-meltdown has flipped into the feeling part of the brain — the thinking part is offline. Words, logic and explanations can’t get in yet, so reasoning lands like talking to someone underwater. It isn’t that {name} won’t listen; right now they physically can’t.',
-      lens:'You can’t teach a flooded brain. Connect first, teach second — the lesson lands after the calm, not during the storm.',
-      trap:'Explaining at the peak feels like good parenting, but it asks a flooded brain to do the one thing it can’t — which often stretches the meltdown longer.' },
-    fix:{ core:'Giving in to end a meltdown works — instantly, which is exactly the problem. {name}’s brain files it: the storm is what got the biscuit, the screen, the yes. Next time the feeling is big, the same tool comes out, a little louder.',
-      lens:'Whatever ends the meltdown is what the meltdown is for. Relief now teaches “this works” for later.',
-      trap:'Caving at the peak trains the peak. The kindest move is to hold the limit warmly — “I know, it’s so hard” — without changing the answer.' },
+    reason:{ core:'At the peak of a meltdown, strong feelings can make it much harder for a young child to take in explanations or use skills they have at calmer times. It may look like {name} is ignoring you when the words are simply too much for that moment.',
+      lens:'Use fewer words at the peak. Safety and steady presence come first; teaching can wait for a calmer moment.',
+      trap:'A long explanation can add more sound and demand when {name} has very little capacity left.' },
+    fix:{ core:'Changing a limit can bring quick relief, especially when everyone is exhausted. But if the answer changes mainly during the biggest reactions, the pattern can become harder for both of you to predict next time.',
+      lens:'Warmth and a steady limit can sit together: “I know you wanted it. The answer is still no, and I’m here.”',
+      trap:'The trap is not one imperfect moment. It is an unpredictable pattern where the boundary changes only after the reaction becomes overwhelming.' },
     firm:{ core:'A raised voice adds fuel to a fire that’s already burning. {name}’s stress system is lit up, and a bigger, louder adult reads as more threat, not more control. Even cross attention is intense connection — and a young nervous system escalates to match.',
       lens:'Children co-regulate — they borrow your calm to find their own. Match their storm and there’s no calm left to borrow.',
       trap:'Getting bigger than the meltdown can end this one through fear, but it teaches {name} that big feelings are met with bigger ones — modelling the very thing you want them to grow out of.' },
-    flee:{ core:'Feeling your own stress spike isn’t a failure — it’s your nervous system catching {name}’s, which is wired to happen. But if the meltdown mostly leaves you flustered and inconsistent, {name} learns the storm is powerful without learning what to do with the feeling underneath it.',
-      lens:'Your calm is the intervention. A regulated adult is exactly what a dysregulated child is reaching for, even while pushing you away.',
-      trap:'Riding it out in pure survival mode gets you through today, but skips the part where {name} learns the feeling has a name and a way through.' }
+    flee:{ core:'Feeling your own stress spike is a human response, not a parenting failure. When you have even a little capacity, slowing your voice or taking one breath can make the moment easier to navigate. When you do not, safety and getting through it are enough.',
+      lens:'Your steadiness can help, but you do not have to be perfectly calm. Repair afterwards also teaches something important.',
+      trap:'The trap is expecting yourself to perform perfect calm. A smaller goal — safe body, fewer words, repair later — is more useful.' }
   },
   targets:{
     out:{ intro:'Public meltdowns carry a double load — {name}’s big feeling, plus every imagined eye on you. That audience is real, and it makes staying calm hardest for the person who most needs to: you.',
@@ -400,7 +437,7 @@ meltdowns: {
   },
   plan:[
     { n:1, title:'Be the calm',
-      cue:'When the storm hits, your only job is to stay regulated — lower your voice, soften your body, get to their level. Don’t teach yet.',
+      cue:'When the storm hits, make the moment safe and lower the load — fewer words, a softer voice if you can, and no teaching yet.',
       reward:'Your steady presence. Name the feeling once (“you’re so upset”) and let it move through.',
       avoid:'Reasoning, lectures, threats or bribes mid-meltdown. A flooded brain can’t use any of them.' },
     { n:2, title:'Connect, then redirect',
@@ -420,7 +457,7 @@ meltdowns: {
     ],
     graduate:'{name} didn’t just have fewer meltdowns — they borrowed your calm until they began building their own. That’s the whole thing. Keep one rule forever: connect before you correct.',
     same:'No change yet is information, not failure. Make it easier on the front end: more warning before transitions, an earlier snack, and your calm arriving sooner. Storms shrink from the edges first.',
-    worse:'Worse usually means the day is asking more of {name} than their tank can give — more tiredness, change or overload — not that you’re doing it wrong. Shrink the demands, protect sleep and food, and keep your calm the anchor. If it’s still building at the next check-in, a chat with your GP or health visitor is a smart next step.',
+    worse:'Worse can be a sign that the day is asking more of {name} than they can manage right now — tiredness, change, discomfort or overload can all matter. Lower the demands and look for patterns. If it keeps building, or the change is sudden, a chat with your GP or child and family health nurse is a smart next step.',
     didnt:'No guilt — some days survival is the win, and one hard day changes nothing. Today’s version is tiny: next storm, just one slow breath before you respond. That alone counts.'
   },
   whenMap:{ out:'out in public', transition:'at transitions', no:'when they hear “no”', tired:'at the end of the day' },
@@ -429,24 +466,24 @@ meltdowns: {
     body:[
       'Many big feelings a day, most days, with little that reaches them — that’s exhausting, and it deserves more than an app can give. This isn’t a naughty child, and it isn’t bad parenting.',
       'For now, aim lower: protect sleep, food and downtime, cut the day’s demands where you can, and keep one calm adult as the anchor. You’re managing the load, not fixing it all today.',
-      'Frequent, intense, hard-to-settle meltdowns deserve a real person’s eyes. Your GP or health visitor is a good first call — they can check what’s going on and point you to the right support. Asking isn’t an overreaction; it’s good parenting.'
+      'Frequent, intense, hard-to-settle meltdowns deserve a real person’s eyes. Your GP or child and family health nurse is a good first call — they can look at the whole picture and point you to the right support. Asking isn’t an overreaction; it’s good parenting.'
     ]
   },
   red:{
     title:'This needs more than an app',
     body:[
       'If something about {name}’s distress frightens you — or you ever worry about how you might react at the worst moment — please reach for real support now. That fear is important information, and acting on it is the most protective thing you can do for both of you.',
-      'Right now: keep everyone physically safe. If you feel at the edge, put {name} somewhere safe (a cot or a clear room) and step back to breathe for a moment. A briefly-alone, safe child is okay; a parent at breaking point needs a beat.',
-      'Who to reach: your GP or health visitor for the ongoing picture, and in a crisis your local urgent help line or emergency services. You are not the first parent to need this — reaching out is strength, not failure.'
+      'Right now: move away from immediate hazards and bring in another safe adult if you can. If you think you or a child may be harmed, call 000. You do not have to manage a dangerous moment alone.',
+      'For ongoing support, contact your GP or child and family health nurse. In Australia, Healthdirect is available on 1800 022 222, and Pregnancy, Birth and Baby supports families with children up to five on 1800 882 436.'
     ],
     script:'“Hi — I’m looking for some support. My young child has very intense meltdowns and I’m finding it really hard to cope in the moment. I’d like some help — can you point me in the right direction?”'
   },
   whispers:[
     'Connect before you correct — the lesson lands after the calm, not during the storm.',
-    'You can’t teach a flooded brain. Be the calm first.',
+    'At the peak, use fewer words. Teach later, when there is room for it.',
     'A meltdown is a feeling too big for the body having it — not a plan to annoy you.',
-    'Your calm is contagious. So is your stress. Choose which one you lend.',
-    'Name it to tame it: “you’re so cross” does more than “stop crying.”',
+    'You do not need perfect calm. Safe now and repair later still counts.',
+    'Try one feeling word — “you’re so cross” — then leave room for quiet.',
     'Empathy isn’t caving. You can hold the limit and the feeling in the same hand.'
   ]
 },
@@ -532,7 +569,7 @@ listening: {
     ],
     graduate:'{name} didn’t just start listening — you stopped teaching them to wait for the shout. Keep one rule forever: connect first, ask once, then help. Loud is a tool you’ll rarely need.',
     same:'No shift yet usually means the ask isn’t landing before it’s given. Get closer, quieter and more single-step — attention first, one thing, then help them start.',
-    worse:'Going backwards often means everyone’s more rushed or tired than usual — the cooperation muscle tires too. Simplify the asks, slow the pace, protect sleep. And if you’re ever genuinely unsure {name} is hearing you, a quick word with your GP or health visitor is worth it.',
+    worse:'Going backwards can happen when everyone is more rushed or tired, or when the ask is too big for the moment. Simplify it and slow the pace. If you’re unsure {name} is hearing you, or you notice a change in speech or attention, speak with your GP or child and family health nurse.',
     didnt:'No guilt — the repeat-shout cycle is the most human thing there is. Today’s tiny version: one instruction, given up close and calm, once. Just one.'
   },
   whenMap:{ absorbed:'during play', commands:'with everyday instructions', no:'with instructions they dislike', rushing:'when you’re rushing' },
@@ -541,7 +578,7 @@ listening: {
     body:[
       'If you’re genuinely unsure {name} hears you, or something about their attention, focus or speech feels different to you — trust that instinct. You know your child better than anyone, and checking is never an overreaction.',
       'For now, keep communication easy and kind: get close, use short clear phrases, add gestures and eye contact, and cut background noise when you need them to tune in.',
-      'The right next step is a professional who can actually assess it — start with your GP or health visitor, who can check hearing and development and refer on if useful. This isn’t about labels; it’s about making sure {name} gets whatever helps them thrive.'
+      'The right next step is a professional who can assess the whole picture — start with your GP or child and family health nurse, who can arrange hearing or developmental checks and refer on if useful. This isn’t about labels; it’s about finding the right support.'
     ]
   },
   whispers:[
@@ -636,7 +673,7 @@ hitting: {
     ],
     graduate:'{name} didn’t just stop hitting — they’re building a new way to carry a big feeling. That’s a skill for life. Keep one rule forever: stop it safely, name the feeling, coach the tool — every time.',
     same:'No change yet usually means the moment’s moving faster than the coaching can. Get in earlier — catch the ramp before the hit — and keep the alternative simple and physical. Prevention does more than correction here.',
-    worse:'More hitting can mean more stress, tiredness or change in {name}’s world — the behaviour is often the messenger. Protect sleep, lower the load, and stay close to intercept. If it keeps climbing, or it’s coming from real distress, a chat with your GP or health visitor is a wise next step.',
+    worse:'More hitting can be connected with stress, tiredness, discomfort, change or a skill that is not available in the moment. Stay close enough to intercept and lower the load. If it keeps climbing, someone is being hurt, or the change is sudden, speak with your GP or child and family health nurse.',
     didnt:'No guilt — these moments are fast and hard to catch. Today’s tiny version: next time, just the first line — calm voice, “I won’t let you hit,” and your body between them. That alone is the foundation.'
   },
   whenMap:{ frustrated:'when frustrated', sibling:'with a sibling', excited:'when over-excited', overwhelmed:'when overwhelmed' },
@@ -645,7 +682,7 @@ hitting: {
     body:[
       'Frequent, intense hurting — especially when it seems to come from real fear or distress rather than everyday frustration — is worth more support than an app can offer. This doesn’t mean something is wrong with {name}; it means the feeling underneath deserves a proper look.',
       'For now: protect everyone with close supervision, keep your own responses calm and consistent, and reduce the stress and stimulation around {name} where you can. You’re managing safely while you get help, not failing to fix it.',
-      'Your GP or health visitor is the right first call — they can look at the whole picture and connect you with support such as a health visitor team or an early-years or behavioural service. Reaching out early makes everything easier.'
+      'Your GP or child and family health nurse is the right first call — they can look at the whole picture and connect you with appropriate developmental, behavioural or family support.'
     ]
   },
   red:{
@@ -653,7 +690,7 @@ hitting: {
     body:[
       'If the hurting frightens you, if an adult is hurting {name}, or if a child is in danger, please reach for real help straight away — this is exactly the situation where stepping outside an app is the right and protective thing to do.',
       'Right now, the only priority is safety: separate the children if needed, keep the smallest ones out of reach, and if you feel close to losing control yourself, put {name} somewhere safe and take a moment to breathe before you respond.',
-      'Who to reach: your GP or health visitor for ongoing help, and in an emergency your local urgent services. If a child is being harmed, contact your local child-protection helpline or emergency services. Asking for help is the strongest, most loving move there is.'
+      'For ongoing help, contact your GP or child and family health nurse. If anyone is in immediate danger in Australia, call 000. If you are worried a child is being harmed, contact the child-protection service in your state or territory.'
     ],
     script:'“Hi — I’m looking for some help. My young child is hitting and hurting others and I’m finding it hard to manage safely. I’d like some support — can you point me in the right direction?”'
   },
@@ -781,8 +818,12 @@ const VIEWS = {
         <span class="btile">💬</span>
         <span><h3>Something else?</h3><p>Whining, sleep, potty, siblings, screens — and the bigger worries. Here’s the honest picture.</p></span>
       </button>
+      <button class="card tap" onclick="go('evidence')">
+        <span class="btile">✓</span>
+        <span><h3>Why trust this?</h3><p>What LittleLens will do, what it won’t, and the evidence underneath it.</p></span>
+      </button>
       ${doneHtml}
-      <footer class="legal">LittleLens gives warm, evidence-based guidance for everyday toddler and preschool behaviour, grounded in connection-first parenting. It is not a substitute for a doctor, health visitor or child psychologist — and it will tell you when something needs one.<br><br>Private by design: everything you tell LittleLens stays on this device. No account, no cloud, no tracking.</footer>`;
+      <footer class="legal">LittleLens gives evidence-informed guidance for everyday toddler and preschool behaviour. It does not diagnose and is not a substitute for your GP, child and family health nurse or another qualified professional — and it will tell you when to reach for one.<br><br>Private by design: everything you tell LittleLens stays on this device. No account, no cloud, no tracking.</footer>`;
   },
 
   other() {
@@ -793,9 +834,26 @@ const VIEWS = {
         <p>${fill('Most apps skim twenty behaviours an inch deep. LittleLens goes a mile deep on three — real context, a real plan, real follow-up. Sleep and sharing are next (each is really several behaviours in a trench coat, and {name} deserves the right read).')}</p></div>
       <div class="block boundary"><span class="tag">If it’s something bigger</span>
         <p>Aggression that frightens you, a child who seems constantly distressed or fearful, worries about development, speech or hearing, or anything where a child’s safety is at stake — that isn’t app territory, and pretending otherwise would let you down. These are common, workable, and best met with real support.</p>
-        <p>Your GP or health visitor is the best first call: they can look at the whole picture and connect you with the right help.</p></div>
+        <p>Your GP or child and family health nurse is a good first call: they can look at the whole picture and connect you with the right help.</p></div>
       <div class="block"><span class="tag">Say this when you reach out</span>
         <div class="script">“Hi — I’m looking for some support with my young child. What I’m seeing is [what’s happening], it happens [when], and I’m concerned because [what worries you]. Can you help or point me in the right direction?”</div></div>
+      <button class="btn ghost" onclick="go('home')">Back home</button>`;
+  },
+
+  evidence() {
+    return `
+      <button class="back" onclick="go('home')">← Back</button>
+      <h2>Warm, useful — and honest</h2>
+      <div class="block readblk"><span class="tag">Our promise</span>
+        <p>${PRODUCT_DOCTRINE.promise}</p></div>
+      <div class="block"><span class="tag">The rules</span>
+        ${PRODUCT_DOCTRINE.rules.map(r=>`<p>✓ ${r}</p>`).join('')}</div>
+      <div class="kicker">Evidence ledger</div>
+      ${EVIDENCE_LEDGER.map(e=>`<a class="card tap" href="${e.url}" target="_blank" rel="noopener">
+        <span class="btile">↗</span><span><h3>${e.title}</h3><p>${e.body}</p><span class="pill">${e.level}</span></span>
+      </a>`).join('')}
+      <div class="block boundary"><span class="tag">Important limit</span>
+        <p>LittleLens offers everyday parenting guidance, not a diagnosis or treatment. If a change is sudden, persistent, severe, worries you, or involves safety, start with your GP or child and family health nurse. In an emergency in Australia, call 000.</p></div>
       <button class="btn ghost" onclick="go('home')">Back home</button>`;
   },
 
@@ -869,6 +927,7 @@ const VIEWS = {
       <div class="block"><span class="tag">The common trap</span><p>${fill(d.trap, c)}</p></div>
       <div class="block readblk"><span class="tag">Try this today</span><p>${fill(t.action, c)}</p></div>
       ${boundaries}
+      <button class="btn ghost" onclick="shareResult()">Share this lens</button>
       ${!S.profile ? `<div class="block boundary"><span class="tag">Make it personal</span>
         <p>This read was written for “a child”. Thirty seconds about yours — name, age, home — and I’ll rewrite it for them, and remember for next time.</p></div>` : ''}
       ${already
@@ -916,7 +975,11 @@ const VIEWS = {
         <div class="planline"><div class="k">Avoid</div><div class="v">${fill(step.avoid, c.ctx)}</div></div>
       </div>
       <p class="sub">Next check-in: <b>${fmtDay(c.nextCheckin)}</b>. Streak: <b>${c.applied||0}</b> ${ (c.applied||0)===1?'day':'days'} applied.</p>
-      <button class="btn" onclick="go('checkin',{idx:${view.idx}})">${due?'Check in — how did it go?':'Check in early'}</button>
+      ${(c.history||[]).length ? `<div class="block readblk"><span class="tag">What you’re learning</span>
+        <p>${(c.history||[]).slice(-3).map(h=>`${fmtDay(h.date)} · ${h.label}`).join('<br>')}</p></div>` : ''}
+      ${due
+        ? `<button class="btn" onclick="go('checkin',{idx:${view.idx}})">Check in — what changed?</button>`
+        : `<div class="block boundary"><p>Try the small step once or twice. Your next reflection opens ${fmtDay(c.nextCheckin)} — real learning needs a real moment between taps.</p></div>`}
       <button class="btn quiet" onclick="removeCard(${view.idx})">Stop working on this</button>`;
   },
 
@@ -942,14 +1005,16 @@ const VIEWS = {
     const c = S.working[view.idx];
     const p = S.profile || {};
     if (!c) return VIEWS.home();
+    const language = CHECKIN_LANGUAGE[c.behaviour];
+    if (c.nextCheckin && c.nextCheckin > today0()) return VIEWS.wocard();
     return `
       <button class="back" onclick="go('wocard',{idx:${view.idx}})">← Back</button>
       <h2>How did it go with ${esc(p.name||'your little one')}?</h2>
-      <p class="sub">Honest answers make the plan smarter — there’s no wrong one.</p>
+      <p class="sub">${language.prompt} Honest answers make the plan smarter.</p>
       <div class="chips">
-        <button class="chip" onclick="checkin(${view.idx},'better')">👍 Better</button>
-        <button class="chip" onclick="checkin(${view.idx},'same')">➡️ About the same</button>
-        <button class="chip" onclick="checkin(${view.idx},'worse')">👎 Worse</button>
+        <button class="chip" onclick="checkin(${view.idx},'better')">👍 ${language.better}</button>
+        <button class="chip" onclick="checkin(${view.idx},'same')">➡️ ${language.same}</button>
+        <button class="chip" onclick="checkin(${view.idx},'worse')">👎 ${language.worse}</button>
         <button class="chip" onclick="checkin(${view.idx},'didnt')">🙅 Didn’t get to try</button>
       </div>`;
   },
@@ -970,7 +1035,7 @@ const VIEWS = {
     return `
       <h2>Time for a real person</h2>
       <div class="block boundary"><p>${fill('Two check-ins going backwards means this pattern deserves eyes on {name} in person — an app has reached its honest limit, and saying so is part of the job.')}</p></div>
-      <div class="block"><p>${fill('This is common, workable, and not your failure. Your GP or health visitor is a great first call — they can look at the whole picture and connect you with the right support.')}</p></div>
+      <div class="block"><p>${fill('This is common, workable, and not your failure. Your GP or child and family health nurse is a good first call — they can look at the whole picture and connect you with the right support.')}</p></div>
       <div class="block"><span class="tag">Say this when you reach out</span>
         <div class="script">${fill('“Hi — I’m looking for some support. We’ve been working on '+pack.label.toLowerCase()+' with a gentle, connection-first plan, but it’s getting harder rather than easier. Can you help or point me in the right direction?”')}</div></div>
       <div class="block readblk"><span class="tag">And while you look</span>
@@ -1050,7 +1115,7 @@ function startWorking() {
   if (existing >= 0) { go('wocard', { idx: existing }); return; }
   wo.push({
     behaviour: decodeCtx.pack, step:1, worseStreak:0, applied:0, done:false,
-    ctx: {...decodeCtx}, createdAt: today0(), nextCheckin: tomorrow()
+    ctx: {...decodeCtx}, history:[], createdAt: today0(), nextCheckin: tomorrow()
   });
   S.working = wo;
   go('wocard', { idx: wo.length-1 });
@@ -1080,7 +1145,10 @@ function checkin(idx, answer) {
   const wo = S.working, c = wo[idx];
   if (!c || c.done) { go('home'); return; }
   const ck = PACKS[c.behaviour].checkins;
+  const language = CHECKIN_LANGUAGE[c.behaviour];
+  if (c.nextCheckin && c.nextCheckin > today0()) { go('wocard',{idx}); return; }
   let title='', msg='', advanced=false;
+  const stepBefore = c.step;
   if (answer === 'better') {
     bumpApplied(c); c.worseStreak = 0;
     if (c.step >= 3) {
@@ -1108,6 +1176,14 @@ function checkin(idx, answer) {
   } else {
     title = 'All good'; msg = fill(ck.didnt, c.ctx);
   }
+  c.history = c.history || [];
+  c.history.push({
+    date:today0(),
+    answer,
+    stepBefore,
+    stepAfter:c.step,
+    label:answer === 'didnt' ? 'No attempt yet — the next step got smaller' : language[answer]
+  });
   c.nextCheckin = tomorrow();
   S.working = wo;
   go('checkinResult', { idx, title, msg, showPlan:true, advanced });
@@ -1139,6 +1215,22 @@ function shareKeepsake(idx) {
     navigator.clipboard.writeText(text).then(()=>{
       const b = document.querySelector('.btn');
       if (b) b.textContent = 'Copied — paste it anywhere';
+    }).catch(()=>{});
+  }
+}
+
+function shareResult() {
+  if (!decodeCtx.pack) return;
+  const pack = PACKS[decodeCtx.pack];
+  const target = pack.targets[decodeCtx.who];
+  const text = `A LittleLens moment: ${pack.label}\n\nWhat might be happening:\n${fill(target.intro, decodeCtx)}\n\nOne thing to try:\n${fill(target.action, decodeCtx)}\n\nA small lens for a real family moment — not a diagnosis.\nhttps://pawpocket.com.au/littlelens/`;
+  if (navigator.share) {
+    navigator.share({title:`LittleLens · ${pack.label}`, text}).catch(()=>{});
+  } else if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(()=>{
+      const buttons = [...document.querySelectorAll('.btn')];
+      const b = buttons.find(x=>x.textContent.includes('Share this lens'));
+      if (b) b.textContent = 'Copied — ready to send';
     }).catch(()=>{});
   }
 }
