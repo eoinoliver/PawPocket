@@ -261,6 +261,20 @@
   .starfall { position: fixed; inset: 0; pointer-events: none; z-index: 50; overflow: hidden; }
   .starfall span { position: absolute; top: -6vh; font-size: 1.3rem; animation: fall 2.6s ease-in forwards; opacity: 0.9; }
   @keyframes fall { to { transform: translateY(110vh) rotate(40deg); opacity: 0; } }
+  .bond-card {
+    background: linear-gradient(145deg, var(--card), var(--brand-soft));
+    border: 1px solid var(--brand-line); border-radius: 20px;
+    padding: 17px 18px; margin: 12px 0; box-shadow: var(--shadow);
+  }
+  .bond-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px; }
+  .bond-head h3 { margin:0; color:var(--brand-dark); font-family:var(--serif); font-size:1.08rem; }
+  .bond-score { font-weight:800; color:var(--brand-dark); font-size:1.15rem; }
+  .compass-row { display:grid; grid-template-columns:72px 1fr 36px; gap:8px; align-items:center; margin:9px 0; font-size:.78rem; color:var(--muted); }
+  .compass-track { height:7px; background:var(--brand-line); border-radius:999px; overflow:hidden; }
+  .compass-fill { height:100%; background:var(--brand); border-radius:999px; }
+  .ritual-note { font-family:var(--serif); font-size:1.08rem; line-height:1.5; color:var(--brand-dark); margin:4px 0 13px; }
+  .mini-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+  .mini-actions .chip { margin:0; }
   @media (prefers-reduced-motion: reduce) {
     #app > * { animation: none; }
     .starfall { display: none; }
@@ -326,6 +340,10 @@ const S = (() => {
     set working(v) { write('ll_working', v); },
     get moments()   { return read('ll_moments') || []; },
     set moments(v)  { write('ll_moments', v); },
+    get reflections() { return read('ll_reflections') || []; },
+    set reflections(v) { write('ll_reflections', v); },
+    get challenge() { return read('ll_challenge'); },
+    set challenge(v) { write('ll_challenge', v); },
     get stats()    { return read('ll_stats') || { applied: 0, decodes: 0, graduated: 0 }; },
     set stats(v)   { write('ll_stats', v); }
   };
@@ -1448,6 +1466,49 @@ function dailyWhisper() {
   return pool[seed % pool.length];
 }
 
+const DAILY_REFRAMES = [
+  {belief:'Comforting a distressed child rewards the distress.',truth:'Warmth and a boundary can coexist. Comfort helps a young child borrow regulation; it does not require changing a safe limit.',notice:'Try fewer words, steady presence and the same clear boundary.'},
+  {belief:'A tantrum means the child is manipulating the adult.',truth:'Toddlers and preschoolers often lose access to flexible thinking and language when feelings overwhelm their developing skills.',notice:'Look for the missing skill or overloaded body before assigning intent.'},
+  {belief:'Praise should focus on whether a child is good.',truth:'Specific attention to effort and behaviour gives a child clearer information than a global label.',notice:'Describe one useful thing your child did: “You waited while I finished.”'},
+  {belief:'Children who behave for others are choosing to misbehave at home.',truth:'Different settings create different demands, supports and levels of emotional safety. Behaviour changing by context is information.',notice:'Compare what happened before the behaviour in each setting.'},
+  {belief:'A parent must stay perfectly calm for a child to regulate.',truth:'Children benefit from steadiness, but parents are human. Safe repair after a hard moment is also powerful relationship learning.',notice:'If today went badly, make one simple repair instead of chasing perfection.'}
+];
+const CLOSENESS_PROMPTS = [
+  'What was your child trying to tell you today?',
+  'What did you understand before reacting?',
+  'Where did connection return after a hard moment?',
+  'What did you do today that reflected the parent you want to be?',
+  'What would you like to notice earlier tomorrow?'
+];
+function daySeed() {
+  const d=new Date();
+  return d.getFullYear()*372+(d.getMonth()+1)*31+d.getDate();
+}
+function dailyReframe() { return DAILY_REFRAMES[daySeed()%DAILY_REFRAMES.length]; }
+function dailyClosenessPrompt() { return CLOSENESS_PROMPTS[daySeed()%CLOSENESS_PROMPTS.length]; }
+function todayReflection() { return S.reflections.find(r=>r.date===today0()); }
+function challengeProgress() {
+  const c=S.challenge;
+  if (!c || !c.startedAt) return {active:false,day:0,observations:0};
+  const start=new Date(c.startedAt+'T12:00'), now=new Date(today0()+'T12:00');
+  const day=Math.max(1,Math.min(30,Math.floor((now-start)/86400000)+1));
+  const observations=S.reflections.filter(r=>r.date>=c.startedAt).length;
+  return {active:true,day,observations,complete:day>=30};
+}
+function bondCompass() {
+  const st=S.stats, reflections=S.reflections.length, moments=S.moments.length;
+  const dimensions=[
+    ['Notice',Math.min(100,st.decodes*12+reflections*8)],
+    ['Understand',Math.min(100,st.decodes*8+moments*14)],
+    ['Try',Math.min(100,st.applied*12)],
+    ['Reflect',Math.min(100,reflections*14)],
+    ['Repair',Math.min(100,(st.applied+reflections)*7)],
+    ['Grow',Math.min(100,st.graduated*28+st.applied*4)]
+  ];
+  const overall=Math.round(dimensions.reduce((n,d)=>n+d[1],0)/dimensions.length);
+  return {dimensions,overall};
+}
+
 // ---------- state ----------
 let view = { name:'home' };
 let decodeCtx = {};
@@ -1481,6 +1542,9 @@ const VIEWS = {
     const wo = S.working;
     const active = wo.filter(c=>!c.done);
     const done = wo.filter(c=>c.done);
+    const reflection = todayReflection();
+    const compass = bondCompass();
+    const challenge = challengeProgress();
 
     const meetCard = p ? '' : `
       <button class="card tap" onclick="editProfile()">
@@ -1501,7 +1565,7 @@ const VIEWS = {
           <div class="t-kick"><span>Today with ${name}</span>
             <span class="duepill ${due?'hot':''}">${due?'Check-in due':'Check-in '+fmtDay(next.nextCheckin)}</span></div>
           <p class="t-cue">${fill(step.cue, next.ctx)}</p>
-          <div class="t-foot"><span>${pack.emoji} ${pack.label} · step ${next.step} of 3</span><span>Open →</span></div>
+          <div class="t-foot"><span>${pack.emoji} ${pack.label} · day ${Math.min(7,(next.applied||0)+1)} of a 7-day experiment</span><span>Open →</span></div>
         </button>
         <div class="streakline"><span>🌱</span><span><b>${S.stats.applied} ${S.stats.applied===1?'day':'days'} applied.</b> ${tierLine()}</span></div>`;
     } else {
@@ -1543,6 +1607,25 @@ const VIEWS = {
         <button class="moment-choice" onclick="startDecode('sleep')">🌙 Sleep is hard</button>
       </div>
       <div class="whisper"><span class="w-ico">💛</span><p><span class="w-tag">One thing to notice today</span>${fill(dailyWhisper())}</p></div>
+      <button class="card tap" onclick="go('ritual')">
+        <span class="btile">${reflection?'💛':'🌙'}</span>
+        <span><h3>${reflection?'Today’s closer moment is saved':'End the day a little closer'}</h3>
+        <p>${reflection?'Return to what you noticed—or share a reflection without the private detail.':dailyClosenessPrompt()}</p></span>
+      </button>
+      <button class="card tap" onclick="go('compass')">
+        <span class="btile">🧭</span>
+        <span><h3>Your Connection Compass <span class="pill">${compass.overall}% explored</span></h3>
+        <p>A picture of the noticing, trying and repairing you have practised—not a parenting score.</p></span>
+      </button>
+      <button class="card tap" onclick="go('reframe')">
+        <span class="btile">↻</span>
+        <span><h3>True, false—or more complicated?</h3><p>${dailyReframe().belief}</p></span>
+      </button>
+      <button class="card tap" onclick="go('challenge')">
+        <span class="btile">✨</span>
+        <span><h3>${challenge.active?'30 Days Closer · day '+challenge.day:'Try 30 Days Closer'}</h3>
+        <p>${challenge.active?challenge.observations+' moments noticed so far. Missed days never reset your progress.':'An optional month of tiny reflections—not a streak and never a parenting test.'}</p></span>
+      </button>
       ${momentsHtml}
       <div class="kicker">Keep understanding</div>
       <button class="card tap" onclick="go('library')">
@@ -1552,6 +1635,75 @@ const VIEWS = {
       <button class="trustline" onclick="go('evidence')">Private on this device · evidence-informed · clear safety limits →</button>
       ${doneHtml}
       <footer class="legal">LittleLens gives evidence-informed guidance for everyday toddler and preschool behaviour. It does not diagnose and is not a substitute for your GP, child and family health nurse or another qualified professional — and it will tell you when to reach for one.<br><br>Private by design: everything you tell LittleLens stays on this device. No account, no cloud, no tracking.</footer>`;
+  },
+
+  ritual() {
+    const saved=todayReflection(), prompt=saved?saved.prompt:dailyClosenessPrompt();
+    return `
+      <button class="back" onclick="go('home')">← Home</button>
+      <span class="stepbadge">Private evening reflection</span>
+      <h2>One moment closer</h2>
+      <div class="bond-card"><p class="ritual-note">${prompt}</p>
+        ${saved
+          ? `<p>${esc(saved.note||'You paused to notice this moment.')}</p><span class="pill">${saved.feeling==='closer'?'Felt closer':saved.feeling==='same'?'Still learning':'A harder day'}</span>`
+          : `<textarea id="reflectionNote" maxlength="280" placeholder="A sentence is enough. This stays on your device."></textarea>
+             <p class="sub" style="margin:10px 0 6px">Compared with a week ago, how did connection feel today?</p>
+             <div class="mini-actions">
+               <button class="chip" onclick="saveReflection('closer')">💛 A little closer</button>
+               <button class="chip" onclick="saveReflection('same')">🌿 Still learning</button>
+               <button class="chip" onclick="saveReflection('hard')">🌧 A harder day</button>
+             </div>`}
+      </div>
+      ${saved?`<button class="btn" onclick="shareReflection()">Share the reflection, not the private note</button>`:''}
+      <button class="btn ghost" onclick="go('compass')">See your Connection Compass</button>`;
+  },
+
+  compass() {
+    const compass=bondCompass(), latest=S.reflections[0];
+    return `
+      <button class="back" onclick="go('home')">← Home</button>
+      <span class="stepbadge">Progress without comparison</span>
+      <h2>Your Connection Compass</h2>
+      <p class="sub">This is not a score for you or your child. It shows which relationship habits you have explored in LittleLens.</p>
+      <div class="bond-card">
+        <div class="bond-head"><h3>Connection explored</h3><span class="bond-score">${compass.overall}%</span></div>
+        ${compass.dimensions.map(d=>`<div class="compass-row"><span>${d[0]}</span><div class="compass-track" role="progressbar" aria-label="${d[0]} explored" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${d[1]}"><div class="compass-fill" style="width:${d[1]}%"></div></div><b>${d[1]}%</b></div>`).join('')}
+      </div>
+      ${latest?`<div class="block readblk"><span class="tag">Latest closer moment</span><p>${esc(latest.note||latest.prompt)}</p></div>`:''}
+      <button class="btn" onclick="go('ritual')">${todayReflection()?'Return to today’s moment':'Add today’s closer moment'}</button>
+      <button class="btn ghost" onclick="shareCompass()">Share privacy-safe progress</button>`;
+  },
+
+  reframe() {
+    const r=dailyReframe();
+    return `
+      <button class="back" onclick="go('home')">← Home</button>
+      <span class="stepbadge">Common wisdom, closer look</span>
+      <h2>True, false—or more complicated?</h2>
+      <div class="block boundary"><span class="tag">The familiar belief</span><p>${r.belief}</p></div>
+      <div class="block readblk"><span class="tag">A closer look</span><p>${r.truth}</p></div>
+      <div class="bond-card"><span class="tag">One thing to notice today</span><p>${r.notice}</p></div>
+      <button class="btn" onclick="shareReframe()">Share this without identifying a child</button>
+      <button class="btn ghost" onclick="go('evidence')">See the evidence standard</button>`;
+  },
+
+  challenge() {
+    const c=challengeProgress();
+    return `
+      <button class="back" onclick="go('home')">← Home</button>
+      <span class="stepbadge">Optional · forgiving · private</span>
+      <h2>30 Days Closer</h2>
+      ${c.active?`
+        <div class="bond-card"><div class="bond-head"><h3>Day ${c.day} of 30</h3><span class="bond-score">${Math.round(c.day/30*100)}%</span></div>
+          <div class="compass-track" role="progressbar" aria-label="30 Days Closer progress" aria-valuemin="1" aria-valuemax="30" aria-valuenow="${c.day}"><div class="compass-fill" style="width:${c.day/30*100}%"></div></div>
+          <p>${c.observations} evening ${c.observations===1?'moment':'moments'} noticed. There is no penalty for a missed day.</p>
+        </div>
+        <div class="block readblk"><span class="tag">Today’s invitation</span><p>${dailyClosenessPrompt()}</p></div>
+        <button class="btn" onclick="go('ritual')">${todayReflection()?'See today’s reflection':'Notice today’s moment'}</button>`
+      :`<div class="block readblk"><p>For one month, notice one small moment each evening. LittleLens will help you see the pattern that forms—without streaks, rankings or guilt.</p></div>
+        <div class="block"><span class="tag">What counts</span><p>A sentence, a feeling or simply pausing to answer. Missing a day never sends you backwards.</p></div>
+        <button class="btn" onclick="startCloserChallenge()">Begin 30 Days Closer</button>`}
+      <button class="btn ghost" onclick="go('home')">Back home</button>`;
   },
 
   library() {
@@ -1865,6 +2017,36 @@ const VIEWS = {
 // ---------- actions ----------
 let profileReturn = 'home';
 
+function saveReflection(feeling) {
+  if (todayReflection()) { go('ritual'); return; }
+  const input=document.getElementById('reflectionNote');
+  const reflections=S.reflections;
+  reflections.unshift({
+    date:today0(), prompt:dailyClosenessPrompt(),
+    note:(input&&input.value||'').trim().slice(0,280), feeling
+  });
+  S.reflections=reflections.slice(0,90);
+  go('ritual');
+}
+function startCloserChallenge() {
+  if (!S.challenge) S.challenge={startedAt:today0()};
+  go('challenge');
+}
+function shareReflection() {
+  const r=todayReflection()||S.reflections[0];
+  if (!r) return;
+  const text=`One moment closer:\n\n${r.prompt}\n\nI paused long enough to notice.\n\nLittleLens · Understand their moment. Choose the next move.`;
+  shareText('A LittleLens closer moment',text);
+}
+function shareCompass() {
+  const c=bondCompass();
+  const text=`My LittleLens Connection Compass is ${c.overall}% explored—not a parenting score, just the noticing, trying and repairing I have practised.\n\nUnderstand their moment. Choose the next move.`;
+  shareText('My LittleLens Connection Compass',text);
+}
+function shareReframe() {
+  const r=dailyReframe();
+  shareText('True, false—or more complicated?',`${r.belief}\n\nA closer look: ${r.truth}\n\nNotice today: ${r.notice}\n\nShared from LittleLens. No child details included.`);
+}
 function scoreConcern(text) {
   const clean = text.toLowerCase();
   return Object.entries(CONCERN_KEYWORDS).map(([id, words])=>({

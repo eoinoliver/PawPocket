@@ -156,6 +156,20 @@
   .curiosity h3 { font-family:var(--serif); color:var(--moss-dark); font-size:1.15rem; line-height:1.35; margin:5px 0 8px; }
   .curiosity p { color:var(--ink); font-size:.9rem; line-height:1.55; margin:0 0 10px; }
   .curiosity .chip { background:rgba(255,253,249,.88); box-shadow:none; margin-top:8px; }
+  .bond-card {
+    background: linear-gradient(145deg, var(--card), var(--moss-soft));
+    border: 1px solid var(--moss-line); border-radius: 20px;
+    padding: 17px 18px; margin: 12px 0; box-shadow: var(--shadow);
+  }
+  .bond-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px; }
+  .bond-head h3 { margin:0; color:var(--moss-dark); font-family:var(--serif); font-size:1.08rem; }
+  .bond-score { font-weight:800; color:var(--moss-dark); font-size:1.15rem; }
+  .compass-row { display:grid; grid-template-columns:72px 1fr 36px; gap:8px; align-items:center; margin:9px 0; font-size:.78rem; color:var(--muted); }
+  .compass-track { height:7px; background:var(--moss-line); border-radius:999px; overflow:hidden; }
+  .compass-fill { height:100%; background:var(--moss); border-radius:999px; }
+  .ritual-note { font-family:var(--serif); font-size:1.08rem; line-height:1.5; color:var(--moss-dark); margin:4px 0 13px; }
+  .mini-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+  .mini-actions .chip { margin:0; }
   details.depth {
     border:1px solid var(--moss-line); border-radius:16px; background:var(--card);
     padding:0 16px; margin:10px 0;
@@ -350,6 +364,10 @@ const S = (() => {
     set working(v) { write('pp_working', v); },
     get moments()   { return read('pp_moments') || []; },
     set moments(v)  { write('pp_moments', v); },
+    get reflections() { return read('pp_reflections') || []; },
+    set reflections(v) { write('pp_reflections', v); },
+    get challenge() { return read('pp_challenge'); },
+    set challenge(v) { write('pp_challenge', v); },
     get thread()    { return read('pp_thread'); },
     set thread(v)   { write('pp_thread', v); },
     get stats()    { return read('pp_stats') || { applied: 0, decodes: 0, graduated: 0 }; },
@@ -1224,6 +1242,50 @@ function dailyWhisper() {
   return pool[seed % pool.length];
 }
 
+const DAILY_REFRAMES = [
+  {belief:'A wagging tail always means a happy dog.',truth:'A tail is only one part of the picture. Speed, height, stiffness, face and the rest of the body change the meaning.',notice:'Notice the whole body before deciding what the tail means.'},
+  {belief:'My dog needs to know I am the alpha.',truth:'Most everyday behaviour is better understood through safety, learning history, environment and reinforcement—not a contest for rank.',notice:'Ask what the behaviour achieves or avoids before trying to correct it.'},
+  {belief:'Rewarding good behaviour is bribery.',truth:'A well-timed reward gives useful information: that choice worked. Food is one option; play, access, distance and attention can reward too.',notice:'Catch one choice you want repeated and mark it warmly.'},
+  {belief:'A guilty look proves my dog knows they were wrong.',truth:'So-called guilty behaviour often reflects a dog responding to a person’s posture, voice or the tension in the room.',notice:'Separate what you observed from the story you attached to it.'},
+  {belief:'Comforting a frightened dog rewards fear.',truth:'Fear is an emotional response, not a trick. Calm support and greater distance can help a dog feel safer.',notice:'If your dog seeks you when worried, be a predictable safe place.'}
+];
+const CLOSENESS_PROMPTS = [
+  'What did your dog communicate today?',
+  'When did your dog look to you for help?',
+  'What did you notice sooner than you would have last week?',
+  'Did your dog find you easier to understand today?',
+  'What was your smallest good moment together?'
+];
+function daySeed() {
+  const d=new Date();
+  return d.getFullYear()*372+(d.getMonth()+1)*31+d.getDate();
+}
+function dailyReframe() { return DAILY_REFRAMES[daySeed()%DAILY_REFRAMES.length]; }
+function dailyClosenessPrompt() { return CLOSENESS_PROMPTS[daySeed()%CLOSENESS_PROMPTS.length]; }
+function todayReflection() { return S.reflections.find(r=>r.date===today0()); }
+function challengeProgress() {
+  const c=S.challenge;
+  if (!c || !c.startedAt) return {active:false,day:0,observations:0};
+  const start=new Date(c.startedAt+'T12:00');
+  const now=new Date(today0()+'T12:00');
+  const day=Math.max(1,Math.min(30,Math.floor((now-start)/86400000)+1));
+  const observations=S.reflections.filter(r=>r.date>=c.startedAt).length;
+  return {active:true,day,observations,complete:day>=30};
+}
+function bondCompass() {
+  const st=S.stats, reflections=S.reflections.length, moments=S.moments.length;
+  const dimensions=[
+    ['Notice',Math.min(100,st.decodes*12+reflections*8)],
+    ['Understand',Math.min(100,st.decodes*8+moments*14)],
+    ['Try',Math.min(100,st.applied*12)],
+    ['Reflect',Math.min(100,reflections*14)],
+    ['Return',Math.min(100,(st.applied+reflections)*7)],
+    ['Grow',Math.min(100,st.graduated*28+st.applied*4)]
+  ];
+  const overall=Math.round(dimensions.reduce((n,d)=>n+d[1],0)/dimensions.length);
+  return {dimensions,overall};
+}
+
 // ---------- state ----------
 let view = { name:'home' };
 let decodeCtx = {};
@@ -1257,6 +1319,9 @@ const VIEWS = {
     const wo = S.working;
     const active = wo.filter(c=>!c.done);
     const done = wo.filter(c=>c.done);
+    const reflection = todayReflection();
+    const compass = bondCompass();
+    const challenge = challengeProgress();
 
     // Meet-your-dog invitation (never a gate — decoding works without it)
     const meetCard = p ? '' : `
@@ -1279,7 +1344,7 @@ const VIEWS = {
           <div class="t-kick"><span>Today with ${name}</span>
             <span class="duepill ${due?'hot':''}">${due?'Check-in due':'Check-in '+fmtDay(next.nextCheckin)}</span></div>
           <p class="t-cue">${fill(step.cue)}</p>
-          <div class="t-foot"><span>${pack.emoji} ${pack.label} · step ${next.step} of 3</span><span>Open →</span></div>
+          <div class="t-foot"><span>${pack.emoji} ${pack.label} · day ${Math.min(7,(next.applied||0)+1)} of a 7-day experiment</span><span>Open →</span></div>
         </button>
         <div class="streakline"><span>🐾</span><span><b>${S.stats.applied} ${S.stats.applied===1?'day':'days'} applied.</b> ${tierLine()}</span></div>`;
     } else {
@@ -1322,6 +1387,25 @@ const VIEWS = {
       <button class="trustline" onclick="go('evidence')">Private on this device · reward-based · clear safety limits →</button>
       ${threadCard()}
       <div class="whisper"><span class="w-ico">🔎</span><p><span class="w-tag">Something worth noticing</span>${fill(dailyWhisper())}</p></div>
+      <button class="card tap" onclick="go('ritual')">
+        <span class="btile">${reflection?'💚':'🌙'}</span>
+        <span><h3>${reflection?'Today’s closer moment is saved':'End the day a little closer'}</h3>
+        <p>${reflection?'Return to what you noticed—or share a private reflection.':dailyClosenessPrompt()}</p></span>
+      </button>
+      <button class="card tap" onclick="go('compass')">
+        <span class="btile">🧭</span>
+        <span><h3>Your Bond Compass <span class="pill">${compass.overall}% explored</span></h3>
+        <p>A picture of the noticing, trying and reflecting you have done together.</p></span>
+      </button>
+      <button class="card tap" onclick="go('reframe')">
+        <span class="btile">↻</span>
+        <span><h3>True, false—or more complicated?</h3><p>${dailyReframe().belief}</p></span>
+      </button>
+      <button class="card tap" onclick="go('challenge')">
+        <span class="btile">✨</span>
+        <span><h3>${challenge.active?'30 Days Closer · day '+challenge.day:'Try 30 Days Closer'}</h3>
+        <p>${challenge.active?challenge.observations+' moments noticed so far. Missed days never reset your progress.':'An optional month of tiny observations—not a streak and never a test.'}</p></span>
+      </button>
       ${skillCard(active)}
       ${S.moments.length ? `<button class="card tap" onclick="go('moments')">
         <span class="btile">💚</span><span><h3>Saved dog moments</h3>
@@ -1335,6 +1419,75 @@ const VIEWS = {
       </button>
       ${doneHtml}
       <footer class="legal">PawPocket gives humane, reward-based guidance for everyday behaviour. It is not a substitute for veterinary care or a qualified behaviour professional — and it will tell you when a situation needs one.<br><br>Private by design: everything you tell PawPocket stays on this device. No account, no cloud, no tracking.</footer>`;
+  },
+
+  ritual() {
+    const saved=todayReflection(), prompt=saved?saved.prompt:dailyClosenessPrompt();
+    return `
+      <button class="back" onclick="go('home')">← Home</button>
+      <span class="stepbadge">Private evening reflection</span>
+      <h2>One moment closer</h2>
+      <div class="bond-card"><p class="ritual-note">${prompt}</p>
+        ${saved
+          ? `<p>${esc(saved.note||'You paused to notice this moment.')}</p><span class="pill">${saved.feeling==='closer'?'Felt closer':saved.feeling==='same'?'Still learning':'A harder day'}</span>`
+          : `<textarea id="reflectionNote" maxlength="280" placeholder="A sentence is enough. This stays on your device."></textarea>
+             <p class="sub" style="margin:10px 0 6px">Compared with a week ago, how did the bond feel today?</p>
+             <div class="mini-actions">
+               <button class="chip" onclick="saveReflection('closer')">💚 A little closer</button>
+               <button class="chip" onclick="saveReflection('same')">🌿 Still learning</button>
+               <button class="chip" onclick="saveReflection('hard')">🌧 A harder day</button>
+             </div>`}
+      </div>
+      ${saved?`<button class="btn" onclick="shareReflection()">Share the reflection, not the private note</button>`:''}
+      <button class="btn ghost" onclick="go('compass')">See your Bond Compass</button>`;
+  },
+
+  compass() {
+    const compass=bondCompass(), latest=S.reflections[0];
+    return `
+      <button class="back" onclick="go('home')">← Home</button>
+      <span class="stepbadge">Progress without comparison</span>
+      <h2>Your Bond Compass</h2>
+      <p class="sub">This is not a score for you or your dog. It shows which relationship habits you have explored in PawPocket.</p>
+      <div class="bond-card">
+        <div class="bond-head"><h3>Understanding explored</h3><span class="bond-score">${compass.overall}%</span></div>
+        ${compass.dimensions.map(d=>`<div class="compass-row"><span>${d[0]}</span><div class="compass-track" role="progressbar" aria-label="${d[0]} explored" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${d[1]}"><div class="compass-fill" style="width:${d[1]}%"></div></div><b>${d[1]}%</b></div>`).join('')}
+      </div>
+      ${latest?`<div class="block readblk"><span class="tag">Latest closer moment</span><p>${esc(latest.note||latest.prompt)}</p></div>`:''}
+      <button class="btn" onclick="go('ritual')">${todayReflection()?'Return to today’s moment':'Add today’s closer moment'}</button>
+      <button class="btn ghost" onclick="shareCompass()">Share a privacy-safe progress card</button>`;
+  },
+
+  reframe() {
+    const r=dailyReframe();
+    return `
+      <button class="back" onclick="go('home')">← Home</button>
+      <span class="stepbadge">Common wisdom, closer look</span>
+      <h2>True, false—or more complicated?</h2>
+      <div class="block boundary"><span class="tag">The familiar belief</span><p>${r.belief}</p></div>
+      <div class="block readblk"><span class="tag">A closer look</span><p>${r.truth}</p></div>
+      <div class="bond-card"><span class="tag">One thing to notice today</span><p>${r.notice}</p></div>
+      <button class="btn" onclick="shareReframe()">Share this closer look</button>
+      <button class="btn ghost" onclick="go('evidence')">See the evidence standard</button>`;
+  },
+
+  challenge() {
+    const c=challengeProgress();
+    return `
+      <button class="back" onclick="go('home')">← Home</button>
+      <span class="stepbadge">Optional · forgiving · private</span>
+      <h2>30 Days Closer</h2>
+      ${c.active?`
+        <div class="bond-card"><div class="bond-head"><h3>Day ${c.day} of 30</h3><span class="bond-score">${Math.round(c.day/30*100)}%</span></div>
+          <div class="compass-track" role="progressbar" aria-label="30 Days Closer progress" aria-valuemin="1" aria-valuemax="30" aria-valuenow="${c.day}"><div class="compass-fill" style="width:${c.day/30*100}%"></div></div>
+          <p>${c.observations} evening ${c.observations===1?'moment':'moments'} noticed. There is no penalty for a missed day.</p>
+        </div>
+        <div class="block readblk"><span class="tag">Today’s invitation</span><p>${dailyClosenessPrompt()}</p></div>
+        <button class="btn" onclick="go('ritual')">${todayReflection()?'See today’s reflection':'Notice today’s moment'}</button>`
+      :`<div class="block readblk"><p>For one month, notice one small moment each evening. PawPocket will help you see the pattern that forms—without streaks, rankings or guilt.</p></div>
+        <div class="block"><span class="tag">What counts</span><p>A sentence, a feeling or simply pausing to answer. Missing a day never sends you backwards.</p></div>
+        <button class="btn" onclick="startCloserChallenge()">Begin 30 Days Closer</button>`}
+      <button class="btn ghost" onclick="go('home')">Back home</button>`;
   },
 
   intake() {
@@ -1662,6 +1815,41 @@ const VIEWS = {
 
 // ---------- actions ----------
 let profileReturn = 'home';
+function saveReflection(feeling) {
+  if (todayReflection()) { go('ritual'); return; }
+  const input=document.getElementById('reflectionNote');
+  const reflections=S.reflections;
+  reflections.unshift({
+    date:today0(), prompt:dailyClosenessPrompt(),
+    note:(input&&input.value||'').trim().slice(0,280), feeling
+  });
+  S.reflections=reflections.slice(0,90);
+  go('ritual');
+}
+function startCloserChallenge() {
+  if (!S.challenge) S.challenge={startedAt:today0()};
+  go('challenge');
+}
+function shareReflection() {
+  const r=todayReflection()||S.reflections[0];
+  if (!r) return;
+  const name=(S.profile&&S.profile.name)||'my dog';
+  const text=`One moment closer with ${name}:\n\n${r.prompt}\n\nI paused long enough to notice.\n\nPawPocket · Understand your dog more. Grow closer.`;
+  shareText('A PawPocket closer moment',text);
+}
+function shareCompass() {
+  const c=bondCompass();
+  const text=`My PawPocket Bond Compass is ${c.overall}% explored—not a score, just the noticing, trying and reflecting we have done together.\n\nUnderstand your dog more. Grow closer.`;
+  shareText('My PawPocket Bond Compass',text);
+}
+function shareReframe() {
+  const r=dailyReframe();
+  shareText('True, false—or more complicated?',`${r.belief}\n\nA closer look: ${r.truth}\n\nNotice today: ${r.notice}\n\nShared from PawPocket.`);
+}
+function shareText(title,text) {
+  if (navigator.share) navigator.share({title,text}).catch(()=>{});
+  else if (navigator.clipboard) navigator.clipboard.writeText(text).catch(()=>{});
+}
 function answerCuriosity(packId, option) {
   go('discovery',{pack:packId,option});
 }
