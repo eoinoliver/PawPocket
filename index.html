@@ -381,7 +381,7 @@ const PRODUCT_DOCTRINE = {
     'Use reward-based methods only — no pain, fear, intimidation or dominance framing.',
     'Consider environment, safety, health, learning history and what the dog gains or avoids.',
     'Prefer management and easier setups before asking for more behaviour.',
-    'Never decode bites, injury, severe distress or immediate risk through a screen.',
+    'Never assess bites, injury, severe distress or immediate risk through a screen.',
     'Make observable claims and change the plan when the outcome changes.'
   ]
 };
@@ -533,13 +533,13 @@ function greeting() {
 // ---------- profile schema ----------
 const AVATARS = ['🐕','🐶','🐩','🦮','🐕‍🦺','🐾'];
 const PROFILE_FIELDS = [
-  { id:'age', label:'How old?', opts:[
+  { id:'age', label:'Life stage (helps tailor expectations)', opts:[
     {id:'puppy', label:'Puppy (under 6 months)'},
     {id:'adolescent', label:'Adolescent (6–18 months)'},
     {id:'adult', label:'Adult (1.5–7 years)'},
     {id:'senior', label:'Senior (7+)'}
   ]},
-  { id:'household', label:'Who is usually part of the moment?', multi:true, opts:[
+  { id:'household', label:'Who is often nearby? (optional context)', multi:true, opts:[
     {id:'kids', label:'Kids'}, {id:'otherdogs', label:'Other dogs'},
     {id:'visitors', label:'Regular visitors'}, {id:'adults', label:'Just adults'}
   ]}
@@ -554,7 +554,7 @@ const PACKS = {
 /* ---------------- JUMPING UP ---------------- */
 jumping: {
   id:'jumping', label:'Jumping up', emoji:'🐾',
-  tagline:'On guests, on you, on the kids — decode it in under a minute.',
+  tagline:'On guests, on you, on the kids — understand what keeps it going.',
   doneLine:'Polite greetings, learned together.',
   gate: {
     q:'First, one important question. Has the jumping ever involved any of these?',
@@ -667,7 +667,7 @@ jumping: {
 /* ---------------- LEAD PULLING ---------------- */
 pulling: {
   id:'pulling', label:'Lead pulling', emoji:'🦮',
-  tagline:'The walk that feels like water-skiing — decode what’s driving it.',
+  tagline:'The walk that feels like water-skiing — understand what’s driving it.',
   doneLine:'A walk you take together now.',
   gate: {
     q:'Quick safety check first — which sounds most like your walks?',
@@ -1327,8 +1327,8 @@ const VIEWS = {
     const meetCard = p ? '' : `
       <button class="card tap" onclick="editProfile()">
         <span class="btile">🐕</span>
-        <span><h3>Meet your dog</h3>
-        <p>Thirty seconds, once — and every read below gets written to them, by name. Or decode first and see if we’ve earned it.</p></span>
+        <span><h3>What should PawPocket call your dog?</h3>
+        <p>A name or nickname personalises the guidance. It stays on this device—and you can skip this and start with a moment.</p></span>
       </button>`;
 
     // Today surface
@@ -1380,11 +1380,11 @@ const VIEWS = {
       ${meetCard}
       ${todayHtml}
       <button class="today confidant" onclick="go('intake')">
-        <div class="t-kick"><span>PawPocket confidant</span><span class="duepill hot">Start here</span></div>
+        <div class="t-kick"><span>Start with one real moment</span><span class="duepill hot">Start here</span></div>
         <p class="t-cue">Tell me what happened.</p>
-        <div class="t-foot"><span>I’ll help you find the pattern, the safety line and one humane next move.</span><span>Open →</span></div>
+        <div class="t-foot"><span>Find a possible pattern, check the safety line and choose one humane next move.</span><span>Open →</span></div>
       </button>
-      <button class="trustline" onclick="go('evidence')">Private on this device · reward-based · clear safety limits →</button>
+      <button class="trustline" onclick="go('evidence')">Your entries stay on this device · sources shown · safety limits explained →</button>
       ${threadCard()}
       <div class="whisper"><span class="w-ico">🔎</span><p><span class="w-tag">Something worth noticing</span>${fill(dailyWhisper())}</p></div>
       <button class="card tap" onclick="go('ritual')">
@@ -1415,7 +1415,7 @@ const VIEWS = {
         : `<button class="btn ghost library-btn" onclick="expandTerritories()">Explore the library · 12 territories</button>`}
       <button class="card tap" onclick="go('evidence')">
         <span class="btile">✓</span>
-        <span><h3>Why trust this?</h3><p>Our humane method, safety limits and evidence ledger.</p></span>
+        <span><h3>How PawPocket guidance is built</h3><p>See the humane method, source ledger and moments when the app steps back.</p></span>
       </button>
       ${doneHtml}
       <footer class="legal">PawPocket gives humane, reward-based guidance for everyday behaviour. It is not a substitute for veterinary care or a qualified behaviour professional — and it will tell you when a situation needs one.<br><br>Private by design: everything you tell PawPocket stays on this device. No account, no cloud, no tracking.</footer>`;
@@ -1507,7 +1507,7 @@ const VIEWS = {
       <button class="back" onclick="go('intake')">← Edit</button>
       <h2>${view.matched?'A useful place to start':'Let’s narrow it together'}</h2>
       <div class="block readblk"><span class="tag">${pk.emoji} ${pk.label}</span>
-        <p>${view.matched?`Your words point most strongly to ${pk.label.toLowerCase()}. I’ll ask a safety question first, then two details about the moment.`:'I could not safely infer the territory from that description. Choose the closest below, or start with your vet if the change is sudden or concerning.'}</p></div>
+        <p>${view.matched?`Based only on what you entered, the closest guide is ${pk.label.toLowerCase()}. First comes a safety check, then two details before a possible interpretation.`:'I could not confidently match those words to a guide. Choose the closest below, or start with your vet if the change is sudden or concerning.'}</p></div>
       ${view.matched?`<button class="btn" onclick="startDecode('${pk.id}')">Read this moment</button>`:
         TERRITORY_GROUPS.map(g=>`<div class="kicker">${g.label}</div>${g.ids.map(id=>`<button class="card tap" onclick="startDecode('${id}')"><span class="btile">${PACKS[id].emoji}</span><span><h3>${PACKS[id].label}</h3></span></button>`).join('')}`).join('')}
       <button class="btn quiet" onclick="go('home')">Home</button>`;
@@ -1533,7 +1533,7 @@ const VIEWS = {
     return `
       <button class="back" onclick="go('home')">← Back</button>
       <h2>When PawPocket should step aside</h2>
-      <div class="block readblk"><span class="tag">A confidant knows its limits</span>
+      <div class="block readblk"><span class="tag">When the app should step back</span>
         <p>PawPocket can help you observe and practise across twelve everyday territories. It cannot examine pain, diagnose a disorder or safely assess complex risk through a screen.</p></div>
       <div class="block boundary"><span class="tag">If you’re dealing with something bigger</span>
         <p>Growling or snapping, guarding food or toys, panic when left alone, fear of people, or anything involving a bite — that isn’t app territory, and pretending otherwise would be selling you short. Those patterns are common, very workable, and fastest with in-person help.</p>
@@ -1546,11 +1546,11 @@ const VIEWS = {
   evidence() {
     return `
       <button class="back" onclick="go('home')">← Back</button>
-      <h2>Humane, useful — and honest</h2>
+      <h2>How PawPocket guidance is built</h2>
       <div class="block readblk"><span class="tag">Our promise</span><p>${PRODUCT_DOCTRINE.promise}</p></div>
       <div class="block"><span class="tag">The rules</span>
         ${PRODUCT_DOCTRINE.rules.map(r=>`<p>✓ ${r}</p>`).join('')}</div>
-      <div class="kicker">Evidence ledger</div>
+      <div class="kicker">Sources and professional standards</div>
       ${EVIDENCE_LEDGER.map(e=>`<a class="card tap" href="${e.url}" target="_blank" rel="noopener">
         <span class="btile">↗</span><span><h3>${e.title}</h3><p>${e.body}</p><span class="pill">${e.level}</span></span>
       </a>`).join('')}
@@ -1572,15 +1572,15 @@ const VIEWS = {
     }).join('');
     return `
       <button class="back" onclick="go('home')">← Back</button>
-      <h2>About your dog</h2>
-      <p class="sub">Stays on this device — no account, nothing uploaded, ever.</p>
-      <label>Name</label>
-      <input type="text" id="pname" placeholder="e.g. Max" value="${esc(draftProfile.name||'')}" oninput="draftProfile.name=this.value">
-      <label>Pick their keepsake portrait</label>
+      <h2>Personalise the guidance</h2>
+      <p class="sub">You know your dog. This optional context simply helps PawPocket write more relevant guidance. It stays on this device.</p>
+      <label for="pname">What name or nickname should PawPocket use?</label>
+      <input type="text" id="pname" autocomplete="off" placeholder="e.g. Max" value="${esc(draftProfile.name||'')}" oninput="draftProfile.name=this.value">
+      <label>Choose a private profile symbol (optional)</label>
       <div class="opts">${avatarOpts}</div>
       ${fields}
       <div style="height:18px"></div>
-      <div class="profile-actions"><button class="btn" onclick="saveProfile()">Done</button></div>`;
+      <div class="profile-actions"><button class="btn" onclick="saveProfile()">Save on this device</button></div>`;
   },
 
   gate() {
@@ -1622,8 +1622,8 @@ const VIEWS = {
     const already = S.working.some(w => w.behaviour===c.pack && !w.done);
     return `
       <button class="back" onclick="go('home')">← Start over</button>
-      <h2>The read</h2>
-      <div class="block readblk"><span class="tag">The short read</span>
+      <h2>A possible read</h2>
+      <div class="block readblk"><span class="tag">What may be happening</span>
         <p>${fill(t.intro, c)}</p></div>
       <div class="block readblk"><span class="tag">Try this today</span><p>${fill(t.action, c)}</p></div>
       ${boundaries}
@@ -1635,18 +1635,18 @@ const VIEWS = {
         <p><b>The common trap</b><br>${fill(d.trap,c)}</p></div></details>
       <details class="depth"><summary>Method and safety</summary>
         <div class="inside"><p>${PRODUCT_DOCTRINE.promise}</p>
-        <button class="btn ghost" onclick="go('evidence')">See the evidence ledger</button></div></details>
-      <button class="btn ghost" onclick="shareResult()">Share this read</button>
+        <button class="btn ghost" onclick="go('evidence')">See sources and standards</button></div></details>
+      <button class="btn ghost" onclick="shareResult()">Share a copy of this guidance</button>
       <button class="btn ghost" onclick="saveMoment()">Save this dog moment</button>
       ${!S.profile ? `<div class="block boundary"><span class="tag">Make it personal</span>
-        <p>This read was written for “a dog”. Thirty seconds about yours — name, age, home — and I’ll rewrite it for them, and remember for next time.</p></div>` : ''}
+        <p>Optional context—a name or nickname, life stage and who is often nearby—can make future wording more relevant. It stays on this device.</p></div>` : ''}
       ${already
         ? `<p class="sub" style="margin-top:14px">You’re already working on this one — today’s tip folds right into your plan.</p>
            <button class="btn" onclick="go('home')">Back to my plan</button>`
         : (!S.profile
-          ? `<button class="btn" onclick="editProfile('result')">Rewrite it for my dog</button>
+          ? `<button class="btn" onclick="editProfile('result')">Personalise future guidance</button>
              <button class="btn quiet" onclick="go('home')">Maybe later</button>`
-          : `<button class="btn" onclick="startWorking()">Follow the 3-step trail</button>
+          : `<button class="btn" onclick="startWorking()">Try this as a 7-day experiment</button>
              <button class="btn quiet" onclick="go('home')">Maybe later</button>`)}`;
   },
 
@@ -1760,7 +1760,7 @@ const VIEWS = {
         <p class="k-stat">${fill(pack.checkins.graduate, c.ctx)}</p>
         <div class="k-date">${(c.applied||0)} days applied · ${dateStr}</div>
       </div>
-      <button class="btn" onclick="shareKeepsake(${view.idx})">Share the win</button>
+      <button class="btn" onclick="shareKeepsake(${view.idx})">Share what changed</button>
       <button class="btn quiet" onclick="confirmClear(this, ${view.idx})">Clear this card</button>`;
   },
 
@@ -1916,7 +1916,7 @@ function saveProfile() {
     if (!document.getElementById('nameErr')) {
       const e = document.createElement('p');
       e.id = 'nameErr'; e.className = 'err';
-      e.textContent = 'One thing first — what’s your dog’s name? Everything here is written to them.';
+      e.textContent = 'What name or nickname should PawPocket use? You can also go back and continue without personalising.';
       nameEl.insertAdjacentElement('afterend', e);
     }
     nameEl.focus();
@@ -2099,7 +2099,7 @@ function shareResult() {
   } else if (navigator.clipboard) {
     navigator.clipboard.writeText(text).then(()=>{
       const buttons = [...document.querySelectorAll('.btn')];
-      const b = buttons.find(x=>x.textContent.includes('Share this read'));
+      const b = buttons.find(x=>x.textContent.includes('Share a copy of this guidance'));
       if (b) b.textContent = 'Copied — ready to send';
     }).catch(()=>{});
   }

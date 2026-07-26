@@ -5,7 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>LittleLens — Understand their moment. Choose the next move.</title>
-<meta name="description" content="A private early-years confidant that helps parents understand a real family moment, choose one useful next move and learn from what happens.">
+<meta name="description" content="A private early-years guide that helps parents understand a real family moment, choose one useful next move and learn from what happens.">
 <meta name="theme-color" content="#3f63a6" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#151821" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-title" content="LittleLens">
@@ -1084,13 +1084,13 @@ function greeting() {
 // ---------- profile schema ----------
 const AVATARS = ['🧒','👦','👧','👶','🌟','🧸'];
 const PROFILE_FIELDS = [
-  { id:'age', label:'How old?', opts:[
+  { id:'age', label:'Age range (helps tailor developmental expectations)', opts:[
     {id:'one', label:'Around 1 (12–23 months)'},
     {id:'two', label:'2 years'},
     {id:'three', label:'3 years'},
     {id:'fourfive', label:'4–5 years'}
   ]},
-  { id:'household', label:'Who else is usually in the moment?', multi:true, opts:[
+  { id:'household', label:'Who is often part of these moments? (optional)', multi:true, opts:[
     {id:'siblings', label:'Older sibling(s)'},
     {id:'baby', label:'A baby / younger one'},
     {id:'otheradult', label:'Another adult'},
@@ -1107,7 +1107,7 @@ const PACKS = {
 /* ---------------- MELTDOWNS ---------------- */
 meltdowns: {
   id:'meltdowns', label:'Meltdowns', emoji:'🌩️',
-  tagline:'The supermarket, the car seat, the bedtime “no” — decode what’s really happening.',
+  tagline:'The supermarket, the car seat, the bedtime “no” — understand what may be happening.',
   doneLine:'Storms you can weather together now.',
   gate: {
     q:'First, one important question. When the big feelings hit, is it ever any of these?',
@@ -1220,7 +1220,7 @@ meltdowns: {
 /* ---------------- NOT LISTENING ---------------- */
 listening: {
   id:'listening', label:'Not listening', emoji:'🙉',
-  tagline:'“I’ve asked five times” — decode why the words aren’t landing.',
+  tagline:'“I’ve asked five times” — understand why the words may not be landing.',
   doneLine:'Asks that actually land now.',
   gate: {
     q:'Quick check first — which is closest to what’s going on?',
@@ -1323,7 +1323,7 @@ listening: {
 /* ---------------- HITTING & HURTING ---------------- */
 hitting: {
   id:'hitting', label:'Hitting & hurting', emoji:'✋',
-  tagline:'Hitting, biting, pushing, throwing — decode the feeling underneath.',
+  tagline:'Hitting, biting, pushing, throwing — look beneath the behaviour safely.',
   doneLine:'Big feelings with safer hands.',
   gate: {
     q:'First, an important check. What best describes the hitting or hurting?',
@@ -1549,8 +1549,8 @@ const VIEWS = {
     const meetCard = p ? '' : `
       <button class="card tap" onclick="editProfile()">
         <span class="btile">🧒</span>
-        <span><h3>Meet your little one</h3>
-        <p>Thirty seconds, once — and every read below gets written to them, by name. Or decode first and see if we’ve earned it.</p></span>
+        <span><h3>What name or nickname should LittleLens use?</h3>
+        <p>This only personalises the wording. It stays on this device—and you can skip it and start with a moment.</p></span>
       </button>`;
 
     let todayHtml = '';
@@ -1598,11 +1598,11 @@ const VIEWS = {
       <button class="today confidant" onclick="go('intake')">
         <div class="t-kick"><span>Start with the moment</span><span class="duepill hot">About 2 min</span></div>
         <p class="t-cue">What happened with ${name}?</p>
-        <div class="t-foot"><span>Tell me in your own words. We’ll understand it together and choose one next move.</span><span>Open →</span></div>
+        <div class="t-foot"><span>Use your own words. Get the closest guide, a clear safety line and one useful next move.</span><span>Open →</span></div>
       </button>
       <div class="moment-grid" aria-label="Common moments">
         <button class="moment-choice" onclick="startDecode('meltdowns')">🌋 Big feelings</button>
-        <button class="moment-choice" onclick="startDecode('listening')">👂 Won’t cooperate</button>
+        <button class="moment-choice" onclick="startDecode('listening')">👂 Cooperation is hard</button>
         <button class="moment-choice" onclick="startDecode('hitting')">🛡️ Someone got hurt</button>
         <button class="moment-choice" onclick="startDecode('sleep')">🌙 Sleep is hard</button>
       </div>
@@ -1632,7 +1632,7 @@ const VIEWS = {
         <span class="btile">🔎</span>
         <span><h3>Explore the family moment library</h3><p>All 12 guides, organised for when you want to learn more—not when you need one answer now.</p></span>
       </button>
-      <button class="trustline" onclick="go('evidence')">Private on this device · evidence-informed · clear safety limits →</button>
+      <button class="trustline" onclick="go('evidence')">Your entries stay on this device · sources shown · safety limits explained →</button>
       ${doneHtml}
       <footer class="legal">LittleLens gives evidence-informed guidance for everyday toddler and preschool behaviour. It does not diagnose and is not a substitute for your GP, child and family health nurse or another qualified professional — and it will tell you when to reach for one.<br><br>Private by design: everything you tell LittleLens stays on this device. No account, no cloud, no tracking.</footer>`;
   },
@@ -1738,7 +1738,7 @@ const VIEWS = {
       <button class="back" onclick="go('home')">← Back</button>
       <span class="stepbadge">Private · stays on this device</span>
       <h2>What happened?</h2>
-      <p class="sub">Use your own words. LittleLens matches the moment to a governed guide — it does not diagnose or generate advice from thin air.</p>
+      <p class="sub">Use your own words. LittleLens looks for the closest pre-written, evidence-informed guide. It does not diagnose your child.</p>
       <label for="concernText">The short version</label>
       <textarea id="concernText" rows="4" maxlength="240" placeholder="e.g. Every night she gets out of bed six times..."></textarea>
       <button class="btn" onclick="routeConcern()">Help me read it</button>
@@ -1763,9 +1763,9 @@ const VIEWS = {
       <h2>${esc(text)}</h2>
       <p class="sub">This sounds closest to:</p>
       ${matches.slice(0,3).map((m,i)=>`<button class="${i===0?'today':'card tap'}" onclick="startDecode('${m.id}')">
-        ${i===0?`<div class="t-kick"><span>Best match</span><span class="duepill hot">Start here</span></div>
+        ${i===0?`<div class="t-kick"><span>Closest guide</span><span class="duepill hot">Start here</span></div>
         <p class="t-cue">${PACKS[m.id].emoji} ${PACKS[m.id].label}</p>
-        <div class="t-foot"><span>${PACKS[m.id].tagline}</span><span>Decode →</span></div>`
+        <div class="t-foot"><span>${PACKS[m.id].tagline}</span><span>Read the moment →</span></div>`
         :`<span class="btile">${PACKS[m.id].emoji}</span><span><h3>${PACKS[m.id].label}</h3><p>${PACKS[m.id].tagline}</p></span>`}
       </button>`).join('')}
       <button class="btn quiet" onclick="go('intakeMatch',{matches:[],text:${JSON.stringify(text)}})">None of these</button>`;
@@ -1782,8 +1782,8 @@ const VIEWS = {
       <div class="block readblk"><span class="tag">What you noticed</span><p>${esc(m.summary)}</p></div>
       <div class="block"><span class="tag">The lens</span><p>${m.lens}</p></div>
       <div class="block readblk"><span class="tag">The next move</span><p>${m.action}</p></div>
-      <button class="btn" onclick="shareMoment(${view.idx})">Send this moment</button>
-      <button class="btn ghost" onclick="startDecode('${m.pack}')">Decode a new ${pack.label.toLowerCase()} moment</button>
+      <button class="btn" onclick="shareMoment(${view.idx})">Create a share-safe version</button>
+      <button class="btn ghost" onclick="startDecode('${m.pack}')">Read a new ${pack.label.toLowerCase()} moment</button>
       <button class="btn quiet" onclick="removeMoment(${view.idx})">Remove saved moment</button>`;
   },
 
@@ -1797,19 +1797,19 @@ const VIEWS = {
         <p>Write down three things: what you see, when it happens, and what has changed. Take that short pattern to your GP or child and family health nurse. Ask directly whether hearing, development, health, stress or the environment should be assessed.</p></div>
       <div class="block"><span class="tag">Say this when you reach out</span>
         <div class="script">“Hi — I’m looking for some support with my young child. What I’m seeing is [what’s happening], it happens [when], and I’m concerned because [what worries you]. Can you help or point me in the right direction?”</div></div>
-      <button class="btn" onclick="shareConcernScript()">Send this to my partner</button>
+      <button class="btn" onclick="shareConcernScript()">Prepare a note for my co-parent</button>
       <button class="btn ghost" onclick="go('home')">Back home</button>`;
   },
 
   evidence() {
     return `
       <button class="back" onclick="go('home')">← Back</button>
-      <h2>Warm, useful — and honest</h2>
+      <h2>How LittleLens guidance is built</h2>
       <div class="block readblk"><span class="tag">Our promise</span>
         <p>${PRODUCT_DOCTRINE.promise}</p></div>
       <div class="block"><span class="tag">The rules</span>
         ${PRODUCT_DOCTRINE.rules.map(r=>`<p>✓ ${r}</p>`).join('')}</div>
-      <div class="kicker">Evidence ledger</div>
+      <div class="kicker">Sources and professional standards</div>
       ${EVIDENCE_LEDGER.map(e=>`<a class="card tap" href="${e.url}" target="_blank" rel="noopener">
         <span class="btile">↗</span><span><h3>${e.title}</h3><p>${e.body}</p><span class="pill">${e.level}</span></span>
       </a>`).join('')}
@@ -1831,15 +1831,15 @@ const VIEWS = {
     }).join('');
     return `
       <button class="back" onclick="go('home')">← Back</button>
-      <h2>About your little one</h2>
-      <p class="sub">Stays on this device — no account, nothing uploaded, ever.</p>
-      <label>Name</label>
-      <input type="text" id="pname" placeholder="e.g. Ava" value="${esc(draftProfile.name||'')}" oninput="draftProfile.name=this.value">
-      <label>Pick their portrait</label>
+      <h2>Personalise the guidance</h2>
+      <p class="sub">You know your child. This optional context only helps LittleLens use clearer, more relevant wording. It stays on this device.</p>
+      <label for="pname">What name or nickname should LittleLens use?</label>
+      <input type="text" id="pname" autocomplete="off" placeholder="e.g. Ava or Possum" value="${esc(draftProfile.name||'')}" oninput="draftProfile.name=this.value">
+      <label>Choose a private profile symbol (optional)</label>
       <div class="opts">${avatarOpts}</div>
       ${fields}
       <div style="height:18px"></div>
-      <div class="profile-actions"><button class="btn" onclick="saveProfile()">Done</button></div>`;
+      <div class="profile-actions"><button class="btn" onclick="saveProfile()">Save on this device</button></div>`;
   },
 
   gate() {
@@ -1881,24 +1881,24 @@ const VIEWS = {
     const already = S.working.some(w => w.behaviour===c.pack && !w.done);
     return `
       <button class="back" onclick="go('home')">← Start over</button>
-      <h2>The read</h2>
-      <div class="block readblk"><span class="tag">What’s likely happening</span>
+      <h2>A possible read</h2>
+      <div class="block readblk"><span class="tag">What may be happening</span>
         <p>${fill(t.intro, c)}</p><p>${fill(d.core, c)}</p>${ageLine?`<p>${fill(ageLine, c)}</p>`:''}</div>
       <div class="block"><span class="tag">Developmental lens</span><p>${fill(d.lens, c)}</p></div>
       <div class="block"><span class="tag">The common trap</span><p>${fill(d.trap, c)}</p></div>
       <div class="block readblk"><span class="tag">Try this today</span><p>${fill(t.action, c)}</p></div>
       ${boundaries}
-      <button class="btn ghost" onclick="shareResult()">Share this lens</button>
+      <button class="btn ghost" onclick="shareResult()">Create a share-safe copy</button>
       <button class="btn quiet" onclick="saveCurrentMoment()">Save this family moment</button>
       ${!S.profile ? `<div class="block boundary"><span class="tag">Make it personal</span>
-        <p>This read was written for “a child”. Thirty seconds about yours — name, age, home — and I’ll rewrite it for them, and remember for next time.</p></div>` : ''}
+        <p>Optional context—a name or nickname, age range and who is often part of the moment—can make future wording more relevant. It stays on this device.</p></div>` : ''}
       ${already
         ? `<p class="sub" style="margin-top:14px">You’re already working on this one — today’s tip folds right into your plan.</p>
            <button class="btn" onclick="go('home')">Back to my plan</button>`
         : (!S.profile
-          ? `<button class="btn" onclick="editProfile('result')">Rewrite it for my child</button>
+          ? `<button class="btn" onclick="editProfile('result')">Personalise future guidance</button>
              <button class="btn quiet" onclick="go('home')">Maybe later</button>`
-          : `<button class="btn" onclick="startWorking()">Work on this with me</button>
+          : `<button class="btn" onclick="startWorking()">Try this as a 7-day experiment</button>
              <button class="btn quiet" onclick="go('home')">Maybe later</button>`)}`;
   },
 
@@ -1959,7 +1959,7 @@ const VIEWS = {
         <p class="k-stat">${fill(pack.checkins.graduate, c.ctx)}</p>
         <div class="k-date">${(c.applied||0)} days applied · ${dateStr}</div>
       </div>
-      <button class="btn" onclick="shareKeepsake(${view.idx})">Share the win</button>
+      <button class="btn" onclick="shareKeepsake(${view.idx})">Share what changed</button>
       <button class="btn quiet" onclick="confirmClear(this, ${view.idx})">Clear this card</button>`;
   },
 
@@ -2091,15 +2091,19 @@ function removeMoment(idx) {
 function shareMoment(idx) {
   const m=S.moments[idx]; if(!m)return;
   const pack=PACKS[m.pack];
-  const text=`A LittleLens family moment: ${pack.label}\n\nWhat we noticed:\n${m.summary}\n\nThe lens:\n${stripHtml(m.lens)}\n\nOne thing to try:\n${stripHtml(m.action)}\n\nhttps://pawpocket.com.au/littlelens/`;
-  shareText(`${pack.label} · LittleLens`,text,'Send this moment');
+  const text=`A LittleLens family moment: ${pack.label}\n\nA closer lens:\n${privacySafe(stripHtml(m.lens))}\n\nOne thing to try:\n${privacySafe(stripHtml(m.action))}\n\nNo child details included.\nhttps://pawpocket.com.au/littlelens/`;
+  shareText(`${pack.label} · LittleLens`,text,'Create a share-safe version');
 }
 function shareConcernScript() {
   const text='A useful note for our family:\\n\\nWhat we are seeing: [what happens]\\nWhen it happens: [time, place, trigger]\\nWhat changed: [sleep, health, family, childcare, routine]\\nWhat worries us: [impact or safety]\\n\\nLet’s compare what we each notice and decide whether to speak with our GP or child and family health nurse.';
-  shareText('A LittleLens family note',text,'Send this to my partner');
+  shareText('A LittleLens family note',text,'Prepare a note for my co-parent');
 }
 function stripHtml(text) {
   const d=document.createElement('div'); d.innerHTML=text; return d.textContent||'';
+}
+function privacySafe(text) {
+  const name=(S.profile&&S.profile.name)||'';
+  return name ? String(text).split(name).join('your child') : String(text);
 }
 function shareText(title,text,buttonLabel) {
   if (navigator.share) navigator.share({title,text}).catch(()=>{});
@@ -2133,7 +2137,7 @@ function saveProfile() {
     if (!document.getElementById('nameErr')) {
       const e = document.createElement('p');
       e.id = 'nameErr'; e.className = 'err';
-      e.textContent = 'One thing first — what’s your little one’s name? Everything here is written to them.';
+      e.textContent = 'What name or nickname should LittleLens use? You can also go back and continue without personalising.';
       nameEl.insertAdjacentElement('afterend', e);
     }
     nameEl.focus();
@@ -2276,8 +2280,8 @@ function celebrate() {
 function shareKeepsake(idx) {
   const c = S.working[idx];
   if (!c) return;
-  const p = S.profile, pack = PACKS[c.behaviour];
-  const text = `${p.name} and I just worked through ${pack.label.toLowerCase()} together 🌱 ${ (c.applied||0)} days of small, calm steps. (Built with LittleLens.)`;
+  const pack = PACKS[c.behaviour];
+  const text = `We just worked through ${pack.label.toLowerCase()} together 🌱 ${ (c.applied||0)} days of small, calm steps. No child details included. (Built with LittleLens.)`;
   if (navigator.share) {
     navigator.share({ text }).catch(()=>{});
   } else if (navigator.clipboard) {
@@ -2292,13 +2296,13 @@ function shareResult() {
   if (!decodeCtx.pack) return;
   const pack = PACKS[decodeCtx.pack];
   const target = pack.targets[decodeCtx.who];
-  const text = `A LittleLens moment: ${pack.label}\n\nWhat might be happening:\n${fill(target.intro, decodeCtx)}\n\nOne thing to try:\n${fill(target.action, decodeCtx)}\n\nA small lens for a real family moment — not a diagnosis.\nhttps://pawpocket.com.au/littlelens/`;
+  const text = `A LittleLens moment: ${pack.label}\n\nWhat might be happening:\n${privacySafe(stripHtml(fill(target.intro, decodeCtx)))}\n\nOne thing to try:\n${privacySafe(stripHtml(fill(target.action, decodeCtx)))}\n\nNo child details included. A small lens for a real family moment—not a diagnosis.\nhttps://pawpocket.com.au/littlelens/`;
   if (navigator.share) {
     navigator.share({title:`LittleLens · ${pack.label}`, text}).catch(()=>{});
   } else if (navigator.clipboard) {
     navigator.clipboard.writeText(text).then(()=>{
       const buttons = [...document.querySelectorAll('.btn')];
-      const b = buttons.find(x=>x.textContent.includes('Share this lens'));
+      const b = buttons.find(x=>x.textContent.includes('Create a share-safe copy'));
       if (b) b.textContent = 'Copied — ready to send';
     }).catch(()=>{});
   }
