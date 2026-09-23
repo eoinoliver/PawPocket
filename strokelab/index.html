@@ -452,7 +452,8 @@ const HERO={mocapSV:{az:14,el:7,d:8.4,fov:34,z:1.35},mocapFH:{az:16,el:7,d:6.0,f
   mocapBV:{az:164,el:7,d:6.0,fov:34,z:0.75},mocapSM:{az:16,el:7,d:8.0,fov:34,z:1.2}};
 const WIDE={az:-95,el:21,d:16,fov:30};
 const CAMS=[{n:"Auto"},{n:"Rally",...WIDE},{n:"Side",az:0,el:8,d:5.6,fov:34},{n:"Behind",az:-97,el:14,d:6.2,fov:34},
-  {n:"Broadcast",az:-93,el:20,d:17,fov:15},{n:"Facing",az:92,el:9,d:5.2,fov:34},{n:"Overhead",az:-90,el:70,d:4.6,fov:34}];
+  {n:"Broadcast",az:-93,el:20,d:17,fov:15},{n:"Facing",az:92,el:9,d:5.2,fov:34},{n:"Overhead",az:-90,el:70,d:4.6,fov:34},
+  {n:"Hand & racquet",az:0,el:8,d:2.2,fov:34,follow:true}];
 function fixedCam(i){const c=CAMS[i],wide=c.n==="Rally";
   return {az:c.az,el:c.el,d:c.d,fov:c.fov,tgt:[0,0,wide?1.02:HERO[KEY].z+0.3]};}
 function angMix(a,b,w){let d=((b-a+540)%360)-180;return a+d*w;}
@@ -485,6 +486,7 @@ function caption(){
 function render(){
   const CO=D.courtOffset, CRT=D.court, pose=poseAt(D,t);
   if(camMode===0) cam=directorCam(t);
+  else if(camMode>0&&CAMS[camMode].follow){const r=rqAt(t,pose);cam.tgt=lerp3(r.w,r.centre,.5);}
   buildBasis();
   const frag=document.createDocumentFragment();
   const court=(X,Y,Z)=>[X-CO[0],Y-CO[1],Z||0];
