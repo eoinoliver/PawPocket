@@ -129,6 +129,14 @@ input[type=range]{flex:1;accent-color:var(--accent);height:26px}
 .fs svg{width:18px;height:18px;fill:currentColor}
 .fs:hover{border-color:var(--accent)}
 .details .stage .readout{right:58px}
+.viewer.full,.viewer:fullscreen{position:fixed;inset:0;z-index:50;background:#06140a;display:flex;flex-direction:column;padding:10px 12px max(10px,env(safe-area-inset-bottom))}
+.viewer:-webkit-full-screen{position:fixed;inset:0;background:#06140a;display:flex;flex-direction:column;padding:10px 12px}
+.viewer.full .camrow,.viewer:fullscreen .camrow{margin:0 0 8px;flex:none}
+.viewer.full .camrow .chip:not([aria-pressed="true"]),.viewer:fullscreen .camrow .chip:not([aria-pressed="true"]){background:rgba(28,28,28,.8)}
+.viewer.full .stage,.viewer:fullscreen .stage{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;border-radius:12px}
+.viewer.full .stage svg,.viewer:fullscreen .stage svg{width:100%;height:100%}
+.viewer:-webkit-full-screen .stage{flex:1;min-height:0}
+.viewer:-webkit-full-screen .stage svg{width:100%;height:100%}
 .stage.full,.stage:fullscreen{position:fixed;inset:0;z-index:50;border-radius:0;border:0;display:flex;align-items:center;justify-content:center;background:#06140a}
 .stage:-webkit-full-screen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#06140a}
 .stage.full svg,.stage:fullscreen svg{width:100%;height:100%;max-height:100vh}
@@ -186,11 +194,10 @@ details.note[open] summary::after{content:" \2013"}
 <div class="wrap" id="root">
   <div class="eyebrow" style="color:var(--accent)">GameSharp &middot; Stroke Lab</div>
   <h1>See the shot</h1>
-  <p class="standfirst">Real players, captured at 100 frames a second. Each shot plays like a replay:
-    the ball comes over, we slow down at contact. Pick your own camera angle.</p>
 
   <div class="strokes" id="strokes"></div>
 
+  <div class="viewer" id="viewer">
   <div class="camrow" id="cams"><span class="lbl">Camera</span></div>
   <div class="stage" id="stage">
     <button class="fs" id="fsBtn" aria-label="Full screen"><svg id="fsIcon" viewBox="0 0 24 24"><path d="M4 9V4h5v2H6v3zm11-5h5v5h-2V6h-3zM6 15v3h3v2H4v-5zm12 0h2v5h-5v-2h3z"/></svg></button>
@@ -207,6 +214,7 @@ details.note[open] summary::after{content:" \2013"}
       <div class="opts" id="askOpts"></div>
     </div></div>
     <div class="cap" id="cap"><div class="k" id="capK"></div><div class="t" id="capT"></div></div>
+  </div>
   </div>
   <div class="progress"><i id="prog"></i></div>
 
@@ -296,6 +304,24 @@ function seg(frag,a,b,stroke,w,op){let ca=toCam(a),cb=toCam(b);if(ca.z<=ZNEAR&&c
   const A=proj(ca),B=proj(cb);
   frag.appendChild(el_("line",{x1:A[0].toFixed(1),y1:A[1].toFixed(1),x2:B[0].toFixed(1),y2:B[1].toFixed(1),
     stroke,"stroke-width":w,"stroke-linecap":"round",opacity:op==null?1:op}));}
+// Text painted on a plane in 3D. Each letter gets its own affine map from three projected
+// corners: an affine is exact only for a small patch, so one per letter keeps the
+// perspective honest even when the word runs away from the camera.
+// GAME in white, SHARP in gold, as the brand is set
+const BRAND=[...'GAME'].map(()=>'#f0ece3').concat([...'SHARP'].map(()=>'#c8a84b'));
+function planeText(frag,txt,origin,uDir,vDir,widthM,heightM,fill,op){
+  const n=txt.length, lw=widthM/n, F=100, CAP=70;
+  for(let i=0;i<n;i++){
+    const o=add(origin,mul(uDir,lw*i)), a=P(o), b=P(add(o,mul(uDir,lw))), c=P(add(o,mul(vDir,heightM)));
+    if(!a||!b||!c) continue;
+    const ax=(b.s[0]-a.s[0])/F, ay=(b.s[1]-a.s[1])/F, cx=-(c.s[0]-a.s[0])/CAP, cy=-(c.s[1]-a.s[1])/CAP;
+    if(ax*cy-ay*cx<=0) continue;              // looking at the back of it: skip
+    const e=el_("text",{x:(F/2).toFixed(1),y:"0","text-anchor":"middle",fill:Array.isArray(fill)?fill[i]:fill,opacity:op,
+      "font-family":"Bebas Neue, Impact, sans-serif","font-size":F,
+      transform:`matrix(${ax.toFixed(4)},${ay.toFixed(4)},${cx.toFixed(4)},${cy.toFixed(4)},${a.s[0].toFixed(1)},${a.s[1].toFixed(1)})`});
+    e.textContent=txt[i]; frag.appendChild(e);
+  }
+}
 function ring(frag,c,rx,ry,stroke,w,op,fill){const q=[];for(let i=0;i<=28;i++){const a=i/28*Math.PI*2;
   q.push(toCam([c[0]+rx*Math.cos(a),c[1]+ry*Math.sin(a),c[2]]));}
   const k=clipPoly(q);if(k.length<3)return;
@@ -467,6 +493,11 @@ function render(){
     quad(frag,[[-Dw,-L],[Dw,-L],[Dw,L],[-Dw,L]].map(p=>court(p[0],p[1])),"var(--court)");
     const l2=CRT.length/2,d2=CRT.doublesWidth/2,S=CRT.singlesWidth/2,V=CRT.serviceLine;
     quad(frag,[[-d2,-l2],[d2,-l2],[d2,l2],[-d2,l2]].map(p=>court(p[0],p[1])),"var(--court-in)");
+    // branding in the run-off behind each baseline, each reading from its own end
+    // both read from the near end, where the main cameras sit
+    const BW=4.4, BH=0.72;
+    planeText(frag,"GAMESHARP",court(-BW/2,CRT.length/2+1.5,0.005),[1,0,0],[0,1,0],BW,BH,BRAND,.42);
+    planeText(frag,"GAMESHARP",court(-BW/2,-CRT.length/2-2.6,0.005),[1,0,0],[0,1,0],BW,BH,BRAND,.3);
     const ln=(a,b)=>seg(frag,court(a[0],a[1]),court(b[0],b[1]),"var(--court-line)",1.6);
     ln([-d2,-l2],[d2,-l2]);ln([-d2,l2],[d2,l2]);ln([-d2,-l2],[-d2,l2]);ln([d2,-l2],[d2,l2]);
     ln([-S,-l2],[-S,l2]);ln([S,-l2],[S,l2]);ln([-S,-V],[S,-V]);ln([-S,V],[S,V]);ln([0,-V],[0,V]);
@@ -494,6 +525,8 @@ function render(){
     if(mesh>0.012) for(let i=0;i<=16;i++){const x=-W+2*W*i/16;seg(frag,court(x,0,0),court(x,0,h),"rgba(233,240,225,"+mesh.toFixed(3)+")",0.8);}
     seg(frag,court(-W,0,0),court(-W,0,h+0.02),"rgba(240,236,227,.5)",2.4);
     seg(frag,court(W,0,0),court(W,0,h+0.02),"rgba(240,236,227,.5)",2.4);
+    planeText(frag,"GAMESHARP",court(-1.0,-0.01,0.68),[1,0,0],[0,0,1],2.0,0.19,BRAND,.5);
+    planeText(frag,"GAMESHARP",court(1.0,0.01,0.68),[-1,0,0],[0,0,1],2.0,0.19,BRAND,.5);
     seg(frag,court(-W,0,h),court(W,0,h),"rgba(240,236,227,.8)",2.4);}
   // ball trail: the recent path only, fading, so it reads as motion not as a diagram
   if(showBall){let prev=null;const tail=details?9999:22;
@@ -663,19 +696,20 @@ stage.addEventListener("wheel",e=>{e.preventDefault();if(camMode===0){setCam(-1)
 const fsBtn=document.getElementById("fsBtn");
 const FS_IN='<path d="M4 9V4h5v2H6v3zm11-5h5v5h-2V6h-3zM6 15v3h3v2H4v-5zm12 0h2v5h-5v-2h3z"/>';
 const FS_OUT='<path d="M9 4v5H4V7h3V4zm6 0h2v3h3v2h-5zM4 15h5v5H7v-3H4zm11 0h5v2h-3v3h-2z"/>';
-function isFull(){return !!(document.fullscreenElement||document.webkitFullscreenElement||stage.classList.contains("full"));}
+const viewer=document.getElementById("viewer");
+function isFull(){return !!(document.fullscreenElement||document.webkitFullscreenElement||viewer.classList.contains("full"));}
 function paintFs(){const f=isFull();document.getElementById("fsIcon").innerHTML=f?FS_OUT:FS_IN;
   fsBtn.setAttribute("aria-label",f?"Exit full screen":"Full screen");}
 fsBtn.onclick=e=>{e.stopPropagation();
   if(isFull()){ if(document.fullscreenElement)document.exitFullscreen(); else if(document.webkitFullscreenElement)document.webkitExitFullscreen();
-    stage.classList.remove("full");document.body.classList.remove("noscroll"); }
-  else{ const req=stage.requestFullscreen||stage.webkitRequestFullscreen;
-    if(req){ try{ const p=req.call(stage); if(p&&p.catch)p.catch(()=>{stage.classList.add("full");document.body.classList.add("noscroll");paintFs();}); }
-             catch(_){stage.classList.add("full");document.body.classList.add("noscroll");} }
-    else {stage.classList.add("full");document.body.classList.add("noscroll");} }
+    viewer.classList.remove("full");document.body.classList.remove("noscroll"); }
+  else{ const req=viewer.requestFullscreen||viewer.webkitRequestFullscreen;
+    if(req){ try{ const p=req.call(viewer); if(p&&p.catch)p.catch(()=>{viewer.classList.add("full");document.body.classList.add("noscroll");paintFs();}); }
+             catch(_){viewer.classList.add("full");document.body.classList.add("noscroll");} }
+    else {viewer.classList.add("full");document.body.classList.add("noscroll");} }
   setTimeout(paintFs,60);};
 document.addEventListener("fullscreenchange",paintFs);document.addEventListener("webkitfullscreenchange",paintFs);
-document.addEventListener("keydown",e=>{if(e.key==="Escape"&&stage.classList.contains("full")){stage.classList.remove("full");document.body.classList.remove("noscroll");paintFs();}});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&viewer.classList.contains("full")){viewer.classList.remove("full");document.body.classList.remove("noscroll");paintFs();}});
 
 setIdx(); paintMeta(); restart();
 if(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches){}
